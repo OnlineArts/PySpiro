@@ -13,7 +13,7 @@ setup(
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         packages=find_packages(),
-        package_data={'': ['data/gli_2012_splines.csv', 'data/gli_2012_coefficients.csv', 'data/PySpiro.png']},
+        package_data={'': ['data/gli_2012_splines.csv', 'data/gli_2012_coefficients.csv', 'data/PySpiro_250x.png']},
         include_package_data=True,
         install_requires=["pandas", "numpy"],
         keywords=['python', 'respirology', 'spirometry'],
