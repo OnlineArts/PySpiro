@@ -1,8 +1,8 @@
-from PySpiro.src.reference import Reference
+from .reference import Reference
 from enum import Enum
+import importlib.resources
 import pandas
 import numpy
-
 
 class GLI_2012(Reference):
     """
@@ -43,8 +43,10 @@ class GLI_2012(Reference):
         Loads and stores the coefficient and splines values.
         :return: both files as pandas dataframe
         """
-        lookup = pandas.read_csv("data/gli_2012_splines.csv", delimiter=";").set_index("age")
-        splines = pandas.read_csv("data/gli_2012_coefficients.csv", delimiter=";").set_index("var")
+        lookup_path = importlib.resources.open_binary('PySpiro.data', 'gli_2012_splines.csv')
+        splines_path = importlib.resources.open_binary('PySpiro.data', 'gli_2012_coefficients.csv')
+        lookup = pandas.read_csv(lookup_path, delimiter=";").set_index("age")
+        splines = pandas.read_csv(splines_path, delimiter=";").set_index("var")
         self._age_range: tuple = (min(lookup.index), max(lookup.index))
         return lookup, splines
 
