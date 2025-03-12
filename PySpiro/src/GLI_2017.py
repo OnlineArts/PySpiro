@@ -21,7 +21,7 @@ class GLI_2017(Reference):
     def lms(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float) -> tuple:
         pass
 
-    def predict(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         pass
 
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):

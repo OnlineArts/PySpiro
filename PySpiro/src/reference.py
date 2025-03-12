@@ -4,7 +4,7 @@ from enum import Enum
 class Reference(ABC):
 
     @abstractmethod
-    def predict(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         pass
 
     @abstractmethod

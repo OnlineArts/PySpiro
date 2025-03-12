@@ -1,4 +1,4 @@
-from .src.GLI_2012 import GLI_2012
+from src.GLI_2012 import GLI_2012
 
 class Spiro:
 
@@ -20,6 +20,9 @@ df["GLI_2012_FEV1"] = df.apply(
 
 print(df)
         """)
+        self._gli_2012_example()
+
+
 
     def _gli_2012_example(self):
         import pandas
@@ -27,9 +30,13 @@ print(df)
         gli = GLI_2012()
         df = pandas.DataFrame(
             {"age": [2, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 1, 0, 0, 1], "height": [120, 160, 180, 130, 176, 160],
-             "FEV1": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2], "ethnicity": [1, 1, 1, 2, 3, 4]})
+             "FEV1": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2], "ethnicity": [1, 1, 1, 2, 3, 4],
+             "FEF75": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
         df["GLI_2012_FEV1"] = df.apply(
-            lambda x: gli.predict(x.sex, x.age, x.height, 1, gli.Parameters["FEV1"].value, x.FEV1), axis=1)
+            lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEV1"].value, x.FEV1), axis=1)
+
+        df["GLI_2012_FEF75"] = df.apply(
+            lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEF75"].value, x.FEF75), axis=1)
 
         print(df)
 

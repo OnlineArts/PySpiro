@@ -23,6 +23,10 @@ class GLI_2012(Reference):
         FEV1 = 1
         FVC = 2
         FEV1FVC = 3
+        FEF25_75 = 4
+        FEF75 = 5
+        FEV075 = 6
+        FEV075FVC = 7
 
     class Ethnicity(Enum):
         """
@@ -59,9 +63,12 @@ class GLI_2012(Reference):
         :param parameter: self.Parameter enumeration as integer value
         """
         for i in ("Sspline", "Mspline", "Lspline"):
-            yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age]
+            yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age] # Change sth here
 
     def lms(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float) -> tuple:
+        """
+        Calculate l, m and s values for the given parameters.
+        """
         age = self.validate_age(round(age * 4) / 4)
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter)
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
@@ -76,18 +83,30 @@ class GLI_2012(Reference):
 
         return l, m, s
 
-    def predict(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        """
+        Returns % of predicted value.
+        """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
         return round(( value / m ) * 100, 2)
 
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        """
+        Returns z-score value.
+        """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
         return (((value/m)**l) - 1) / (l * s)
 
     def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        """
+        Returns lower limit of normal, by convention the lower 5th percentile.
+        """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
         return numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
 
     def all(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        """
+        Returns all values at once (percent, z-score and lln).
+        """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
         return round(( value / m ) * 100, 2), (((value/m)**l) - 1) / (l * s), numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
