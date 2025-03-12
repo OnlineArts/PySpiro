@@ -1,4 +1,4 @@
-from src.GLI_2012 import GLI_2012
+from .src.GLI_2012 import GLI_2012
 
 class Spiro:
 
