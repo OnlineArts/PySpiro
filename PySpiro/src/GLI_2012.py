@@ -4,6 +4,7 @@ import importlib.resources
 import pandas
 import numpy
 
+# Some stuff.
 class GLI_2012(Reference):
     """
     This global lung function was published in 2012 by Quanjer and includes as variable sex, age, height and ethnicity,
