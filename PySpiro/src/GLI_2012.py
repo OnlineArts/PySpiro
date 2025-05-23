@@ -1,10 +1,10 @@
 from .reference import Reference
 from enum import Enum
 import importlib.resources
-import pandas
 import numpy
+import pandas
 
-# Some stuff.
+
 class GLI_2012(Reference):
     """
     This global lung function was published in 2012 by Quanjer and includes as variable sex, age, height and ethnicity,
@@ -69,7 +69,10 @@ class GLI_2012(Reference):
         """
         Calculate l, m and s values for the given parameters.
         """
-        age = self.validate_age(round(age * 4) / 4)
+        age = self.validate_range(round(age * 4) / 4, self._age_range, "age", "ignore")
+        if age is pandas.NA:
+            return pandas.NA, pandas.NA, pandas.NA
+
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter)
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
@@ -83,30 +86,33 @@ class GLI_2012(Reference):
 
         return l, m, s
 
-    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float, silent = True):
         """
         Returns % of predicted value.
         """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
-        return round(( value / m ) * 100, 2)
+        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else round(( value / m ) * 100, 2)
 
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """
         Returns z-score value.
         """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
-        return (((value/m)**l) - 1) / (l * s)
+        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else (((value/m)**l) - 1) / (l * s)
 
     def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """
         Returns lower limit of normal, by convention the lower 5th percentile.
         """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
-        return numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
+        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
 
     def all(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """
         Returns all values at once (percent, z-score and lln).
         """
         l, m, s = self.lms(sex, age, height, ethnicity, parameter, value)
-        return round(( value / m ) * 100, 2), (((value/m)**l) - 1) / (l * s), numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
+        if (l is pandas.NA or m is pandas.NA or s is pandas.NA):
+            return pandas.NA
+        else:
+            return round(( value / m ) * 100, 2), (((value/m)**l) - 1) / (l * s), numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
