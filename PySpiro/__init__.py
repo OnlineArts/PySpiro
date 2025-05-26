@@ -1,5 +1,6 @@
-from .src.GLI_2012 import GLI_2012
 from .src.KUSTER_2008 import KUSTER_2008
+from .src.GLI_2012 import GLI_2012
+from .src.GLI_2017 import GLI_2017
 
 class Spiro:
 
@@ -27,8 +28,9 @@ df["GLI_2012_FEF75"] = df.apply(
 
 print(df)
         """)
-        self._gli_2012_example()
         self._kuster_2008_example()
+        self._gli_2012_example()
+        self._gli_2017_example()
 
 
     def _gli_2012_example(self):
@@ -63,6 +65,20 @@ print(df)
 
         df["KUSTER_2008_FEV1_LLN"] = df.apply(
             lambda x: kuster.lln(x.sex, x.age, x.height, 1, kuster.Parameters.FEV1_LLN, x.FEV1), axis=1)
+
+        print(df)
+
+    def _gli_2017_example(self):
+        import pandas
+        
+        gli = GLI_2017()
+
+        df = pandas.DataFrame(
+            {"age": [2, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 1, 0, 0, 1], "height": [120, 160, 180, 130, 176, 160],
+             "KCO": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
+
+        df["GLI_2017_KCO"] = df.apply(
+            lambda x: gli.percent(x.sex, x.age, x.height, gli.Parameters.KCO_SI, x.KCO), axis=1)
 
         print(df)
 

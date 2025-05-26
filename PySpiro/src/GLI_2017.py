@@ -42,8 +42,6 @@ class GLI_2017(Reference):
         No height range given.
         """
         self.__lookup, self.__splines = self.__load_lookup_table()
-        self._age_range = (5, 80)
-
 
     def __load_lookup_table(self) -> tuple:
         """
@@ -67,8 +65,6 @@ class GLI_2017(Reference):
         for i in ("Sspline", "Mspline", "Lspline"):
             yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age] # Change sth here
 
-
-
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """
         Calculate l, m and s values for the given parameters.
@@ -78,7 +74,6 @@ class GLI_2017(Reference):
             return pandas.NA, pandas.NA, pandas.NA
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
-
 
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
