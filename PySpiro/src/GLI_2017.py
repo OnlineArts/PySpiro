@@ -77,15 +77,8 @@ class GLI_2017(Reference):
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
-        print("%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower()))
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
-        # AfrAm = int(ethnicity == self.Ethnicity["AFRICAN_AMERICAN"].value)
-        # NEAsia = int(ethnicity == self.Ethnicity["NORTHEAST_ASIAN"].value)
-        # SEAsia = int(ethnicity == self.Ethnicity["SOUTHEAST_ASIAN"].value)
-
-        print(c.loc[["a0", "a1", "a2"]])
-        print(type(c.loc["a1"]))
 
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
