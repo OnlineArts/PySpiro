@@ -41,7 +41,7 @@ class GLI_2017(Reference):
         """
         No height range given.
         """
-        self.__lookup = self.__load_lookup_table()
+        self.__lookup, self.__splines = self.__load_lookup_table()
         self._age_range = (5, 80)
 
 
@@ -65,10 +65,6 @@ class GLI_2017(Reference):
         :param parameter: self.Parameter enumeration as integer value
         """
         for i in ("Sspline", "Mspline", "Lspline"):
-            print(self.Parameters(parameter).name)
-            print(self.Sex(sex).name.lower())
-            print(age)
-            print(i)
             yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age] # Change sth here
 
 
@@ -80,12 +76,16 @@ class GLI_2017(Reference):
         age = self.validate_range(round(age * 4) / 4, self._age_range, "age", "ignore")
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
-        sspline, mspline, lspline = self.__get_splines(sex, age, parameter)
+        sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
+        print("%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower()))
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
         # AfrAm = int(ethnicity == self.Ethnicity["AFRICAN_AMERICAN"].value)
         # NEAsia = int(ethnicity == self.Ethnicity["NORTHEAST_ASIAN"].value)
         # SEAsia = int(ethnicity == self.Ethnicity["SOUTHEAST_ASIAN"].value)
+
+        print(c.loc[["a0", "a1", "a2"]])
+        print(type(c.loc["a1"]))
 
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)

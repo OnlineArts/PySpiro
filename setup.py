@@ -15,10 +15,10 @@ setup(
         long_description=LONG_DESCRIPTION,
         long_description_content_type='text/markdown',
         packages=find_packages(),
-        package_data={'': ['data/gli_2012_splines.csv', 'data/gli_2012_coefficients.csv', 'data/PySpiro_250x.png']},
+        package_data={'': ['data/gli_2012_splines.csv', 'data/gli_2012_coefficients.csv','data/gli_2017_splines.csv', 'data/gli_2017_coefficients.csv', 'data/PySpiro_250x.png']},
         include_package_data=True,
         install_requires=["pandas", "numpy"],
-        keywords=['python', 'respirology', 'spirometry'],
+        keywords=['python', 'respirology', 'spirometry', 'bodyplethysmography'],
         classifiers= [
             "Development Status :: 4 - Beta",
             "Intended Audience :: Healthcare Industry",
