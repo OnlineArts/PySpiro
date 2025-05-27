@@ -37,6 +37,7 @@ print(df)
         import pandas
         
         gli = GLI_2012()
+        gli.set_strategy("test")
 
         df = pandas.DataFrame(
             {"age": [2, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 1, 0, 0, 1], "height": [120, 160, 180, 130, 176, 160],
@@ -55,13 +56,15 @@ print(df)
         import pandas
 
         kuster = KUSTER_2008()
+        kuster.set_silence(False)
+        
         df = pandas.DataFrame(
             {"age": [47, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 2, 0, 0, 1], "height": [170, 160, 180, 130, 195, 160],
              "FEV1": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2], "ethnicity": [1, 1, 1, 2, 3, 4],
              "FEF75": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
 
         df["KUSTER_2008_FEV1"] = df.apply(
-            lambda x: kuster.percent(x.sex, x.age, x.height, 1, kuster.Parameters.FEV1, x.FEV1, silent=False), axis=1)
+            lambda x: kuster.percent(x.sex, x.age, x.height, 1, kuster.Parameters.FEV1, x.FEV1), axis=1)
 
         df["KUSTER_2008_FEV1_LLN"] = df.apply(
             lambda x: kuster.lln(x.sex, x.age, x.height, 1, kuster.Parameters.FEV1_LLN, x.FEV1), axis=1)
@@ -72,6 +75,7 @@ print(df)
         import pandas
         
         gli = GLI_2017()
+        gli.set_strategy("closest")
 
         df = pandas.DataFrame(
             {"age": [2, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 1, 0, 0, 1], "height": [120, 160, 180, 130, 176, 160],

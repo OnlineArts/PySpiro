@@ -43,18 +43,18 @@ class KUSTER_2008(Reference):
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         pass
 
-    def _check_conditions(self, sex: int, age: float, height: float, silent: bool = True):
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age", "ignore", silent)
+    def _check_conditions(self, sex: int, age: float, height: float):
+        age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
         height_range = self._height_female_range if sex == self.Sex["FEMALE"].value else self._height_male_range
-        height = self.validate_range(height, height_range, "height", "ignore", silent)
-        sex = self.check_tuple(sex, (0,1), "sex", False)
+        height = self.validate_range(height, height_range, "height")
+        sex = self.check_tuple(sex, (0,1), "sex")
         return age, height, sex
 
-    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float, silent: bool = True):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """
         In this case, only calculate the m (predicted value).
         """
-        age, height, sex = self._check_conditions(sex, age, height, silent)
+        age, height, sex = self._check_conditions(sex, age, height)
         if age is pd.NA or height is pd.NA or sex is pd.NA:
             return pd.NA
 
@@ -111,8 +111,8 @@ class KUSTER_2008(Reference):
             return round(( value / m ) * 100, 2)
 
 
-    def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float, silent = True):
-        age, height, sex = self._check_conditions(sex, age, height, silent)
+    def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        age, height, sex = self._check_conditions(sex, age, height)
         if age is pd.NA or height is pd.NA or sex is pd.NA:
             return pd.NA
 

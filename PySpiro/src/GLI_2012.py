@@ -69,7 +69,7 @@ class GLI_2012(Reference):
         """
         Calculate l, m and s values for the given parameters.
         """
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age", "ignore")
+        age = self.validate_range(round(age * 4) / 4, self._age_range, "age",)
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
 
@@ -86,7 +86,7 @@ class GLI_2012(Reference):
 
         return l, m, s
 
-    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float, silent = True):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """
         Returns % of predicted value.
         """
