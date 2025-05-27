@@ -5,37 +5,28 @@ import numpy
 import pandas
 
 
-class GLI_2017(Reference):
+class GLI_2021(Reference):
     """
-    This GLI reference equations set was published in 2017 by Stanojevic and includes as variables sex, age, 
-    height and ethnicity, providing functions for TLCO, DLCO, KCO and VA.
+    This global lung function was published in 2021 by Hall and colleagues and includes as variable sex, 
+    age, height and ethnicity, providing functions for TLCO, DLCO, KCO and VA.
 
     It includes reference values for Caucasians aged 5-80 years.
 
-    We here implement the corrected version of the reference values, which was published in 2020.
-
-    Citation 1:
-    Stanojevic S, Graham BL, Cooper BG, Thompson BR, Carter KW, Francis RW, Hall GL; Global Lung Function Initiative TLCO 
-    working group; Global Lung Function Initiative (GLI) TLCO. Official ERS technical standards: Global Lung Function 
-    Initiative reference values for the carbon monoxide transfer factor for Caucasians. Eur Respir J. 2017 
-    Sep 11;50(3):1700010. doi: 10.1183/13993003.00010-2017. Erratum in: Eur Respir J. 2020 Oct 15;56(4):1750010. 
-    doi: 10.1183/13993003.50010-2017. PMID: 28893868.
-
-    Citation 2:
-    "Official ERS technical standards: Global Lung Function Initiative reference values for the carbon monoxide transfer 
-    factor for Caucasians." Sanja Stanojevic, Brian L. Graham, Brendan G. Cooper, Bruce R. Thompson, Kim W. Carter, Richard 
-    W. Francis and Graham L. Hall on behalf of the Global Lung Function Initiative TLCO working group. Eur Respir J 2017; 
-    50: 1700010. Eur Respir J. 2020 Oct 15;56(4):1750010. doi: 10.1183/13993003.50010-2017. Erratum for: Eur Respir J. 2017 
-    Sep 11;50(3):1700010. doi: 10.1183/13993003.00010-2017. PMID: 33060163.
+    Hall GL, Filipow N, Ruppel G, Okitika T, Thompson B, Kirkby J, Steenbruggen I, Cooper BG, Stanojevic S; contributing 
+    GLI Network members. Official ERS technical standard: Global Lung Function Initiative reference values for static lung 
+    volumes in individuals of European ancestry. Eur Respir J. 2021 Mar 11;57(3):2000289. doi: 10.1183/13993003.00289-2020. 
+    PMID: 33707167.
     """
 
 
     class Parameters(Enum):
-        TLCO = 1 # SI Units
-        DLCO = 2 # Traditional Units
-        KCO_SI = 3 # SI Units
-        KCO_trad = 4 # Traditional Units
-        VA = 5
+        FRC = 1
+        TLC = 2
+        RV = 3
+        RV_TLC = 4
+        ERV = 5
+        IC = 6
+        VC = 7
 
     def __init__(self):
         """
@@ -48,8 +39,8 @@ class GLI_2017(Reference):
         Loads and stores the coefficient and splines values.
         :return: both files as pandas dataframe
         """
-        lookup_path = importlib.resources.open_binary('PySpiro.data', 'gli_2017_splines.csv')
-        splines_path = importlib.resources.open_binary('PySpiro.data', 'gli_2017_coefficients.csv')
+        lookup_path = importlib.resources.open_binary('PySpiro.data', 'gli_2021_splines.csv')
+        splines_path = importlib.resources.open_binary('PySpiro.data', 'gli_2021_coefficients.csv')
         lookup = pandas.read_csv(lookup_path, delimiter=";").set_index("age")
         splines = pandas.read_csv(splines_path, delimiter=";").set_index("var")
         self._age_range: tuple = (min(lookup.index), max(lookup.index))
@@ -74,10 +65,14 @@ class GLI_2017(Reference):
             return pandas.NA, pandas.NA, pandas.NA
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        
+        if self.Parameters(parameter).name in ['FRC', 'TLC', 'RV', 'RV_TLC']:
+            s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)
+        elif self.Parameters(parameter).name in ['ERV', 'IC', 'VC']:
+            s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)))
 
-        l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
-        s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)
+        l = c.loc["q0"]
 
         return l, m, s
 

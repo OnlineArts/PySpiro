@@ -6,13 +6,12 @@ The Package PySpiro implements multiple spirometric, bodyplethysmographic and os
 
 ## Currently Available Models/Equations
 
-- GLI2012 (Quanjer 2012)
-- GLI2017 (Stanojevic 2017)
-- Kuster2008 (PMID: 18057057)
+- **Spirometry** reference equations (GLI, LuftiBus): (Quanjer 2012, PMID: 22743675; Kuster 2008, PMID: 18057057)
+- **Lung Diffusion** reference equations (GLI): (Stanojevic 2017, PMID: 28893868)
+- **Static lung volumes** reference equations (GLI): (Hall 2021, PMID: 33707167)
 
 ## Planned future implementations
 
 - Race-neutral reference equations (Bowerman 2023) (Version 1)
 - ECCS-1993 reference values (Laszlo 1993) (Version 1)
-- Static lung volumes reference equations (Hall 2020) (Version 1)
 - Oscillometric and breath-washout reference values (version 2).
