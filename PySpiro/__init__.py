@@ -1,6 +1,7 @@
 from .src.KUSTER_2008 import KUSTER_2008
 from .src.GLI_2012 import GLI_2012
 from .src.GLI_2017 import GLI_2017
+from .src.BOWERMANN_2022 import BOWERMANN_2022
 
 class Spiro:
 
@@ -31,6 +32,7 @@ print(df)
         self._kuster_2008_example()
         self._gli_2012_example()
         self._gli_2017_example()
+        self._bowermann_2022_example()
 
 
     def _gli_2012_example(self):
@@ -79,6 +81,28 @@ print(df)
 
         df["GLI_2017_KCO"] = df.apply(
             lambda x: gli.percent(x.sex, x.age, x.height, gli.Parameters.KCO_SI, x.KCO), axis=1)
+
+        print(df)
+
+    def _bowermann_2022_example(self):
+        import pandas
+        import numpy
+        
+        bowermann = BOWERMANN_2022()
+
+        numpy.random.seed(42)
+
+        n = 10  
+
+        df = pandas.DataFrame({
+            "age": numpy.random.randint(5, 80, size=n),             
+            "sex": numpy.random.choice([0, 1], size=n),             
+            "height": numpy.random.normal(170, 10, size=n).round(1),
+            "FEV1": numpy.random.normal(1.5, 3.0, size=n).round(2),   
+        })
+
+        df["BOWERMANN_FEV1_p"] = df.apply(
+            lambda x: bowermann.percent(x.sex, x.age, x.height, bowermann.Parameters.FEV1, x.FEV1), axis=1)
 
         print(df)
 
