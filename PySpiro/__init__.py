@@ -2,6 +2,7 @@ from .src.KUSTER_2008 import KUSTER_2008
 from .src.GLI_2012 import GLI_2012
 from .src.GLI_2017 import GLI_2017
 from .src.GLI_2021 import GLI_2021
+from .src.SCHULZ_2013 import SCHULZ_2013
 
 class Spiro:
 
@@ -33,6 +34,7 @@ print(df)
         self._gli_2012_example()
         self._gli_2017_example()
         self._gli_2021_example()
+        self._schulz_2013_example()
 
 
     def _gli_2012_example(self):
@@ -109,6 +111,31 @@ print(df)
 
         df["GLI_2021_RV_p"] = df.apply(
             lambda x: gli.percent(x.sex, x.age, x.height, gli.Parameters.RV, x.RV), axis=1)
+
+        print(df)
+
+    def _schulz_2013_example(self):
+        import pandas
+        import numpy
+
+        schulz = SCHULZ_2013()
+
+        numpy.random.seed(42)
+
+        n = 10  
+
+        df = pandas.DataFrame({
+            "age": numpy.random.randint(5, 80, size=n),             
+            "sex": numpy.random.choice([0, 1], size=n),             
+            "height": numpy.random.normal(170, 10, size=n).round(1),
+            "weight": numpy.random.normal(75,10, size = n).round(1),
+            "X10": numpy.random.normal(3.5, 0.7, size=n).round(2), # Just something     
+        })
+
+        df["debug"] = df.apply(lambda x: schulz.percentiles(x.sex, x.age, x.height, x.weight, schulz.Parameters.X10), axis=1)
+        print(df["debug"].head())
+        df[["X10_05", "X10_50", "X10_95"]] = df.apply(
+            lambda x: schulz.percentiles(x.sex, x.age, x.height, x.weight, schulz.Parameters.X10), axis=1)
 
         print(df)
 
