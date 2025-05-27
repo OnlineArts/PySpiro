@@ -1,6 +1,7 @@
 from .src.KUSTER_2008 import KUSTER_2008
 from .src.GLI_2012 import GLI_2012
 from .src.GLI_2017 import GLI_2017
+from .src.GLI_2021 import GLI_2021
 
 class Spiro:
 
@@ -31,6 +32,7 @@ print(df)
         self._kuster_2008_example()
         self._gli_2012_example()
         self._gli_2017_example()
+        self._gli_2021_example()
 
 
     def _gli_2012_example(self):
@@ -83,6 +85,30 @@ print(df)
 
         df["GLI_2017_KCO"] = df.apply(
             lambda x: gli.percent(x.sex, x.age, x.height, gli.Parameters.KCO_SI, x.KCO), axis=1)
+
+        print(df)
+
+    def _gli_2021_example(self):
+        import pandas
+        import numpy
+
+        gli = GLI_2021()
+
+        numpy.random.seed(42)
+
+        n = 10  
+
+        df = pandas.DataFrame({
+            "age": numpy.random.randint(5, 80, size=n),             
+            "sex": numpy.random.choice([0, 1], size=n),             
+            "height": numpy.random.normal(170, 10, size=n).round(1),
+            "VC": numpy.random.normal(3.5, 0.7, size=n).round(2),   
+            "RV": numpy.random.normal(1.5, 0.4, size=n).round(2),   
+            "TLC": numpy.random.normal(6.0, 0.9, size=n).round(2),  
+        })
+
+        df["GLI_2021_RV_p"] = df.apply(
+            lambda x: gli.percent(x.sex, x.age, x.height, gli.Parameters.RV, x.RV), axis=1)
 
         print(df)
 
