@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 DESCRIPTION = "PySpiro"
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
@@ -20,7 +20,7 @@ setup(
         "data/schulz_2013_splines.csv", 
         "data/gli_2017_splines.csv", "data/gli_2017_coefficients.csv",
         "data/gli_2021_splines.csv", "data/gli_2021_coefficients.csv",
-        "data/bowermann_2022_splines.csv", "daza/bowermann_2022_coefficients.csv"]},
+        "data/bowermann_2022_splines.csv", "data/bowermann_2022_coefficients.csv"]},
         include_package_data=True,
         install_requires=["pandas", "numpy"],
         keywords=["python", "respirology", "spirometry", "bodyplethysmograph", "plethysmograph"],
