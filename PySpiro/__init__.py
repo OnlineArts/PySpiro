@@ -132,11 +132,11 @@ print(df)
             "X10": numpy.random.normal(3.5, 0.7, size=n).round(2), # Just something     
         })
 
-        df["debug"] = df.apply(lambda x: schulz.percentiles(x.sex, x.age, x.height, x.weight, schulz.Parameters.X10), axis=1)
-        print(df["debug"].head())
-        df[["X10_05", "X10_50", "X10_95"]] = df.apply(
-            lambda x: schulz.percentiles(x.sex, x.age, x.height, x.weight, schulz.Parameters.X10), axis=1)
-
+        # df[["X10_05", "X10_50", "X10_95"]]
+        df[["X10_05", "X10_50", "X10_95"]]  = df.apply(
+            lambda x: pandas.Series(schulz.percentiles(x["sex"], x["age"], x["height"], x["weight"], 
+                                                       schulz.Parameters.X10)), axis=1)
+        
         print(df)
 
 if __name__ == '__main__':
