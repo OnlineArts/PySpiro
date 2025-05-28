@@ -17,6 +17,7 @@ setup(
         packages=find_packages(),
         package_data={"": ["data/test_file.csv", "data/PySpiro_250x.png",
         "data/gli_2012_splines.csv", "data/gli_2012_coefficients.csv",
+        "data/schulz_2013_splines.csv", 
         "data/gli_2017_splines.csv", "data/gli_2017_coefficients.csv",
         "data/gli_2021_splines.csv", "data/gli_2021_coefficients.csv",
         "data/bowermann_2022_splines.csv", "daza/bowermann_2022_coefficients.csv"]},

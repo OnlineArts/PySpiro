@@ -3,6 +3,7 @@ import pandas
 
 from .src.KUSTER_2008 import KUSTER_2008
 from .src.GLI_2012 import GLI_2012
+from .src.SCHULZ_2013 import SCHULZ_2013
 from .src.GLI_2017 import GLI_2017
 from .src.GLI_2021 import GLI_2021
 from .src.BOWERMANN_2022 import BOWERMANN_2022
@@ -47,10 +48,13 @@ print(df)
             "FEF75": numpy.random.normal(1.5, 3.0, size=n).round(2),
             "KCO": numpy.random.normal(1.5, 3.0, size=n).round(2),
             "ethnicity": numpy.random.choice([1, 4], size=n),
+            "X10": numpy.random.normal(3.5, 0.7, size=n).round(2),
+            "weight": numpy.random.normal(75,10, size = n).round(1),
         })
 
         self._kuster_2008_example()
         self._gli_2012_example()
+        self._schulz_2013_example()
         self._gli_2017_example()
         self._gli_2021_example()
         self._bowermann_2022_example()
@@ -101,6 +105,14 @@ print(df)
 
         self.__dataframe["BOWERMANN_FEV1_p"] = self.__dataframe.apply(
             lambda x: bowermann.percent(x.sex, x.age, x.height, bowermann.Parameters.FEV1, x.FEV1), axis=1)
+
+
+    def _schulz_2013_example(self):
+
+        schulz = SCHULZ_2013()
+
+        self.__dataframe[["X10_05", "X10_50", "X10_95"]]  = self.__dataframe.apply(
+            lambda x: pandas.Series(schulz.percentiles(x["sex"], x["age"], x["height"], x["weight"], schulz.Parameters.X10)), axis=1)
 
 
 if __name__ == '__main__':
