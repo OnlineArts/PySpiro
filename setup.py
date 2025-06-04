@@ -9,8 +9,8 @@ LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 setup(
         name="PySpiro",
         version=VERSION,
-        author="Roman Martin, Hendrik Pott",
-        author_email="roman.martin@uni-muenster.de, hendrik.pott@uni-marburg.de",
+        author="Hendrik Pott, Roman Martin",
+        author_email="hendrik.pott@uni-marburg.de, roman.martin@uni-muenster.de",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",

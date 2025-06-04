@@ -17,4 +17,4 @@ The Package PySpiro implements multiple spirometric, bodyplethysmographic and os
 - Breath-washout reference values (version 2).
 
 ## If using, please cite as:
-Roman Martin, Hendrik Pott. OnlineArts/PySpiro: v.0.2.0. Published online May 26, 2025. doi:10.5281/ZENODO.15519194
+Hendrik Pott, Roman Martin. PySpiro: v.0.3.2. Published online Jun 04, 2025. doi:10.5281/zenodo.15519193
