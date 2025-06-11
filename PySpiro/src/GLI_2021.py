@@ -65,14 +65,18 @@ class GLI_2021(Reference):
             return pandas.NA, pandas.NA, pandas.NA
         sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+
+
+        # print(c.loc["p0"].astype(float), c.loc["p1"].astype(float), numpy.log(age), sspline)
+        # print(type(c.loc["p0"]), type(c.loc["p1"]), type(numpy.log(age)), type(sspline))
         
         if self.Parameters(parameter).name in ['FRC', 'TLC', 'RV', 'RV_TLC']:
-            s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)
+            s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)) + sspline)
         elif self.Parameters(parameter).name in ['ERV', 'IC', 'VC']:
-            s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)))
+            s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)))
 
-        m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
-        l = c.loc["q0"]
+        m = numpy.exp(float(c.loc["a0"]) + (float(c.loc["a1"]) * numpy.log(height)) + (float(c.loc["a2"]) * numpy.log(age)) + mspline)
+        l = float(c.loc["q0"])
 
         return l, m, s
 

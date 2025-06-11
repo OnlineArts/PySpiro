@@ -58,6 +58,7 @@ class KUSTER_2008(Reference):
         if age is pd.NA or height is pd.NA or sex is pd.NA:
             return pd.NA
 
+        print(f"[DEBUG] parameter={parameter} sex={sex} age={age} height={height}")
         if sex == self.Sex["FEMALE"].value:
 
             match parameter:
@@ -82,11 +83,14 @@ class KUSTER_2008(Reference):
                 case self.Parameters.PEF:
                     # PEF L·s−1 = exp(-4.794+1.316 ln(H)+0.00926 A-0.000143A2)
                     m = np.exp( -4.794 + 1.316 * np.log(height) + 0.00926 * (age) - 0.000143 * (age ** 2) )
+                case _:
+                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
             return round(( value / m ) * 100, 2)
 
         elif sex == self.Sex["MALE"].value:
 
             match parameter:
+
                 case self.Parameters.FVC:
                     # FVC L = exp(-10.258+2.280 ln(H)+0.00676A-0.000124A2)
                     m = np.exp( -10.258 + 2.280 * np.log(height) + 0.00676 * (age) - 0.000124 * (age ** 2) )
@@ -108,6 +112,8 @@ class KUSTER_2008(Reference):
                 case self.Parameters.PEF:
                     # PEF L·s−1 = exp(-3.760+1.170 ln(H)+0.00706A-0.000110A2)
                     m = np.exp( -3.760 + 1.170 * np.log(height) + 0.00706 * (age) - 0.000110 * (age ** 2) )
+                case _:
+                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
             return round(( value / m ) * 100, 2)
 
 
@@ -140,6 +146,8 @@ class KUSTER_2008(Reference):
                 case self.Parameters.PEF_LLN:
                     # PEF L·s−1 = exp(-5.032+1.316 ln(H)+0.00767A-0.000143A2)
                     lln = np.exp( -5.032 + 1.316 * np.log(height) + 0.00767 * (age) - 0.000143 * (age ** 2) )
+                case _:
+                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
             return lln
 
         elif sex == self.Sex["MALE"].value:
@@ -166,4 +174,6 @@ class KUSTER_2008(Reference):
                 case self.Parameters.PEF_LLN:
                     # PEF L·s−1 = exp(-3.992+1.170 ln(H)+0.00493A-0.000110A2)
                     lln = np.exp( -3.992 + 1.170 * np.log(height) + 0.00493 * (age) - 0.000110 * (age ** 2) )
+                case _:
+                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
             return lln

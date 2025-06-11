@@ -28,10 +28,10 @@ df = pandas.DataFrame(
      "FEF75": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
 
 df["GLI_2012_FEV1"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEV1"].value, x.FEV1), axis=1)
+    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEV1"], x.FEV1), axis=1)
 
 df["GLI_2012_FEF75"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEF75"].value, x.FEF75), axis=1)
+    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEF75"], x.FEF75), axis=1)
 
 print(df)
         """)
