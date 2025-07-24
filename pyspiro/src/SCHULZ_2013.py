@@ -38,7 +38,7 @@ class SCHULZ_2013(Reference):
         Loads and stores the coefficient and splines values.
         :return: both files as pandas dataframe
         """
-        splines_path = importlib.resources.open_binary('PySpiro.data', 'schulz_2013_splines.csv')
+        splines_path = importlib.resources.open_binary('pyspiro.data', 'schulz_2013_splines.csv')
         splines = pandas.read_csv(splines_path, delimiter=";").set_index("Var")
         return splines
 

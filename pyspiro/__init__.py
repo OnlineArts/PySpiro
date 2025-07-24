@@ -13,12 +13,12 @@ class Spiro:
 
     def __init__(self):
         print("""
-This is the main object of PySpiro.
+This is the main object of pyspiro.
 Please use a specific correction function instead of the main object.
 As for example for GLI_2012:
 
 import pandas
-import GLI_2012 from PySpiro
+import GLI_2012 from pyspiro
 
 gli = GLI_2012()
 

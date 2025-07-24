@@ -1,8 +1,8 @@
-# PySpiro
+# pyspiro
 
-![logo](https://github.com/OnlineArts/PySpiro/blob/main/PySpiro/data/PySpiro_250x.png?raw=true)
+![logo](https://github.com/OnlineArts/PySpiro/blob/main/pyspiro/data/pyspiro_250x.png?raw=true)
 
-The Package PySpiro implements multiple spirometric, bodyplethysmographic and oscillometric lung function reference equations.
+The Package pyspiro implements multiple spirometric, bodyplethysmographic and oscillometric lung function reference equations.
 
 ## Currently Available Models/Equations
 
@@ -17,4 +17,4 @@ The Package PySpiro implements multiple spirometric, bodyplethysmographic and os
 - Breath-washout reference values (version 2).
 
 ## If using, please cite as:
-Hendrik Pott, Roman Martin. PySpiro: v.0.3.2. Published online Jun 04, 2025. doi:10.5281/zenodo.15519193
+Hendrik Pott, Roman Martin. pySpiro: v.0.3.3. Published online Jun 10, 2025. doi:10.5281/zenodo.15519193

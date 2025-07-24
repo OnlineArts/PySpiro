@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-VERSION = "0.3.4"
-DESCRIPTION = "PySpiro"
+VERSION = "0.3.5"
+DESCRIPTION = "pyspiro"
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 
 setup(
-        name="PySpiro",
+        name="pyspiro",
         version=VERSION,
         author="Hendrik Pott, Roman Martin",
         author_email="hendrik.pott@uni-marburg.de, roman.martin@uni-muenster.de",
@@ -15,9 +15,9 @@ setup(
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         packages=find_packages(),
-        package_data={"": ["data/test_file.csv", "data/PySpiro_250x.png",
+        package_data={"": ["data/test_file.csv", "data/pyspiro_250x.png",
         "data/gli_2012_splines.csv", "data/gli_2012_coefficients.csv",
-        "data/schulz_2013_splines.csv", 
+        "data/schulz_2013_splines.csv",
         "data/gli_2017_splines.csv", "data/gli_2017_coefficients.csv",
         "data/gli_2021_splines.csv", "data/gli_2021_coefficients.csv",
         "data/bowermann_2022_splines.csv", "data/bowermann_2022_coefficients.csv"]},
