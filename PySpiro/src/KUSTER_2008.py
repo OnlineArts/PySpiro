@@ -58,7 +58,7 @@ class KUSTER_2008(Reference):
         if age is pd.NA or height is pd.NA or sex is pd.NA:
             return pd.NA
 
-        print(f"[DEBUG] parameter={parameter} sex={sex} age={age} height={height}")
+        #print(f"[DEBUG] parameter={parameter} sex={sex} age={age} height={height}")
         if sex == self.Sex["FEMALE"].value:
 
             match parameter:
