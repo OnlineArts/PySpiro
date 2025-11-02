@@ -7,6 +7,7 @@ from .src.SCHULZ_2013 import SCHULZ_2013
 from .src.GLI_2017 import GLI_2017
 from .src.GLI_2021 import GLI_2021
 from .src.BOWERMANN_2022 import BOWERMANN_2022
+from .src.SCAPIS_2023 import SCAPIS_2023
 
 
 class Spiro:
@@ -52,17 +53,17 @@ print(df)
             "weight": numpy.random.normal(75,10, size = n).round(1),
         })
 
-        self._kuster_2008_example()
-        self._gli_2012_example()
-        self._schulz_2013_example()
-        self._gli_2017_example()
-        self._gli_2021_example()
-        self._bowermann_2022_example()
+        #self._kuster_2008_example()
+        #self._gli_2012_example()
+        #self._schulz_2013_example()
+        #self._gli_2017_example()
+        #self._gli_2021_example()
+        #self._bowermann_2022_example()
+        self._scapis_example()
 
         print(self.__dataframe)
 
     def _kuster_2008_example(self):
-        import pandas
 
         kuster2008 = KUSTER_2008()
         kuster2008.set_silence(False)
@@ -113,6 +114,14 @@ print(df)
 
         self.__dataframe[["X10_05", "X10_50", "X10_95"]]  = self.__dataframe.apply(
             lambda x: pandas.Series(schulz.percentiles(x["sex"], x["age"], x["height"], x["weight"], schulz.Parameters.X10)), axis=1)
+
+    def _scapis_example(self):
+
+        scapis = SCAPIS_2023()
+        scapis.set_strategy("closest")
+
+        self.__dataframe["SCAPIS_FEV1_LLN"] = self.__dataframe.apply(
+            lambda x: scapis.lln(x.sex, x.age, x.height, scapis.Parameters.pre_BD_FEV1, x.FEV1), axis=1)
 
 
 if __name__ == '__main__':
