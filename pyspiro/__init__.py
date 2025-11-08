@@ -53,13 +53,13 @@ print(df)
             "weight": numpy.random.normal(75,10, size = n).round(1),
         })
 
-        #self._kuster_2008_example()
-        #self._gli_2012_example()
-        #self._schulz_2013_example()
-        #self._gli_2017_example()
-        #self._gli_2021_example()
-        #self._bowermann_2022_example()
-        self._scapis_example()
+        self._kuster_2008_example()
+        self._gli_2012_example()
+        self._schulz_2013_example()
+        self._gli_2017_example()
+        self._gli_2021_example()
+        self._bowermann_2022_example()
+        self._scapis_2023_example()
 
         print(self.__dataframe)
 
@@ -115,9 +115,10 @@ print(df)
         self.__dataframe[["X10_05", "X10_50", "X10_95"]]  = self.__dataframe.apply(
             lambda x: pandas.Series(schulz.percentiles(x["sex"], x["age"], x["height"], x["weight"], schulz.Parameters.X10)), axis=1)
 
-    def _scapis_example(self):
+    def _scapis_2023_example(self):
 
         scapis = SCAPIS_2023()
+        scapis.set_silence(False)
         scapis.set_strategy("closest")
 
         self.__dataframe["SCAPIS_FEV1_LLN"] = self.__dataframe.apply(

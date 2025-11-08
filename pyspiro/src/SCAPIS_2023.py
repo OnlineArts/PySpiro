@@ -64,23 +64,12 @@ class SCAPIS_2023(Reference):
         """
         Calculate l, m and s values for the given parameters.
         """
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age",)
+        age = self.validate_range(round(age * 10) / 10, self._age_range, "age")
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline = self.__get_splines(sex, age, parameter)
         c = self.__splines["%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
-
-        # print(c.loc["M1"])
-        # print(c.loc["M2"])
-        # print(c.loc["M3"])
-        # print(c.loc["S1"])
-        # print(c.loc["S2"])
-        # print(c.loc["L"])
-        # print("---")
-        print(mspline)
-        print(sspline)
-        print(c)
         
         m = numpy.exp(c.loc["M1"] + (c.loc["M2"] * numpy.log(height)) + (c.loc["M3"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["S1"] + (c.loc["S2"] * numpy.log(age)) + sspline)
@@ -114,7 +103,7 @@ class SCAPIS_2023(Reference):
         Returns all values at once (percent, z-score and lln).
         """
         l, m, s = self.lms(sex, age, height, parameter, value)
-        if (l is pandas.NA or m is pandas.NA or s is pandas.NA):
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
             return pandas.NA
         else:
             return round(( value / m ) * 100, 2), (((value/m)**l) - 1) / (l * s), numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))

@@ -35,31 +35,31 @@ class Reference(ABC):
     def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         pass
 
-    def check_range(self, value: float, range: tuple):
-        return range[0] <= value <= range[1]
+    def check_range(self, value: float, value_range: tuple):
+        return value_range[0] <= value <= value_range[1]
 
-    def check_tuple(self, value: float, allowed: tuple, type: "value"):
+    def check_tuple(self, value: float, allowed: tuple, value_type: "value"):
         for i in allowed:
             if value == i:
                 return value
 
         if not self._silent:
-            print("The given %s of %.2f is not fitting to the allow values %s" % (type, value, str(allowed)))
+            print("The given %s of %.2f is not fitting to the allow values %s" % (value_type, value, str(allowed)))
         return NA
 
-    def validate_range(self, value: float, range: tuple, type: str = "value"):
-        if not self.check_range(value, range):
+    def validate_range(self, value: float, value_range: tuple, value_type: str = "value"):
+        if not self.check_range(value, value_range):
             if not self._silent:
-                print("The given %s of %.2f does not fit to the defined %s range %.2f-%.2f" % (type, value, type, range[0], range[1]))
+                print("The given %s of %.2f does not fit to the defined %s range %.2f-%.2f" % (value_type, value, value_type, value_range[0], value_range[1]))
 
             if self._strategy == "closest":
                 old_value = value
-                if value <= range[0]:
-                    value = range[0]
-                elif self._strategy == "ignore":
-                    value = range[1]
-                print("Set %s to %.2f from %.2f" % (type, value, old_value))
-            elif "ignore":
+                if value <= value_range[0]:
+                    value = value_range[0]
+                else:
+                    value = value_range[1]
+                print("Set %s to %.2f from %.2f" % (value_type, value, old_value))
+            elif self._strategy == "ignore":
                 value = NA
 
         return value
