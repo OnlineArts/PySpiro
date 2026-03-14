@@ -25,7 +25,8 @@ gli = GLI_2012()
 
 # Suppose df is a pandas DataFrame object.
 # sex_binary: 0 = female, 1 = male
-# fev1 in liters, age in years, height in cm
+# fev1 in liters, age in years, height in cm.
+# Suppose patient ethinicity = Caucasian for all patients in dataset (here: "1")
 
 df[['fev1_p', 'fev1_z', 'fev1_lln']] = df.apply(
     lambda x: pd.Series(
@@ -33,7 +34,7 @@ df[['fev1_p', 'fev1_z', 'fev1_lln']] = df.apply(
             x.sex_binary,
             x.age,
             x.height,
-            1,
+            1, # Ethnicity
             gli.Parameters["FEV1"],
             x.fev1
         )
