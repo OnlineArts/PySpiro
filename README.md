@@ -16,5 +16,31 @@ The Package pyspiro implements multiple spirometric, bodyplethysmographic and os
 - ECCS-1993 reference values (Laszlo 1993) (Version 1)
 - Breath-washout reference values (version 2).
 
+## Brief application example (2012 GLI reference equations)
+```python
+import pandas as pd
+from pyspiro import GLI_2012
+
+gli = GLI_2012()
+
+# Suppose df is a pandas DataFrame object.
+# sex_binary: 0 = female, 1 = male
+# fev1 in liters, age in years, height in cm
+
+df[['fev1_p', 'fev1_z', 'fev1_lln']] = df.apply(
+    lambda x: pd.Series(
+        gli.all(
+            x.sex_binary,
+            x.age,
+            x.height,
+            1,
+            gli.Parameters["FEV1"],
+            x.fev1
+        )
+    ),
+    axis=1
+)
+```
+
 ## If using, please cite as:
 Hendrik Pott, Roman Martin. pySpiro: v.0.3.3. Published online Jun 10, 2025. doi:10.5281/zenodo.15519193
