@@ -48,6 +48,7 @@ print(df)
             "FEV1": numpy.random.normal(1.5, 3.0, size=n).round(2),
             "FEF75": numpy.random.normal(1.5, 3.0, size=n).round(2),
             "KCO": numpy.random.normal(1.5, 3.0, size=n).round(2),
+            "FVC": numpy.random.normal(1.0, 5.0, size=n).round(2),
             "ethnicity": numpy.random.choice([1, 4], size=n),
             "X10": numpy.random.normal(3.5, 0.7, size=n).round(2),
             "weight": numpy.random.normal(75,10, size = n).round(1),
@@ -107,6 +108,8 @@ print(df)
         self.__dataframe["BOWERMANN_FEV1_p"] = self.__dataframe.apply(
             lambda x: bowermann.percent(x.sex, x.age, x.height, bowermann.Parameters.FEV1, x.FEV1), axis=1)
 
+        self.__dataframe["BOWERMANN_FVC_z"] = self.__dataframe.apply(
+            lambda x: bowermann.zscore(x.sex, x.age, x.height, bowermann.Parameters.FVC, x.FVC), axis=1)
 
     def _schulz_2013_example(self):
 
