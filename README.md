@@ -55,7 +55,7 @@ All LMS-based equation classes expose a consistent API:
 | `lln(...)` | Lower limit of normal (5th percentile) |
 | `uln(...)` | Upper limit of normal (95th percentile) |
 | `lms(...)` | Raw (L, M, S) triplet |
-| `all(...)` | Tuple of (% predicted, z-score, LLN) or (% predicted, z-score, LLN, ULN) |
+| `all(...)` | Tuple of (% predicted, z-score, LLN) |
 
 **Conventions**: sex as integer (0 = female, 1 = male); age in years; height in cm; measured values in their natural units (L, L/s, mmol/min/kPa, etc.). FEV1/FVC ratios are passed as a fraction (0–1) for LMS-based equations.
 
@@ -65,6 +65,12 @@ All LMS-based equation classes expose a consistent API:
 
 ```bash
 pip install pyspiro
+```
+
+For centile chart visualisation, install the optional dependencies:
+
+```bash
+pip install pyspiro[viz]   # adds matplotlib and scipy
 ```
 
 ---
@@ -79,7 +85,7 @@ from pyspiro import GLI_2012
 
 gli = GLI_2012()
 
-# sex: 0 = female, 1 = male | height in cm | fev1 in litres | ethnicity: 1 = Caucasian
+# sex: 0 = female, 1 = male | height in cm | FEV1 in litres | ethnicity: 1 = Caucasian
 df[['fev1_pct', 'fev1_z', 'fev1_lln']] = df.apply(
     lambda x: pd.Series(
         gli.all(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.fev1)
@@ -87,7 +93,6 @@ df[['fev1_pct', 'fev1_z', 'fev1_lln']] = df.apply(
     axis=1
 )
 
-# ULN is available as a separate call for all equation sets
 df['fev1_uln'] = df.apply(
     lambda x: gli.uln(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.fev1),
     axis=1
@@ -114,10 +119,10 @@ df[['fvc_pct', 'fvc_z', 'fvc_lln', 'fvc_uln']] = df.apply(
 ### COPD severity staging
 
 ```python
-from pyspiro import GLI_2012, GOLD
 import pandas as pd
+from pyspiro import GLI_2012, GOLD
 
-gli = GLI_2012()
+gli  = GLI_2012()
 gold = GOLD()
 
 df['fev1_pct'] = df.apply(
@@ -126,6 +131,108 @@ df['fev1_pct'] = df.apply(
 )
 df['GOLD'] = df.apply(lambda x: gold.classify(FEV1p=x.fev1_pct), axis=1)
 df['GOLD'] = pd.Categorical(df['GOLD'], categories=gold.get_order(), ordered=True)
+```
+
+---
+
+## Cross-equation comparison
+
+`compare_equations()` returns a DataFrame comparing % predicted and z-score for a single patient across all specified equations. This is useful for sensitivity analyses and understanding how equation choice affects clinical interpretation.
+
+```python
+import pandas as pd
+from pyspiro import GLI_2012, BOWERMANN_2022, HANKINSON_1999, compare_equations
+
+patient = pd.Series({
+    'sex':       1,     # male
+    'age':       45.0,
+    'height':    175.0,
+    'ethnicity': 1,     # Caucasian
+    'FEV1':      2.8,
+})
+
+result = compare_equations(
+    patient,
+    GLI_2012.Parameters.FEV1,
+    equations=[GLI_2012(), BOWERMANN_2022(), HANKINSON_1999()],
+)
+print(result)
+```
+
+```
+         equation  percent_predicted    zscore  applicable
+0        GLI_2012              71.12 -2.223992        True
+1  BOWERMANN_2022              75.41 -1.685500        True
+2  HANKINSON_1999                NaN       NaN       False
+```
+
+Pass `equations=None` to compare against all available equations automatically.
+
+### Batch processing a cohort
+
+```python
+results = []
+for _, row in df.iterrows():
+    cmp = compare_equations(row, GLI_2012.Parameters.FEV1,
+                            equations=[GLI_2012(), BOWERMANN_2022()])
+    cmp['patient_id'] = row['patient_id']
+    results.append(cmp)
+
+summary = pd.concat(results, ignore_index=True)
+```
+
+---
+
+## Centile chart generation
+
+`plot_centile_curves()` draws lung function percentile curves across the age range supported by an equation. The function returns a `matplotlib.figure.Figure` and can be saved for publication.
+
+Requires `pip install pyspiro[viz]`.
+
+```python
+import matplotlib.pyplot as plt
+from pyspiro import GLI_2012, plot_centile_curves
+
+gli = GLI_2012()
+
+fig = plot_centile_curves(
+    gli,
+    sex=1,            # male
+    height=175,       # cm
+    ethnicity=1,      # Caucasian
+    parameter=gli.Parameters.FEV1,
+    title="FEV1 reference values — male, 175 cm, Caucasian (GLI 2012)",
+)
+fig.savefig("fev1_percentiles.png", dpi=300, bbox_inches="tight")
+plt.show()
+```
+
+Customise the plotted percentiles, age window, and figure size:
+
+```python
+fig = plot_centile_curves(
+    gli,
+    sex=0,
+    height=165,
+    ethnicity=1,
+    parameter=gli.Parameters.FVC,
+    age_range=(18, 80),
+    percentiles=[5, 50, 95],
+    figsize=(10, 6),
+)
+```
+
+Race-neutral equations (e.g. `BOWERMANN_2022`) do not require an ethnicity argument:
+
+```python
+from pyspiro import BOWERMANN_2022, plot_centile_curves
+
+fig = plot_centile_curves(
+    BOWERMANN_2022(),
+    sex=1,
+    height=175,
+    parameter=BOWERMANN_2022.Parameters.FEV1,
+)
 ```
 
 ---
