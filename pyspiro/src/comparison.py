@@ -209,16 +209,16 @@ def _get_default_equations():
 
     This imports all equation classes from pyspiro and instantiates them.
     """
-    from .src.GLI_2012 import GLI_2012
-    from .src.BOWERMANN_2022 import BOWERMANN_2022
-    from .src.KUSTER_2008 import KUSTER_2008
-    from .src.HANKINSON_1999 import HANKINSON_1999
-    from .src.KUBOTA_2014 import KUBOTA_2014
-    from .src.GLI_2017 import GLI_2017
-    from .src.GLI_2021 import GLI_2021
-    from .src.SCHULZ_2013 import SCHULZ_2013
-    from .src.SCAPIS_2023 import SCAPIS_2023
-    from .src.ATS_ERS_2022 import ATS_ERS_2022
+    from .spirometry.GLI_2012 import GLI_2012
+    from .spirometry.BOWERMANN_2022 import BOWERMANN_2022
+    from .spirometry.KUSTER_2008 import KUSTER_2008
+    from .spirometry.HANKINSON_1999 import HANKINSON_1999
+    from .spirometry.KUBOTA_2014 import KUBOTA_2014
+    from .diffusion.GLI_2017 import GLI_2017
+    from .volumes.GLI_2021 import GLI_2021
+    from .oscillometry.SCHULZ_2013 import SCHULZ_2013
+    from .diffusion.SCAPIS_2023 import SCAPIS_2023
+    from .classifiers.ATS_ERS_2022 import ATS_ERS_2022
 
     return [
         GLI_2012(),

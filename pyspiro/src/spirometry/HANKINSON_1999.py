@@ -1,4 +1,4 @@
-from .reference import Reference
+from ..reference import Reference
 from enum import Enum
 import importlib.resources
 import pandas as pd

@@ -1,156 +1,197 @@
 import numpy
-import pandas
 import pandas as pd
 
-from .src.KUSTER_2008 import KUSTER_2008
-from .src.HANKINSON_1999 import HANKINSON_1999
-from .src.KUBOTA_2014 import KUBOTA_2014
-from .src.GLI_2012 import GLI_2012
-from .src.SCHULZ_2013 import SCHULZ_2013
-from .src.GLI_2017 import GLI_2017
-from .src.GLI_2021 import GLI_2021
-from .src.BOWERMANN_2022 import BOWERMANN_2022
-from .src.SCAPIS_2023 import SCAPIS_2023
-from .src.GOLD import GOLD
-from .src.STAR import STAR
-from .src.ATS_ERS_2022 import ATS_ERS_2022
+from .src.spirometry.KUSTER_2008 import KUSTER_2008
+from .src.spirometry.HANKINSON_1999 import HANKINSON_1999
+from .src.spirometry.KUBOTA_2014 import KUBOTA_2014
+from .src.spirometry.GLI_2012 import GLI_2012
+from .src.spirometry.BOWERMANN_2022 import BOWERMANN_2022
+from .src.diffusion.GLI_2017 import GLI_2017
+from .src.diffusion.SCAPIS_2023 import SCAPIS_2023
+from .src.volumes.GLI_2021 import GLI_2021
+from .src.oscillometry.SCHULZ_2013 import SCHULZ_2013
+from .src.classifiers.GOLD import GOLD
+from .src.classifiers.STAR import STAR
+from .src.classifiers.ATS_ERS_2022 import ATS_ERS_2022
+from .src.viz import plot_centile_curves
+from .src.comparison import compare_equations
+
 
 class Spiro:
+    """
+    Interactive demo of the pyspiro package.
+
+    Instantiating this class generates a realistic synthetic cohort, runs all
+    available reference equations and severity classifiers, and prints the
+    result.  It is intended as a quick smoke-test and usage showcase — not for
+    production use.  Import individual equation classes directly instead:
+
+        from pyspiro import GLI_2012, BOWERMANN_2022, compare_equations
+
+    Conventions
+    -----------
+    sex        : 0 = female, 1 = male
+    age        : years
+    height     : cm
+    ethnicity  : 1 = Caucasian, 2 = African-American, 3 = NE Asian, 4 = SE Asian
+    """
 
     def __init__(self):
-        print("""
-This is the main object of pyspiro.
-Please use a specific correction function instead of the main object.
-As for example for GLI_2012:
+        self._df = self._make_cohort()
 
-import pandas
-import GLI_2012 from pyspiro
+        self._apply_kuster_2008()
+        self._apply_gli_2012()
+        self._apply_schulz_2013()
+        self._apply_gli_2017()
+        self._apply_gli_2021()
+        self._apply_bowermann_2022()
+        self._apply_scapis_2023()
+        self._apply_gold()
+        self._apply_star()
 
-gli = GLI_2012()
+        print("\n--- Cohort results ---")
+        print(self._df.to_string())
 
-df = pandas.DataFrame(
-    {"age": [2, 6, 7.15, 55, 60, 32.1], "sex": [1, 1, 1, 0, 0, 1], "height": [120, 160, 180, 130, 176, 160],
-     "FEV1": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2], "ethnicity": [1, 1, 1, 2, 3, 4],
-     "FEF75": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
+        print("\n--- compare_equations() for patient 0 ---")
+        print(self._cross_equation_example())
 
-df["GLI_2012_FEV1"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.FEV1), axis=1)
+        print("\n--- plot_centile_curves() ---")
+        print("Call plot_centile_curves(GLI_2012(), sex=1, height=175, "
+              "ethnicity=1, parameter=GLI_2012.Parameters.FEV1) to generate "
+              "a centile chart.  Requires matplotlib.")
 
-df["GLI_2012_FEF75"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters.FEF75, x.FEF75), axis=1)
+    # ------------------------------------------------------------------
+    # Synthetic cohort
+    # ------------------------------------------------------------------
 
-print(df)
-        """)
-        numpy.random.seed(42)
-        n = 10  
-        self.__dataframe = pandas.DataFrame({
-            "age": numpy.random.randint(5, 80, size=n),
-            "sex": numpy.random.choice([0, 1], size=n),
-            "height": numpy.random.normal(170, 15, size=n).round(1),
-            "VC": numpy.random.normal(3.5, 0.7, size=n).round(2),
-            "RV": numpy.random.normal(1.5, 0.4, size=n).round(2),
-            "TLC": numpy.random.normal(6.0, 0.9, size=n).round(2),
-            "FEV1": numpy.random.normal(1.5, 3.0, size=n).round(2),
-            "FEF75": numpy.random.normal(1.5, 3.0, size=n).round(2),
-            "KCO": numpy.random.normal(1.5, 3.0, size=n).round(2),
-            "FVC": numpy.random.normal(1.0, 5.0, size=n).round(2),
-            "ethnicity": numpy.random.choice([1, 4], size=n),
-            "X10": numpy.random.normal(3.5, 0.7, size=n).round(2),
-            "weight": numpy.random.normal(75,10, size = n).round(1),
+    @staticmethod
+    def _make_cohort(n: int = 10, seed: int = 42) -> pd.DataFrame:
+        """Return a physiologically consistent synthetic patient cohort."""
+        rng = numpy.random.default_rng(seed)
+
+        sex  = rng.choice([0, 1], size=n)
+        male = sex == 1
+
+        # Anthropometrics stratified by sex (German adult population)
+        height = numpy.where(male,
+            rng.normal(178.0, 7.0, n), rng.normal(165.0, 6.0, n)).round(1)
+        weight = numpy.where(male,
+            rng.normal(82.0, 12.0, n), rng.normal(68.0, 11.0, n)).round(1)
+        age = rng.integers(18, 78, size=n).astype(float)
+
+        # Spirometry: derive FEV1 from FVC × ratio to guarantee FEV1 ≤ FVC
+        fvc = numpy.where(male,
+            rng.normal(4.6, 0.75, n), rng.normal(3.4, 0.60, n)).round(2)
+        ratio = numpy.clip(numpy.where(male,
+            rng.normal(0.77, 0.07, n), rng.normal(0.80, 0.06, n)), 0.40, 0.95)
+        fev1  = (fvc * ratio).round(2)
+        fef75 = numpy.where(male,
+            rng.normal(1.0, 0.35, n), rng.normal(0.8, 0.28, n)).clip(0.15).round(2)
+
+        # Static lung volumes: VC slightly above FVC; TLC = VC + RV
+        vc  = (fvc + rng.normal(0.1, 0.08, n)).clip(0.5).round(2)
+        rv  = numpy.where(male,
+            rng.normal(1.8, 0.35, n), rng.normal(1.5, 0.30, n)).clip(0.5).round(2)
+        tlc = (vc + rv).round(2)
+
+        # Diffusion: KCO in mmol/min/kPa/L (SI); females slightly higher
+        kco = numpy.where(male,
+            rng.normal(1.55, 0.22, n), rng.normal(1.70, 0.22, n)).clip(0.5).round(2)
+
+        # Oscillometry: X10 reactance reported as absolute value
+        x10 = numpy.abs(rng.normal(0.10, 0.05, n)).round(2)
+
+        return pd.DataFrame({
+            "age":       age,
+            "sex":       sex,
+            "height":    height,
+            "weight":    weight,
+            "ethnicity": rng.choice([1, 2, 3, 4], size=n),
+            "FVC":       fvc,
+            "FEV1":      fev1,
+            "FEF75":     fef75,
+            "VC":        vc,
+            "RV":        rv,
+            "TLC":       tlc,
+            "KCO":       kco,
+            "X10":       x10,
         })
 
-        self._kuster_2008_example()
-        self._gli_2012_example()
-        self._schulz_2013_example()
-        self._gli_2017_example()
-        self._gli_2021_example()
-        self._bowermann_2022_example()
-        self._scapis_2023_example()
-        self._gold_stages_example()
-        self._star_stages_example()
+    # ------------------------------------------------------------------
+    # Reference equations
+    # ------------------------------------------------------------------
 
-        print(self.__dataframe)
+    def _apply_kuster_2008(self):
+        eq = KUSTER_2008()
+        self._df["KUSTER_FEV1_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEV1, r.FEV1), axis=1)
+        self._df["KUSTER_FEV1_LLN"] = self._df.apply(
+            lambda r: eq.lln(r.sex, r.age, r.height, 1, eq.Parameters.FEV1_LLN, r.FEV1), axis=1)
 
-    def _kuster_2008_example(self):
+    def _apply_gli_2012(self):
+        eq = GLI_2012()
+        eq.set_strategy("closest")
+        self._df["GLI2012_FEV1_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEV1, r.FEV1), axis=1)
+        self._df["GLI2012_FEF75_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEF75, r.FEF75), axis=1)
 
-        kuster2008 = KUSTER_2008()
-        kuster2008.set_silence(False)
-        
-        self.__dataframe["KUSTER_2008_FEV1"] = self.__dataframe.apply(
-            lambda x: kuster2008.percent(x.sex, x.age, x.height, 1, kuster2008.Parameters.FEV1, x.FEV1), axis=1)
+    def _apply_gli_2017(self):
+        eq = GLI_2017()
+        eq.set_strategy("closest")
+        self._df["GLI2017_KCO_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.KCO_SI, r.KCO), axis=1)
 
-        self.__dataframe["KUSTER_2008_FEV1_LLN"] = self.__dataframe.apply(
-            lambda x: kuster2008.lln(x.sex, x.age, x.height, 1, kuster2008.Parameters.FEV1_LLN, x.FEV1), axis=1)
+    def _apply_gli_2021(self):
+        eq = GLI_2021()
+        self._df["GLI2021_RV_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.RV, r.RV), axis=1)
 
-    def _gli_2012_example(self):
-        
-        gli2012 = GLI_2012()
-        gli2012.set_strategy("closest")
+    def _apply_bowermann_2022(self):
+        eq = BOWERMANN_2022()
+        self._df["BOWERMANN_FEV1_pct"] = self._df.apply(
+            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.FEV1, r.FEV1), axis=1)
+        self._df["BOWERMANN_FVC_z"] = self._df.apply(
+            lambda r: eq.zscore(r.sex, r.age, r.height, eq.Parameters.FVC, r.FVC), axis=1)
 
-        self.__dataframe["GLI_2012_FEV1"] = self.__dataframe.apply(
-            lambda x: gli2012.percent(x.sex, x.age, x.height, 1, gli2012.Parameters["FEV1"], x.FEV1), axis=1)
+    def _apply_schulz_2013(self):
+        eq = SCHULZ_2013()
+        self._df[["X10_p05", "X10_p50", "X10_p95"]] = self._df.apply(
+            lambda r: pd.Series(
+                eq.percentiles(r.sex, r.age, r.height, r.weight, eq.Parameters.X10)
+            ), axis=1)
 
-        self.__dataframe["GLI_2012_FEF75"] = self.__dataframe.apply(
-            lambda x: gli2012.percent(x.sex, x.age, x.height, 1, gli2012.Parameters["FEF75"], x.FEF75), axis=1)
+    def _apply_scapis_2023(self):
+        eq = SCAPIS_2023()
+        eq.set_strategy("closest")
+        self._df["SCAPIS_FEV1_LLN"] = self._df.apply(
+            lambda r: eq.lln(r.sex, r.age, r.height, eq.Parameters.pre_BD_FEV1, r.FEV1), axis=1)
 
-        self.__dataframe["GLI_2012_FEV1p"] = self.__dataframe.apply(
-            lambda x: gli2012.percent(x.sex, x.age, x.height, 1, gli2012.Parameters.FEV1, x.FEV1), axis=1
-        )
-
-    def _gli_2017_example(self):
-        
-        gli2017 = GLI_2017()
-        gli2017.set_strategy("closest")
-
-        self.__dataframe["GLI_2017_KCO"] = self.__dataframe.apply(
-            lambda x: gli2017.percent(x.sex, x.age, x.height, gli2017.Parameters.KCO_SI, x.KCO), axis=1)
-
-    def _gli_2021_example(self):
-
-        gli2021 = GLI_2021()
-
-        self.__dataframe["GLI_2021_RV_p"] = self.__dataframe.apply(
-            lambda x: gli2021.percent(x.sex, x.age, x.height, gli2021.Parameters.RV, x.RV), axis=1)
-
-    def _bowermann_2022_example(self):
-        
-        bowermann = BOWERMANN_2022()
-
-        self.__dataframe["BOWERMANN_FEV1_p"] = self.__dataframe.apply(
-            lambda x: bowermann.percent(x.sex, x.age, x.height, bowermann.Parameters.FEV1, x.FEV1), axis=1)
-
-        self.__dataframe["BOWERMANN_FVC_z"] = self.__dataframe.apply(
-            lambda x: bowermann.zscore(x.sex, x.age, x.height, bowermann.Parameters.FVC, x.FVC), axis=1)
-
-    def _schulz_2013_example(self):
-
-        schulz = SCHULZ_2013()
-
-        self.__dataframe[["X10_05", "X10_50", "X10_95"]]  = self.__dataframe.apply(
-            lambda x: pandas.Series(schulz.percentiles(x["sex"], x["age"], x["height"], x["weight"], schulz.Parameters.X10)), axis=1)
-
-    def _scapis_2023_example(self):
-
-        scapis = SCAPIS_2023()
-        scapis.set_silence(False)
-        scapis.set_strategy("closest")
-
-        self.__dataframe["SCAPIS_FEV1_LLN"] = self.__dataframe.apply(
-            lambda x: scapis.lln(x.sex, x.age, x.height, scapis.Parameters.pre_BD_FEV1, x.FEV1), axis=1)
-
-    def _gold_stages_example(self):
-
+    def _apply_gold(self):
         gold = GOLD()
-        self.__dataframe["GOLD"] = self.__dataframe.apply(
-            lambda x: gold.classify(FEV1p = x.GLI_2012_FEV1p), axis=1)
-        self.__dataframe["GOLD"] = pd.Categorical(self.__dataframe["GOLD"], categories=gold.get_order(), ordered=True)
+        self._df["GOLD"] = self._df.apply(
+            lambda r: gold.classify(FEV1p=r.GLI2012_FEV1_pct), axis=1)
+        self._df["GOLD"] = pd.Categorical(
+            self._df["GOLD"], categories=gold.get_order(), ordered=True)
 
-    def _star_stages_example(self):
-
+    def _apply_star(self):
         star = STAR()
-        self.__dataframe["STAR"] = self.__dataframe.apply(
-            lambda x: star.classify(FEV1 = x.FEV1, FVC = x.FVC), axis=1
+        self._df["STAR"] = self._df.apply(
+            lambda r: star.classify(FEV1=r.FEV1, FVC=r.FVC), axis=1)
+
+    # ------------------------------------------------------------------
+    # New feature demos
+    # ------------------------------------------------------------------
+
+    def _cross_equation_example(self) -> pd.DataFrame:
+        """Return a compare_equations() table for the first patient in the cohort."""
+        patient = self._df.iloc[0]
+        return compare_equations(
+            patient,
+            GLI_2012.Parameters.FEV1,
+            equations=[GLI_2012(), BOWERMANN_2022()],
         )
+
 
 if __name__ == '__main__':
     Spiro()

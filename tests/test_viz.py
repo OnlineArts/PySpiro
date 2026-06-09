@@ -9,7 +9,7 @@ except ImportError:
     matplotlib_available = False
 
 from pyspiro import GLI_2012, BOWERMANN_2022
-from pyspiro.viz import plot_centile_curves
+from pyspiro.src.viz import plot_centile_curves
 
 
 @unittest.skipUnless(matplotlib_available, "matplotlib not installed")

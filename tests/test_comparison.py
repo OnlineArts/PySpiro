@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 from pyspiro import GLI_2012, BOWERMANN_2022, HANKINSON_1999
-from pyspiro.comparison import compare_equations
+from pyspiro.src.comparison import compare_equations
 
 
 class TestCompareEquations(unittest.TestCase):

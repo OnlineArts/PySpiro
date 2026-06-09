@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .reference import Classifier
+from ..reference import Classifier
 
 
 class ATS_ERS_2022(Classifier):

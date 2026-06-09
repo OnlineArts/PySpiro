@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .reference import Classifier
+from ..reference import Classifier
 
 class GOLD(Classifier):
     """
@@ -34,8 +34,8 @@ class GOLD(Classifier):
             if "FEV1p" in kwargs:
                 fev1 = kwargs["FEV1p"]
             else:
-                print("GOLD Classifier: could not find FEV1p argument. Assuming the provided argument to be FEV1%pred)")
-                fev1 = kwargs[0]
+                print("GOLD Classifier: expected FEV1p as keyword argument.")
+                return pd.NA
         else:
             print("GOLD Classifier: Ambiguous number of arguments, GOLD expects only FEV1%predicted as FEV1p variable")
             return pd.NA
