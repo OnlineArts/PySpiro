@@ -26,6 +26,9 @@ setup(
         "data/kubota_2014_splines.csv"]},
         include_package_data=True,
         install_requires=["pandas", "numpy"],
+        extras_require={
+            "viz": ["matplotlib>=3.0", "scipy>=1.0"],
+        },
         keywords=["python", "respirology", "spirometry", "bodyplethysmograph", "plethysmograph"],
         classifiers= [
             "Development Status :: 4 - Beta",
