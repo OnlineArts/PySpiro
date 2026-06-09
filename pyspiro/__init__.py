@@ -3,6 +3,8 @@ import pandas
 import pandas as pd
 
 from .src.KUSTER_2008 import KUSTER_2008
+from .src.HANKINSON_1999 import HANKINSON_1999
+from .src.KUBOTA_2014 import KUBOTA_2014
 from .src.GLI_2012 import GLI_2012
 from .src.SCHULZ_2013 import SCHULZ_2013
 from .src.GLI_2017 import GLI_2017
@@ -11,6 +13,7 @@ from .src.BOWERMANN_2022 import BOWERMANN_2022
 from .src.SCAPIS_2023 import SCAPIS_2023
 from .src.GOLD import GOLD
 from .src.STAR import STAR
+from .src.ATS_ERS_2022 import ATS_ERS_2022
 
 class Spiro:
 

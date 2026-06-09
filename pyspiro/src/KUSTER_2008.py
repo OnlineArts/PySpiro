@@ -6,14 +6,23 @@ import pandas as pd
 
 class KUSTER_2008(Reference):
     """
-    A 2008 ERJ publication establishing reference values for lung function screening in ~8500 patients from the swiss LuftiBus trial.
+    LuftiBus spirometry reference equations (Kuster et al. 2008).
 
-    The ranges of application for these reference equations are ages 18-80 yrs and heights of 140-200 and 130-190 cm in males and 
-    females, respectively.
+    Reference equations for lung function screening derived from ~8500
+    healthy never-smoking adults in the Swiss LuftiBus study. Provides
+    predicted values and LLN via separate tabulated equations (no LMS
+    framework; ULN is not available from this publication).
 
-    Kuster SP, Kuster D, Schindler C, Rochat MK, Braun J, Held L, Brändli O. Reference equations for lung 
-    function screening of healthy never-smoking adults aged 18-80 years. Eur Respir J. 2008 Apr;31(4):860-8. 
-    doi: 10.1183/09031936.00091407. Epub 2007 Dec 5. PMID: 18057057.
+    Variables: sex (0=female, 1=male), age (years, 18-80), height (cm).
+    Height ranges: males 140-200 cm, females 130-190 cm.
+    Parameters: FVC, FEV1, MEF75, MEF50, MEF25, FEV1/FVC%, PEF.
+    Use Parameters.*_LLN variants with lln() to obtain the lower limit of normal.
+
+    Citation:
+        Kuster SP, Kuster D, Schindler C, et al. Reference equations for lung
+        function screening of healthy never-smoking adults aged 18-80 years.
+        Eur Respir J. 2008;31(4):860-8.
+        doi: 10.1183/09031936.00091407. PMID: 18057057.
     """
 
     class Parameters(Enum):
@@ -51,14 +60,11 @@ class KUSTER_2008(Reference):
         return age, height, sex
 
     def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
-        """
-        In this case, only calculate the m (predicted value).
-        """
+        """Return % of predicted."""
         age, height, sex = self._check_conditions(sex, age, height)
         if age is pd.NA or height is pd.NA or sex is pd.NA:
             return pd.NA
 
-        #print(f"[DEBUG] parameter={parameter} sex={sex} age={age} height={height}")
         if sex == self.Sex["FEMALE"].value:
 
             match parameter:
@@ -116,6 +122,12 @@ class KUSTER_2008(Reference):
                     raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
             return round(( value / m ) * 100, 2)
 
+
+    def uln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+        """
+        Not implemented — ULN tabulated coefficients are not provided in the KUSTER 2008 publication.
+        """
+        return pd.NA
 
     def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         age, height, sex = self._check_conditions(sex, age, height)

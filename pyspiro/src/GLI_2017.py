@@ -7,47 +7,36 @@ import pandas
 
 class GLI_2017(Reference):
     """
-    This GLI reference equations set was published in 2017 by Stanojevic and includes as variables sex, age, 
-    height and ethnicity, providing functions for TLCO, DLCO, KCO and VA.
+    GLI 2017 lung diffusion capacity reference equations (Stanojevic et al. 2017).
 
-    It includes reference values for Caucasians aged 5-80 years.
+    Global Lung Function Initiative reference equations for the carbon monoxide
+    transfer factor in Caucasians. Covers both sexes, age range 5-80 years.
+    This implementation uses the corrected 2020 erratum values.
 
-    We here implement the corrected version of the reference values, which was published in 2020.
+    Variables: sex (0=female, 1=male), age (years), height (cm).
+    Parameters: TLCO (SI), DLCO (traditional), KCO (SI), KCO (traditional), VA.
+    No ethnicity stratification (Caucasian population only).
 
-    Citation 1:
-    Stanojevic S, Graham BL, Cooper BG, Thompson BR, Carter KW, Francis RW, Hall GL; Global Lung Function Initiative TLCO 
-    working group; Global Lung Function Initiative (GLI) TLCO. Official ERS technical standards: Global Lung Function 
-    Initiative reference values for the carbon monoxide transfer factor for Caucasians. Eur Respir J. 2017 
-    Sep 11;50(3):1700010. doi: 10.1183/13993003.00010-2017. Erratum in: Eur Respir J. 2020 Oct 15;56(4):1750010. 
-    doi: 10.1183/13993003.50010-2017. PMID: 28893868.
-
-    Citation 2:
-    "Official ERS technical standards: Global Lung Function Initiative reference values for the carbon monoxide transfer 
-    factor for Caucasians." Sanja Stanojevic, Brian L. Graham, Brendan G. Cooper, Bruce R. Thompson, Kim W. Carter, Richard 
-    W. Francis and Graham L. Hall on behalf of the Global Lung Function Initiative TLCO working group. Eur Respir J 2017; 
-    50: 1700010. Eur Respir J. 2020 Oct 15;56(4):1750010. doi: 10.1183/13993003.50010-2017. Erratum for: Eur Respir J. 2017 
-    Sep 11;50(3):1700010. doi: 10.1183/13993003.00010-2017. PMID: 33060163.
+    Citation:
+        Stanojevic S, Graham BL, Cooper BG, et al.; GLI TLCO working group.
+        Official ERS technical standards: Global Lung Function Initiative
+        reference values for the carbon monoxide transfer factor for Caucasians.
+        Eur Respir J. 2017;50(3):1700010. doi: 10.1183/13993003.00010-2017.
+        Erratum: Eur Respir J. 2020;56(4):1750010.
+        doi: 10.1183/13993003.50010-2017. PMID: 28893868.
     """
 
-
     class Parameters(Enum):
-        TLCO = 1 # SI Units
-        DLCO = 2 # Traditional Units
-        KCO_SI = 3 # SI Units
-        KCO_trad = 4 # Traditional Units
+        TLCO = 1       # SI units (mmol/min/kPa)
+        DLCO = 2       # Traditional units (mL/min/mmHg)
+        KCO_SI = 3     # SI units (mmol/min/kPa/L)
+        KCO_trad = 4   # Traditional units (mL/min/mmHg/L)
         VA = 5
 
     def __init__(self):
-        """
-        No height range given.
-        """
         self.__lookup, self.__splines = self.__load_lookup_table()
 
     def __load_lookup_table(self) -> tuple:
-        """
-        Loads and stores the coefficient and splines values.
-        :return: both files as pandas dataframe
-        """
         lookup_path = importlib.resources.open_binary('pyspiro.data', 'gli_2017_splines.csv')
         splines_path = importlib.resources.open_binary('pyspiro.data', 'gli_2017_coefficients.csv')
         lookup = pandas.read_csv(lookup_path, delimiter=";").set_index("age")
@@ -56,23 +45,15 @@ class GLI_2017(Reference):
         return lookup, splines
 
     def __get_splines(self, sex: int, age: float, parameter: int):
-        """
-        Yields the appropriated splines values based on the parameter, sex and age.
-        :param sex: self.Sex enumration as integer value
-        :param age: age as float
-        :param parameter: self.Parameter enumeration as integer value
-        """
         for i in ("Sspline", "Mspline", "Lspline"):
-            yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age] # Change sth here
+            yield self.__lookup["%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)].loc[age]
 
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
-        """
-        Calculate l, m and s values for the given parameters.
-        """
+        """Return the (L, M, S) triplet for the given inputs."""
         age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
-        sspline, mspline, lspline = self.__get_splines(sex, age, parameter) #LSpline not used.
+        sspline, mspline, lspline = self.__get_splines(sex, age, parameter)
         c = self.__splines["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
         l = c.loc["q0"]
@@ -82,30 +63,27 @@ class GLI_2017(Reference):
         return l, m, s
 
     def percent(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """
-        Returns % of predicted value.
-        """
+        """Return % of predicted."""
         l, m, s = self.lms(sex, age, height, parameter, value)
         return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else round(( value / m ) * 100, 2)
 
     def zscore(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """
-        Returns z-score value.
-        """
+        """Return z-score."""
         l, m, s = self.lms(sex, age, height, parameter, value)
         return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else (((value/m)**l) - 1) / (l * s)
 
     def lln(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """
-        Returns lower limit of normal, by convention the lower 5th percentile.
-        """
+        """Return lower limit of normal (5th percentile)."""
         l, m, s = self.lms(sex, age, height, parameter, value)
         return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
 
+    def uln(self, sex: int, age: float, height: float, parameter: int, value: float):
+        """Return upper limit of normal (95th percentile)."""
+        l, m, s = self.lms(sex, age, height, parameter, value)
+        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m))
+
     def all(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """
-        Returns all values at once (percent, z-score and lln).
-        """
+        """Return (percent, z-score, lln) in a single call."""
         l, m, s = self.lms(sex, age, height, parameter, value)
         if (l is pandas.NA or m is pandas.NA or s is pandas.NA):
             return pandas.NA
