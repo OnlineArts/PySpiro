@@ -9,8 +9,8 @@ class HANKINSON_1999(Reference):
     NHANES III spirometry reference equations (Hankinson et al. 1999).
 
     Derived from the Third National Health and Nutrition Examination Survey (NHANES III).
-    Covers three US ethnic groups, two sexes, and two age ranges (children 8-17 y,
-    adults 18-80 y).
+    Covers three US ethnic groups, two sexes, and two age ranges (children 8-19 y,
+    adults 20-80 y).
 
     Two table structures from the paper are implemented via two separate CSV files:
 
@@ -54,7 +54,7 @@ class HANKINSON_1999(Reference):
     _T4_T5_PARAMS = frozenset({'FVC', 'FEV1', 'FEV6', 'FEF25_75', 'PEF'})
     _T6_PARAMS    = frozenset({'FEV1FVC', 'FEV1FEV6'})
 
-    _CHILD_MAX_AGE = 17
+    _CHILD_MAX_AGE = 19
     _AGE_RANGE = (8, 80)
 
     def __init__(self):
