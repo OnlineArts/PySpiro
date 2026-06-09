@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+
 from pandas import NA
 
 class Reference(ABC):
@@ -67,3 +68,15 @@ class Reference(ABC):
     class Sex(Enum):
         FEMALE = 0
         MALE = 1
+
+class Classifier(ABC):
+
+    def get_order(self):
+        return self._order
+
+    def set_order(self, order: list):
+        _order = order
+
+    @abstractmethod
+    def classify(self, **kwargs):
+        pass

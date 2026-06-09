@@ -1,7 +1,6 @@
 from .reference import Reference
 from enum import Enum
 import importlib.resources
-import numpy
 import pandas
 
 

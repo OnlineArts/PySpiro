@@ -1,5 +1,6 @@
 import numpy
 import pandas
+import pandas as pd
 
 from .src.KUSTER_2008 import KUSTER_2008
 from .src.GLI_2012 import GLI_2012
@@ -8,7 +9,8 @@ from .src.GLI_2017 import GLI_2017
 from .src.GLI_2021 import GLI_2021
 from .src.BOWERMANN_2022 import BOWERMANN_2022
 from .src.SCAPIS_2023 import SCAPIS_2023
-
+from .src.GOLD import GOLD
+from .src.STAR import STAR
 
 class Spiro:
 
@@ -29,10 +31,10 @@ df = pandas.DataFrame(
      "FEF75": [0.15, 1.241, 1.1, 0.8, 1.4, 1.2]})
 
 df["GLI_2012_FEV1"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEV1"], x.FEV1), axis=1)
+    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.FEV1), axis=1)
 
 df["GLI_2012_FEF75"] = df.apply(
-    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters["FEF75"], x.FEF75), axis=1)
+    lambda x: gli.percent(x.sex, x.age, x.height, 1, gli.Parameters.FEF75, x.FEF75), axis=1)
 
 print(df)
         """)
@@ -61,6 +63,8 @@ print(df)
         self._gli_2021_example()
         self._bowermann_2022_example()
         self._scapis_2023_example()
+        self._gold_stages_example()
+        self._star_stages_example()
 
         print(self.__dataframe)
 
@@ -85,6 +89,10 @@ print(df)
 
         self.__dataframe["GLI_2012_FEF75"] = self.__dataframe.apply(
             lambda x: gli2012.percent(x.sex, x.age, x.height, 1, gli2012.Parameters["FEF75"], x.FEF75), axis=1)
+
+        self.__dataframe["GLI_2012_FEV1p"] = self.__dataframe.apply(
+            lambda x: gli2012.percent(x.sex, x.age, x.height, 1, gli2012.Parameters.FEV1, x.FEV1), axis=1
+        )
 
     def _gli_2017_example(self):
         
@@ -127,6 +135,19 @@ print(df)
         self.__dataframe["SCAPIS_FEV1_LLN"] = self.__dataframe.apply(
             lambda x: scapis.lln(x.sex, x.age, x.height, scapis.Parameters.pre_BD_FEV1, x.FEV1), axis=1)
 
+    def _gold_stages_example(self):
+
+        gold = GOLD()
+        self.__dataframe["GOLD"] = self.__dataframe.apply(
+            lambda x: gold.classify(FEV1p = x.GLI_2012_FEV1p), axis=1)
+        self.__dataframe["GOLD"] = pd.Categorical(self.__dataframe["GOLD"], categories=gold.get_order(), ordered=True)
+
+    def _star_stages_example(self):
+
+        star = STAR()
+        self.__dataframe["STAR"] = self.__dataframe.apply(
+            lambda x: star.classify(FEV1 = x.FEV1, FVC = x.FVC), axis=1
+        )
 
 if __name__ == '__main__':
     Spiro()
