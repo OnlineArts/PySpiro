@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+import inspect
 
 import numpy
 import pandas
@@ -161,6 +162,74 @@ class LMSReference(Reference):
             numpy.exp(numpy.log(1 - 1.645 * l * s) / l + numpy.log(m)),
             numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m)),
         )
+
+    def compute(self, df: pandas.DataFrame, parameter: int,
+                sex: str = 'sex', age: str = 'age', height: str = 'height',
+                value: str = None, ethnicity: str = None,
+                metrics: tuple = ('percent', 'zscore', 'lln', 'uln')) -> pandas.DataFrame:
+        """
+        Apply the reference equation to every row of a DataFrame.
+
+        Parameters
+        ----------
+        df        : DataFrame with one patient per row.
+        parameter : Parameters enum value (or its integer value) to evaluate.
+        sex       : column name for sex (0=female, 1=male).  Default 'sex'.
+        age       : column name for age in years.            Default 'age'.
+        height    : column name for height in cm.            Default 'height'.
+        value     : column name for the measured value.
+                    Required for 'percent' and 'zscore'; optional for 'lln'/'uln'.
+        ethnicity : column name for ethnicity code.
+                    Required when the equation's lms() includes an ethnicity
+                    argument (e.g. GLI_2012); ignored otherwise.
+        metrics   : tuple of metrics to compute, any subset of
+                    ('percent', 'zscore', 'lln', 'uln').  Default: all four.
+
+        Returns
+        -------
+        DataFrame indexed like df with one column per requested metric.
+
+        Examples
+        --------
+        >>> gli = GLI_2012()
+        >>> results = gli.compute(df, GLI_2012.Parameters.FEV1,
+        ...                       value='FEV1', ethnicity='ethnicity')
+        >>> bow = BOWERMANN_2022()
+        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value='FVC')
+        """
+        lms_params = set(inspect.signature(self.lms).parameters)
+        needs_ethnicity = 'ethnicity' in lms_params
+
+        if needs_ethnicity and ethnicity is None:
+            raise ValueError(
+                f"{type(self).__name__}.lms requires an ethnicity argument; "
+                "pass ethnicity='<column_name>' to compute()."
+            )
+        for metric in metrics:
+            if metric in ('percent', 'zscore') and value is None:
+                raise ValueError(
+                    f"metric '{metric}' requires a measured value; "
+                    "pass value='<column_name>' to compute()."
+                )
+
+        def _kw(row):
+            kw = {
+                'sex': int(row[sex]),
+                'age': float(row[age]),
+                'height': float(row[height]),
+                'parameter': parameter,
+                'value': float(row[value]) if value is not None else 0.0,
+            }
+            if needs_ethnicity:
+                kw['ethnicity'] = int(row[ethnicity])
+            return kw
+
+        result = {}
+        for metric in metrics:
+            method = getattr(self, metric)
+            result[metric] = df.apply(lambda r, m=method: m(**_kw(r)), axis=1)
+
+        return pandas.DataFrame(result, index=df.index)
 
 
 class SplineReference(LMSReference):
