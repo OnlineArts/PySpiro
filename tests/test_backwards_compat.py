@@ -244,7 +244,7 @@ class TestApplyPatternKubota2014(unittest.TestCase):
 
 
 class TestApplyPatternKuster2008(unittest.TestCase):
-    """KUSTER_2008: polynomial — no compute(); verify apply() still works."""
+    """KUSTER_2008: polynomial — cross-checks apply() against compute() and scalar."""
 
     def setUp(self):
         self.eq = KUSTER_2008()
@@ -277,9 +277,35 @@ class TestApplyPatternKuster2008(unittest.TestCase):
         scalar = self.eq.percent(M, 40.0, 175.0, 1, KUSTER_2008.Parameters.FEV1, 3.2)
         self.assertAlmostEqual(via_apply.iloc[0], scalar, places=5)
 
+    def test_percent_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.percent(
+                r.sex, r.age, r.height, 1,
+                KUSTER_2008.Parameters.FEV1, r.FEV1))
+        via_compute = self.eq.compute(
+            self.df, KUSTER_2008.Parameters.FEV1,
+            value_col='FEV1', metrics=('percent',))['percent']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
+
+    def test_lln_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.lln(
+                r.sex, r.age, r.height, 1,
+                KUSTER_2008.Parameters.FEV1_LLN, r.FEV1))
+        via_compute = self.eq.compute(
+            self.df, KUSTER_2008.Parameters.FEV1_LLN,
+            value_col='FEV1', metrics=('lln',))['lln']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
+
 
 class TestApplyPatternHankinson1999(unittest.TestCase):
-    """HANKINSON_1999: polynomial — no compute(); verify apply() still works."""
+    """HANKINSON_1999: polynomial — cross-checks apply() against compute() and scalar."""
 
     def setUp(self):
         self.eq = HANKINSON_1999()
@@ -306,9 +332,35 @@ class TestApplyPatternHankinson1999(unittest.TestCase):
         scalar = self.eq.percent(M, 40.0, 175.0, 1, HANKINSON_1999.Parameters.FVC, 4.1)
         self.assertAlmostEqual(via_apply.iloc[0], scalar, places=5)
 
+    def test_percent_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.percent(
+                r.sex, r.age, r.height, r.ethnicity,
+                HANKINSON_1999.Parameters.FVC, r.FVC))
+        via_compute = self.eq.compute(
+            self.df, HANKINSON_1999.Parameters.FVC,
+            value_col='FVC', ethnicity_col='ethnicity', metrics=('percent',))['percent']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
+
+    def test_lln_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.lln(
+                r.sex, r.age, r.height, r.ethnicity,
+                HANKINSON_1999.Parameters.FVC, r.FVC))
+        via_compute = self.eq.compute(
+            self.df, HANKINSON_1999.Parameters.FVC,
+            value_col='FVC', ethnicity_col='ethnicity', metrics=('lln',))['lln']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
+
 
 class TestApplyPatternSchulz2013(unittest.TestCase):
-    """SCHULZ_2013: percentile regression — no compute(); verify apply() still works."""
+    """SCHULZ_2013: percentile regression — cross-checks apply() against compute() and scalar."""
 
     def setUp(self):
         self.eq = SCHULZ_2013()
@@ -335,6 +387,32 @@ class TestApplyPatternSchulz2013(unittest.TestCase):
                 SCHULZ_2013.Parameters.R10, None))
         scalar = self.eq.lln(M, 60.0, 175.0, 80.0, SCHULZ_2013.Parameters.R10, None)
         self.assertAlmostEqual(via_apply.iloc[0], scalar, places=5)
+
+    def test_lln_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.lln(
+                r.sex, r.age, r.height, r.weight,
+                SCHULZ_2013.Parameters.R10, None))
+        via_compute = self.eq.compute(
+            self.df, SCHULZ_2013.Parameters.R10,
+            weight_col='weight', metrics=('lln',))['lln']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
+
+    def test_uln_apply_matches_compute(self):
+        via_apply = _apply_col(self.df,
+            lambda r: self.eq.uln(
+                r.sex, r.age, r.height, r.weight,
+                SCHULZ_2013.Parameters.R10, None))
+        via_compute = self.eq.compute(
+            self.df, SCHULZ_2013.Parameters.R10,
+            weight_col='weight', metrics=('uln',))['uln']
+        pd.testing.assert_series_equal(
+            via_apply.reset_index(drop=True),
+            via_compute.reset_index(drop=True),
+            check_names=False)
 
 
 if __name__ == '__main__':
