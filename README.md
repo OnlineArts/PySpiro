@@ -96,6 +96,13 @@
 > **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
 > **AGARWAL_2020** uses pre-computed lookup tables (integer age 20–80, integer height 137–185 cm); inputs are rounded to the nearest integer. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − p5. `zscore()` uses the normal approximation (accurate for males; approximate for females where non-normal GAMLSS families were fitted). `lms()` returns `(NA, NA, NA)`.
 
+### Multiple breath washout (MBW)
+| Class | Population | Age range | Parameters | Publication |
+|---|---|---|---|---|
+| `RAMSEY_2024` | GLI international (race-neutral) | 2–80 y | LCI, FRC | Ramsey et al. 2024, PMID: 38565204 |
+
+RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections from the GLI 2024 supplementary material. LCI has no sex or height dependence; FRC depends on sex, age, and height.
+
 ### Lung diffusion capacity
 | Class | Population | Publication |
 |---|---|---|
@@ -108,18 +115,23 @@
 | `GLI_2021` | European ancestry, age 5–80 y | Hall et al. 2021, PMID: 33707167 |
 
 ### Oscillometry (IOS/FOT)
-| Class | Population | Publication |
-|---|---|---|
-| `SCHULZ_2013` | KORA (German), adults | Schulz et al. 2013, PMID: 23691036 |
+| Class | Population | Age / height range | Parameters | Publication |
+|---|---|---|---|---|
+| `SCHULZ_2013` | KORA (German), adults | 40–65 y | R10/15/25/35, X10/20/25/35 | Schulz et al. 2013, PMID: 23691036 |
+| `CALOGERO_2013` | Caucasian children (Perth/Viterbo) | 92–159 cm | Rrs6/8/10, Xrs6/8/10, AX, Fres | Calogero et al. 2013, PMID: 22961800 |
+
+`CALOGERO_2013` uses direct height+sex regression with log/sqrt transformations (not LMS). Z-scores are on the transformed scale; positive z always means worse than predicted. `percent()` is defined for Rrs, AX, and Fres; it returns `pd.NA` for Xrs (signed values). `predicted()` returns the median value directly.
 
 ---
 
 ## Severity classifiers
 
-| Class | Basis | Stages |
+| Class | Basis | Stages / outputs |
 |---|---|---|
 | `GOLD` | FEV1 % predicted (COPD) | I–IV (mild to very severe) |
 | `STAR` | FEV1/FVC ratio (COPD) | I–IV (mild to very severe) |
+| `WODEHOUSE_2003` | nNO in ppb (PCD screening) | PCD range / Normal |
+| `PCD_SEVERITY` | LCI z-score + FEV1 z-score + nNO (PCD monitoring) | Mild / Moderate / Severe / Inconclusive |
 
 ---
 
@@ -281,6 +293,80 @@ df[['fvc_pct', 'fvc_z', 'fvc_lln', 'fvc_uln']] = df.apply(
 )
 ```
 
+### Pediatric oscillometry (CALOGERO_2013)
+
+```python
+from pyspiro import CALOGERO_2013
+
+c = CALOGERO_2013()
+
+# Single patient (female, age 7, height 120 cm)
+pred   = c.predicted(sex=0, age=7.0, height=120.0, parameter=CALOGERO_2013.Parameters.Rrs6)
+z      = c.zscore   (sex=0, age=7.0, height=120.0, parameter=CALOGERO_2013.Parameters.Rrs6, value=8.5)
+uln    = c.uln      (sex=0, age=7.0, height=120.0, parameter=CALOGERO_2013.Parameters.Rrs6)
+lln_x  = c.lln      (sex=0, age=7.0, height=120.0, parameter=CALOGERO_2013.Parameters.Xrs6)  # most negative normal
+
+# Fres (no sex term — same result for male/female):
+fres_uln = c.uln(sex=0, age=7.0, height=120.0, parameter=CALOGERO_2013.Parameters.Fres)
+
+# Batch via compute()
+df[['rrs6_z', 'rrs6_lln', 'rrs6_uln']] = c.compute(
+    df, CALOGERO_2013.Parameters.Rrs6,
+    value_col='rrs6', metrics=('zscore', 'lln', 'uln'))
+
+# Note: height is the predictor; age is accepted but ignored in the regression
+```
+
+### Multiple breath washout — LCI and FRC (RAMSEY_2024)
+
+```python
+from pyspiro import RAMSEY_2024
+
+r = RAMSEY_2024()
+
+# LCI: no sex or height dependence (pass dummy height or actual height — ignored)
+lci_z   = r.zscore(sex=0, age=12.0, height=145.0, parameter=RAMSEY_2024.Parameters.LCI, value=8.5)
+lci_uln = r.uln   (sex=0, age=12.0, height=145.0, parameter=RAMSEY_2024.Parameters.LCI)
+lci_pct = r.percent(sex=0, age=12.0, height=145.0, parameter=RAMSEY_2024.Parameters.LCI, value=8.5)
+
+# FRC: sex and height matter
+frc_z   = r.zscore(sex=1, age=35.0, height=178.0, parameter=RAMSEY_2024.Parameters.FRC, value=3.8)
+frc_lln = r.lln   (sex=1, age=35.0, height=178.0, parameter=RAMSEY_2024.Parameters.FRC)
+
+# Batch via compute()
+df[['lci_z', 'lci_lln', 'lci_uln']] = r.compute(
+    df, RAMSEY_2024.Parameters.LCI,
+    value_col='lci', metrics=('zscore', 'lln', 'uln'))
+```
+
+### PCD screening and severity (WODEHOUSE_2003, PCD_SEVERITY)
+
+```python
+from pyspiro import RAMSEY_2024, GLI_2012, WODEHOUSE_2003, PCD_SEVERITY
+
+# nNO classification (Wodehouse 2003)
+w = WODEHOUSE_2003()
+print(w.classify(nno_ppb=65))    # 'PCD range'
+print(w.classify(nno_ppb=750))   # 'Normal'
+print(w.zscore(65))               # z-score relative to healthy controls (~−4.8)
+
+# PCD severity staging
+r   = RAMSEY_2024()
+gli = GLI_2012()
+sev = PCD_SEVERITY()
+
+lci_zscore  = r.zscore(sex=0, age=12.0, height=145.0,
+                        parameter=RAMSEY_2024.Parameters.LCI, value=9.2)
+fev1_zscore = gli.zscore(0, 12.0, 145.0, 1, GLI_2012.Parameters.FEV1, 1.4)
+
+stage = sev.classify(
+    lci_zscore  = lci_zscore,   # from RAMSEY_2024
+    nno_ppb     = 65,           # measured nNO; ≥200 ppb → 'Inconclusive'
+    fev1_zscore = fev1_zscore,  # from any spirometry reference
+)
+# → 'Mild', 'Moderate', 'Severe', or 'Inconclusive'
+```
+
 ### COPD severity staging
 
 ```python
@@ -405,10 +491,8 @@ fig = plot_centile_curves(
 ## Planned future implementations
 
 - **Spirometry** — Indian reference equations Northern Indian (Chhabra 2014, PMID: 25962195)
-- **Spirometry** — Indian reference equations, Western Indian (Agarwal 2020, PMID: 32366494)
 - **Spirometry** — Indian reference equations, Western Indian (Desai 2016, PMID: 27865240)
 - **Spirometry** — Chinese reference equations (Jian 2017, PMID: 29268524)
-- **Breath-washout** reference values
 
 ---
 

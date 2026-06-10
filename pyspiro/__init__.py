@@ -21,13 +21,17 @@ from .src.spirometry.QUANJER_1995 import QUANJER_1995
 from .src.spirometry.WANG_1993 import WANG_1993
 from .src.spirometry.JIAN_2017 import JIAN_2017
 from .src.spirometry.AGARWAL_2020 import AGARWAL_2020
+from .src.mbw.RAMSEY_2024 import RAMSEY_2024
 from .src.diffusion.GLI_2017 import GLI_2017
 from .src.diffusion.SCAPIS_2023 import SCAPIS_2023
 from .src.volumes.GLI_2021 import GLI_2021
 from .src.oscillometry.SCHULZ_2013 import SCHULZ_2013
+from .src.oscillometry.CALOGERO_2013 import CALOGERO_2013
 from .src.classifiers.GOLD import GOLD
 from .src.classifiers.STAR import STAR
 from .src.classifiers.ATS_ERS_2022 import ATS_ERS_2022
+from .src.classifiers.WODEHOUSE_2003 import WODEHOUSE_2003
+from .src.classifiers.PCD_SEVERITY import PCD_SEVERITY
 from .src.viz import plot_centile_curves
 from .src.comparison import compare_equations
 
