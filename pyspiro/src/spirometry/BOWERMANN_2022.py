@@ -37,11 +37,11 @@ class BOWERMANN_2022(SplineReference):
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._splines_data["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
-        if self.Parameters(parameter).name in ['FEV1', 'FVC']:
+        if self.Parameters(parameter) in (self.Parameters.FEV1, self.Parameters.FVC):
             l = c.loc["q0"]
-        elif self.Parameters(parameter).name in ['FEV1FVC']:
+        else:
             l = c.loc["q0"] + (c.loc["q1"] * numpy.log(age))
 
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
