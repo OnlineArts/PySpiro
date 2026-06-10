@@ -46,7 +46,7 @@
 
 ## Outputs
 
-All LMS-based equation classes expose a consistent API:
+All equation classes expose a consistent scalar API and a vectorised `compute()` for DataFrames:
 
 | Method | Returns |
 |---|---|
@@ -54,11 +54,23 @@ All LMS-based equation classes expose a consistent API:
 | `zscore(...)` | Z-score relative to the reference distribution |
 | `lln(...)` | Lower limit of normal (5th percentile) |
 | `uln(...)` | Upper limit of normal (95th percentile) |
-| `lms(...)` | Raw (L, M, S) triplet |
+| `lms(...)` | Raw (L, M, S) triplet (LMS equations only) |
 | `all(...)` | Tuple of (% predicted, z-score, LLN, ULN) |
-| `compute(df, parameter, ...)` | Apply to a whole DataFrame; returns a DataFrame of metrics |
+| `compute(df, parameter, ...)` | Vectorised apply over a DataFrame; returns a DataFrame of metrics |
 
 **Conventions**: sex as integer (0 = female, 1 = male); age in years; height in cm; measured values in their natural units (L, L/s, mmol/min/kPa, etc.). FEV1/FVC ratios are passed as a fraction (0–1) for LMS-based equations.
+
+### `compute()` column-mapping arguments
+
+| Argument | Default | Notes |
+|---|---|---|
+| `sex_col` | `'sex'` | Integer column: 0 = female, 1 = male |
+| `age_col` | `'age'` | Numeric, years |
+| `height_col` | `'height'` | Numeric, cm |
+| `value_col` | `None` | Required for `percent` / `zscore` |
+| `ethnicity_col` | `None` | Required for ethnicity-stratified equations (GLI_2012, HANKINSON_1999) |
+| `weight_col` | `None` | Required for SCHULZ_2013 `lln` / `uln` |
+| `metrics` | `('percent','zscore','lln','uln')` | Any subset |
 
 ---
 
@@ -78,51 +90,99 @@ pip install pyspiro[viz]   # adds matplotlib and scipy
 
 ## Usage examples
 
-### LMS-based equations (GLI, Bowermann, SCAPIS, Kubota)
-
-`compute(df, parameter, ...)` processes an entire cohort DataFrame in one call and
-returns a DataFrame aligned to the original index.
+### LMS-based equations (GLI_2012, BOWERMANN_2022, GLI_2017, GLI_2021, SCAPIS_2023, KUBOTA_2014)
 
 ```python
 from pyspiro import GLI_2012, BOWERMANN_2022
 
-# Multi-ethnic equation — ethnicity column required
+# Multi-ethnic equation — ethnicity_col required
 gli = GLI_2012()
 results = gli.compute(
     df,
     GLI_2012.Parameters.FEV1,
-    value_col='fev1',        # column with the measured value
-    ethnicity_col='eth',     # column with ethnicity code (1=Caucasian, 2=African-American, …)
+    value_col='fev1',
+    ethnicity_col='eth',     # 1=Caucasian, 2=African-American, 3=NE Asian, 4=SE Asian
 )
-# results: DataFrame with columns percent, zscore, lln, uln — same index as df
+# DataFrame with columns: percent, zscore, lln, uln — same index as df
 df[['fev1_pct', 'fev1_z', 'fev1_lln', 'fev1_uln']] = results
 
-# Race-neutral equation — no ethnicity column needed
+# Race-neutral — no ethnicity_col needed
 bow = BOWERMANN_2022()
-results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value_col='fvc')
+df[['fvc_pct', 'fvc_z', 'fvc_lln', 'fvc_uln']] = bow.compute(
+    df, BOWERMANN_2022.Parameters.FVC, value_col='fvc')
 ```
 
-Column names for `sex`, `age`, and `height` default to those strings; pass explicit
-names if your DataFrame uses different ones:
+Column name defaults are `sex`, `age`, `height`; override any that differ in your DataFrame:
 
 ```python
 results = gli.compute(
-    df,
-    GLI_2012.Parameters.FEV1,
+    df, GLI_2012.Parameters.FEV1,
     sex_col='gender', age_col='age_years', height_col='ht_cm',
     value_col='fev1', ethnicity_col='eth',
-    metrics=('percent', 'lln'),   # only the metrics you need
+    metrics=('percent', 'lln'),
 )
 ```
 
-The scalar methods remain available for single-patient calculations:
+### Polynomial equations (KUSTER_2008, HANKINSON_1999)
+
+```python
+from pyspiro import KUSTER_2008, HANKINSON_1999
+
+# KUSTER_2008: no ethnicity stratification
+kus = KUSTER_2008()
+df['fev1_pct'] = kus.compute(
+    df, KUSTER_2008.Parameters.FEV1,
+    value_col='fev1', metrics=('percent',))['percent']
+df['fev1_lln'] = kus.compute(
+    df, KUSTER_2008.Parameters.FEV1_LLN,
+    value_col='fev1', metrics=('lln',))['lln']
+
+# HANKINSON_1999: ethnicity_col required (1=Caucasian, 2=African-American, 3=Mexican-American)
+han = HANKINSON_1999()
+df[['fvc_pct', 'fvc_z', 'fvc_lln', 'fvc_uln']] = han.compute(
+    df, HANKINSON_1999.Parameters.FVC,
+    value_col='fvc', ethnicity_col='eth')
+```
+
+### Oscillometry (SCHULZ_2013)
+
+SCHULZ_2013 uses direct percentile regression. `compute()` produces LLN (5th) and ULN (95th);
+the median (50th) is available via `percentiles()`.
+
+```python
+from pyspiro import SCHULZ_2013
+import pandas as pd
+
+s = SCHULZ_2013()
+
+# p05 and p95 via compute()
+result = s.compute(
+    df, SCHULZ_2013.Parameters.R10,
+    weight_col='weight', metrics=('lln', 'uln'))
+df['R10_p05'] = result['lln']
+df['R10_p95'] = result['uln']
+
+# p50 via apply (no single-metric method for the median)
+df['R10_p50'] = df.apply(
+    lambda r: s.percentiles(r.sex, r.age, r.height, r.weight,
+                            SCHULZ_2013.Parameters.R10)[1], axis=1)
+```
+
+### Scalar methods (single patient)
+
+All equations still support per-call scalar methods for single-patient use:
 
 ```python
 gli = GLI_2012()
-# sex: 0 = female, 1 = male | height in cm | FEV1 in litres | ethnicity: 1 = Caucasian
 pct = gli.percent(1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 z   = gli.zscore (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 lln = gli.lln    (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
+
+bow = BOWERMANN_2022()
+pct = bow.percent(1, 40, 175, BOWERMANN_2022.Parameters.FEV1, 3.2)  # no ethnicity
+
+kus = KUSTER_2008()
+pct = kus.percent(1, 40, 175, 1, KUSTER_2008.Parameters.FEV1, 3.2)
 ```
 
 ### NHANES III (polynomial equations)

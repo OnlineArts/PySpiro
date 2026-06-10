@@ -48,27 +48,27 @@ class Reference(ABC):
         return self._strategy
 
     @abstractmethod
-    def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def percent(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the measured value as % of the predicted median."""
         pass
 
     @abstractmethod
-    def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def zscore(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the z-score of the measured value relative to the reference distribution."""
         pass
 
     @abstractmethod
-    def lms(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def lms(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the (L, M, S) triplet for the given inputs."""
         pass
 
     @abstractmethod
-    def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def lln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the lower limit of normal (5th percentile)."""
         pass
 
     @abstractmethod
-    def uln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
+    def uln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the upper limit of normal (95th percentile)."""
         pass
 

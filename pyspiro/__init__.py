@@ -123,10 +123,13 @@ class Spiro:
 
     def _apply_kuster_2008(self):
         eq = KUSTER_2008()
-        self._df["KUSTER_FEV1_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEV1, r.FEV1), axis=1)
-        self._df["KUSTER_FEV1_LLN"] = self._df.apply(
-            lambda r: eq.lln(r.sex, r.age, r.height, 1, eq.Parameters.FEV1_LLN, r.FEV1), axis=1)
+        # KUSTER_2008 accepts ethnicity in its signature but ignores it; omit ethnicity_col.
+        self._df["KUSTER_FEV1_pct"] = eq.compute(
+            self._df, eq.Parameters.FEV1,
+            value_col='FEV1', metrics=('percent',))['percent']
+        self._df["KUSTER_FEV1_LLN"] = eq.compute(
+            self._df, eq.Parameters.FEV1_LLN,
+            value_col='FEV1', metrics=('lln',))['lln']
 
     def _apply_gli_2012(self):
         eq = GLI_2012()
@@ -164,12 +167,16 @@ class Spiro:
             value_col='FVC', metrics=('zscore',))['zscore']
 
     def _apply_schulz_2013(self):
-        # SCHULZ_2013 uses direct percentile regression, not LMS — no compute() API.
         eq = SCHULZ_2013()
-        self._df[["X10_p05", "X10_p50", "X10_p95"]] = self._df.apply(
-            lambda r: pd.Series(
-                eq.percentiles(r.sex, r.age, r.height, r.weight, eq.Parameters.X10)
-            ), axis=1)
+        # lln/uln (p05/p95) via compute(); p50 still needs apply (no single-metric method).
+        result = eq.compute(
+            self._df, eq.Parameters.X10,
+            weight_col='weight', metrics=('lln', 'uln'))
+        self._df["X10_p05"] = result['lln']
+        self._df["X10_p95"] = result['uln']
+        self._df["X10_p50"] = self._df.apply(
+            lambda r: eq.percentiles(r.sex, r.age, r.height, r.weight, eq.Parameters.X10)[1],
+            axis=1)
 
     def _apply_scapis_2023(self):
         eq = SCAPIS_2023()
