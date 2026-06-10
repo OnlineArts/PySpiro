@@ -28,9 +28,9 @@ class TestBowermann2022Percent(unittest.TestCase):
         result = self.bow.percent(M, 40, 175, BOWERMANN_2022.Parameters.FVC, m)
         self.assertAlmostEqual(result, 100.0, places=1)
 
-    def test_fev1_and_fvc_return_float(self):
-        # FEV1FVC male splines are absent from the Bowermann CSV; test FEV1/FVC only
-        for param in [BOWERMANN_2022.Parameters.FEV1, BOWERMANN_2022.Parameters.FVC]:
+    def test_fev1_fvc_and_fev1fvc_return_float(self):
+        for param in [BOWERMANN_2022.Parameters.FEV1, BOWERMANN_2022.Parameters.FVC,
+                      BOWERMANN_2022.Parameters.FEV1FVC]:
             with self.subTest(param=param.name):
                 result = self.bow.percent(M, 40, 175, param, 3.0)
                 self.assertFalse(pd.isna(result))

@@ -35,7 +35,7 @@ class TestKuster2008Percent(unittest.TestCase):
     def test_percent_returns_float_male(self):
         for param in [KUSTER_2008.Parameters.FVC, KUSTER_2008.Parameters.FEV1,
                       KUSTER_2008.Parameters.MEF75, KUSTER_2008.Parameters.MEF50,
-                      KUSTER_2008.Parameters.MEF25, KUSTER_2008.Parameters.FEV1_FVC_P,
+                      KUSTER_2008.Parameters.MEF25, KUSTER_2008.Parameters.FEV1_FVC_PCT,
                       KUSTER_2008.Parameters.PEF]:
             with self.subTest(param=param.name):
                 result = self.k.percent(M, 40, 175, 1, param, 3.0)
@@ -45,7 +45,7 @@ class TestKuster2008Percent(unittest.TestCase):
     def test_percent_returns_float_female(self):
         for param in [KUSTER_2008.Parameters.FVC, KUSTER_2008.Parameters.FEV1,
                       KUSTER_2008.Parameters.MEF75, KUSTER_2008.Parameters.MEF50,
-                      KUSTER_2008.Parameters.MEF25, KUSTER_2008.Parameters.FEV1_FVC_P,
+                      KUSTER_2008.Parameters.MEF25, KUSTER_2008.Parameters.FEV1_FVC_PCT,
                       KUSTER_2008.Parameters.PEF]:
             with self.subTest(param=param.name):
                 result = self.k.percent(F, 40, 165, 1, param, 3.0)

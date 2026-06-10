@@ -327,7 +327,7 @@ fig = plot_centile_curves(
 
 - **Spirometry** — ECCS 1993 (Laszlo 1993)
 - **Spirometry** — South Korean KNHANES IV (Jo 2018, PMID: 29215803)
-- **Spirometry** — Indian reference equations (Chhabra 2014, PMID: 25962195)
+- **Spirometry** — Indian reference equations Northern Indian (Chhabra 2014, PMID: 25962195)
 - **Spirometry** — Indian reference equations, Western Indian (Agarwal 2020, PMID: 32366494)
 - **Spirometry** — Indian reference equations, Western Indian (Desai 2016, PMID: 27865240)
 - **Spirometry** — Chinese reference equations (Jian 2017, PMID: 29268524)

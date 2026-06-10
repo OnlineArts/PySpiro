@@ -42,7 +42,7 @@ class GLI_2017(SplineReference):
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._splines_data["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)

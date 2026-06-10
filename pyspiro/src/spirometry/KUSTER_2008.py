@@ -36,7 +36,7 @@ class KUSTER_2008(Reference):
         MEF50_LLN = 8
         MEF25 = 9
         MEF25_LLN = 10
-        FEV1_FVC_P = 11
+        FEV1_FVC_PCT = 11
         FEV1_FVC_LLN = 12
         PEF = 13
         PEF_LLN = 14
@@ -47,10 +47,12 @@ class KUSTER_2008(Reference):
         self._height_male_range = (140, 200)
 
     def lms(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float) -> tuple:
-        pass
+        """Not applicable — KUSTER_2008 uses direct polynomial equations, not LMS."""
+        return pd.NA, pd.NA, pd.NA
 
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
-        pass
+        """Not applicable — KUSTER_2008 does not publish a standard error."""
+        return pd.NA
 
     def _check_conditions(self, sex: int, age: float, height: float):
         age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
@@ -83,7 +85,7 @@ class KUSTER_2008(Reference):
                 case self.Parameters.MEF25:
                     # MEF25 L·s−1 = exp(-4.861+1.145 ln(H)-0.01120 A-0.000096A2)
                     m = np.exp( -4.861 + 1.145 * np.log(height) - 0.01120 * (age) - 0.000096 * (age ** 2) )
-                case self.Parameters.FEV1_FVC_P:
+                case self.Parameters.FEV1_FVC_PCT:
                     # FEV1/FVC % =  exp(+5.637-0.219 ln(H)-0.00249 A+0.000004A2)
                     m = np.exp( 5.637 - 0.219 * np.log(height) - 0.00249 * (age) + 0.000004 * (age ** 2) )
                 case self.Parameters.PEF:
@@ -112,7 +114,7 @@ class KUSTER_2008(Reference):
                 case self.Parameters.MEF25:
                     # MEF25 L·s−1 = exp(-3.970+1.009 ln(H)-0.01645A-0.000020A2)
                     m = np.exp( -3.970 + 1.009 * np.log(height) - 0.01645 * (age) -0.000020 * (age ** 2) )
-                case self.Parameters.FEV1_FVC_P:
+                case self.Parameters.FEV1_FVC_PCT:
                     # FEV1/FVC % = exp(+6.291-0.341 ln(H)-0.00441A+0.000026A2)
                     m = np.exp( 6.291 - 0.341 * np.log(height) - 0.00441 * (age) + 0.000026 * (age ** 2) ) 
                 case self.Parameters.PEF:
@@ -159,7 +161,7 @@ class KUSTER_2008(Reference):
                     # PEF L·s−1 = exp(-5.032+1.316 ln(H)+0.00767A-0.000143A2)
                     lln = np.exp( -5.032 + 1.316 * np.log(height) + 0.00767 * (age) - 0.000143 * (age ** 2) )
                 case _:
-                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
+                    raise ValueError(f"Unknown parameter for lln calculation: {parameter}")
             return lln
 
         elif sex == self.Sex["MALE"].value:
@@ -187,5 +189,5 @@ class KUSTER_2008(Reference):
                     # PEF L·s−1 = exp(-3.992+1.170 ln(H)+0.00493A-0.000110A2)
                     lln = np.exp( -3.992 + 1.170 * np.log(height) + 0.00493 * (age) - 0.000110 * (age ** 2) )
                 case _:
-                    raise ValueError(f"Unknown parameter for percent calculation: {parameter}")
+                    raise ValueError(f"Unknown parameter for lln calculation: {parameter}")
             return lln

@@ -39,14 +39,14 @@ class KUBOTA_2014(LMSReference):
     _AGE_RANGE = (17, 95)
 
     def __init__(self):
-        self.__lookup, self.__splines = self.__load_lookup_table()
+        self.__lookup, self.__coefficients = self.__load_lookup_table()
         self._age_range = self._AGE_RANGE
 
     def __load_lookup_table(self):
         splines_path = importlib.resources.open_binary('pyspiro.data', 'kubota_2014_splines.csv')
         raw = pandas.read_csv(splines_path, index_col=0)
 
-        # Pre-index by (parameter_name, gender) for O(1) age lookup
+        # Pre-index by (parameter_name, csv_gender) for O(1) age lookup
         lookup = {}
         for (f, gender), group in raw.groupby(['f', 'gender']):
             lookup[(f, int(gender))] = group.set_index('agebound')
@@ -56,20 +56,20 @@ class KUBOTA_2014(LMSReference):
 
         return lookup, coefficients
 
-    def _gender(self, sex: int) -> int:
-        """Map Sex enum value (0=female, 1=male) to CSV gender (1=male, 2=female)."""
+    def _sex_to_csv_gender(self, sex: int) -> int:
+        """Map Sex enum value (0=female, 1=male) to CSV gender code (1=male, 2=female)."""
         return 1 if sex == self.Sex.MALE.value else 2
 
     def __get_splines(self, sex: int, age_int: int, parameter: int):
         param_name = self.Parameters(parameter).name
-        key = (param_name, self._gender(sex))
+        key = (param_name, self._sex_to_csv_gender(sex))
 
         if key not in self.__lookup:
-            return numpy.nan, numpy.nan, numpy.nan
+            return pandas.NA, pandas.NA, pandas.NA
 
         table = self.__lookup[key]
         if age_int not in table.index:
-            return numpy.nan, numpy.nan, numpy.nan
+            return pandas.NA, pandas.NA, pandas.NA
 
         row = table.loc[age_int]
         return float(row['Sspline']), float(row['Mspline']), row['Lspline']
@@ -87,7 +87,7 @@ class KUBOTA_2014(LMSReference):
         if pandas.isna(mspline) or pandas.isna(sspline):
             return pandas.NA, pandas.NA, pandas.NA
 
-        c = self.__splines[col]
+        c = self.__coefficients[col]
 
         l = float(c.loc["q0"]) + float(c.loc["q1"]) * numpy.log(age)
         if not pandas.isna(lspline):

@@ -34,18 +34,18 @@ class SCAPIS_2023(LMSReference):
         pre_BD_FEV1_FVC = 5
         post_BD_FEV1_FVC = 6
         post_BD_DLCO = 7
-        post_BD_KCO = 18
+        post_BD_KCO = 8
 
     def __init__(self):
-        self.__lookup, self.__splines = self.__load_lookup_table()
+        self.__lookup, self.__coefficients = self.__load_lookup_table()
 
     def __load_lookup_table(self) -> tuple:
-        lookup_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_splines.csv')
-        splines_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_coefficients.csv')
-        lookup = pandas.read_csv(lookup_path, delimiter=",", header=[0, 1], index_col=0)
-        splines = pandas.read_csv(splines_path, delimiter=",", index_col=0)
+        splines_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_splines.csv')
+        coefficients_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_coefficients.csv')
+        lookup = pandas.read_csv(splines_path, delimiter=",", header=[0, 1], index_col=0)
+        coefficients = pandas.read_csv(coefficients_path, delimiter=",", index_col=0)
         self._age_range: tuple = (min(lookup.index), max(lookup.index))
-        return lookup, splines
+        return lookup, coefficients
 
     def __get_splines(self, sex: int, age: float, parameter: int):
         for i in ("SSpline", "MSpline"):
@@ -58,7 +58,7 @@ class SCAPIS_2023(LMSReference):
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline = self.__get_splines(sex, age, parameter)
-        c = self.__splines["%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self.__coefficients["%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
         m = numpy.exp(c.loc["M1"] + (c.loc["M2"] * numpy.log(height)) + (c.loc["M3"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["S1"] + (c.loc["S2"] * numpy.log(age)) + sspline)

@@ -40,12 +40,12 @@ class SCHULZ_2013(Reference):
     def __init__(self):
         self.__lookup = self.__load_lookup_table()
 
-    def __load_lookup_table(self) -> tuple:
+    def __load_lookup_table(self) -> pandas.DataFrame:
         splines_path = importlib.resources.open_binary('pyspiro.data', 'schulz_2013_splines.csv')
         splines = pandas.read_csv(splines_path, delimiter=";").set_index("Var")
         return splines
 
-    def __get_splines(self, sex: int, pct: float, parameter: int):
+    def __get_regression_coeffs(self, sex: int, pct: float, parameter: int):
         for i in ("intercept", "age", "height", "weight"):
             yield self.__lookup["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())].loc["%s_%s" % (i, pct)]
 
@@ -54,17 +54,17 @@ class SCHULZ_2013(Reference):
         if age is pandas.NA or sex is pandas.NA or height is pandas.NA or weight is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
 
-        q1, q2, q3, q4 = self.__get_splines(sex, pct = 0.05, parameter = parameter)
-        q4 = 0 if pandas.isna(q4) else q4
-        p5 = q1 + (q2 * age) + (q3 * height) + (q4 *weight)
+        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.05, parameter=parameter)
+        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
+        p5 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
 
-        q1, q2, q3, q4 = self.__get_splines(sex, parameter = parameter, pct = 0.50)
-        q4 = 0 if pandas.isna(q4) else q4
-        p50 = q1 + (q2 * age) + (q3 * height) + (q4 *weight)
+        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.50, parameter=parameter)
+        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
+        p50 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
 
-        q1, q2, q3, q4 = self.__get_splines(sex, parameter = parameter, pct = 0.95)
-        q4 = 0 if pandas.isna(q4) else q4
-        p95 = q1 + (q2 * age) + (q3 * height) + (q4 *weight)
+        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.95, parameter=parameter)
+        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
+        p95 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
 
         return p5, p50, p95
 

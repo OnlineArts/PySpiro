@@ -24,8 +24,6 @@ class GOLD(Classifier):
     """
 
     _order = [1, 2, 3, 4]
-    _map_names = {1: "I", 2: "II", 3: "III", 4: "IV"}
-    _map_meaning = {1: "mild", 2: "moderate", 3: "severe", 4: "very severe"}
 
     def classify(self, **kwargs):
         """Return GOLD stage (1-4) for the given FEV1 % predicted (FEV1p)."""

@@ -24,7 +24,7 @@ class ATS_ERS_2022(Classifier):
                     true restriction and non-specific pattern, and confirms
                     the mixed obstructive-restrictive pattern.
 
-     Decision tree (Stanojevic et al. 2022, Eur Respir J, Figure 1):
+    Decision tree (Stanojevic et al. 2022, Eur Respir J, Figure 1):
     FEV1/FVC_z < −1.645?
     ├─ YES → Obstruction
     │         FVC_z < −1.645?

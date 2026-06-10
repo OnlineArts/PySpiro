@@ -47,7 +47,7 @@ class GLI_2012(SplineReference):
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._splines_data["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
         AfrAm = int(ethnicity == self.Ethnicity["AFRICAN_AMERICAN"].value)
         NEAsia = int(ethnicity == self.Ethnicity["NORTHEAST_ASIAN"].value)

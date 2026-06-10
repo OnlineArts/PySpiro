@@ -347,7 +347,7 @@ class SplineReference(LMSReference):
         ).set_index("var")
         self._age_range = (min(lookup.index), max(lookup.index))
         self._lookup = lookup
-        self._splines_data = splines
+        self._coefficients = splines
 
     def _get_splines(self, sex: int, age: float, parameter: int):
         """Yield (Sspline, Mspline, Lspline) from the age-indexed lookup table."""

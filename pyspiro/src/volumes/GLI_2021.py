@@ -41,11 +41,12 @@ class GLI_2021(SplineReference):
             return pandas.NA, pandas.NA, pandas.NA
 
         sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._splines_data["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
 
-        if self.Parameters(parameter).name in ['FRC', 'TLC', 'RV', 'RV_TLC']:
+        if self.Parameters(parameter) in (self.Parameters.FRC, self.Parameters.TLC,
+                                           self.Parameters.RV, self.Parameters.RV_TLC):
             s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)) + sspline)
-        elif self.Parameters(parameter).name in ['ERV', 'IC', 'VC']:
+        else:
             s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)))
 
         m = numpy.exp(float(c.loc["a0"]) + (float(c.loc["a1"]) * numpy.log(height)) + (float(c.loc["a2"]) * numpy.log(age)) + mspline)

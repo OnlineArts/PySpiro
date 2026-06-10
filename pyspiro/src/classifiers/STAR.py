@@ -21,8 +21,6 @@ class STAR(Classifier):
     """
 
     _order = [1, 2, 3, 4]
-    _map_names = {1: "I", 2: "II", 3: "III", 4: "IV"}
-    _map_meaning = {1: "mild", 2: "moderate", 3: "severe", 4: "very severe"}
 
     def classify(self, **kwargs):
         """Return STAR stage (1-4) for the given FEV1/FVC ratio, or pd.NA if not obstructive."""
@@ -32,13 +30,14 @@ class STAR(Classifier):
                 fev1_fvc = kwargs["FEV1_FVC"]
             else:
                 print("STAR Classifier: Identified only one argument, assuming FEV1/FVC")
-                fev1_fvc = kwargs[0]
+                fev1_fvc = next(iter(kwargs.values()))
         elif len(kwargs) == 2:
             if "FEV1" in kwargs and "FVC" in kwargs:
                 fev1_fvc = kwargs["FEV1"] / kwargs["FVC"]
             else:
                 print("STAR Classifier: Identified two arguments, assuming first one is FEV1%pred and second FVC%pred")
-                fev1_fvc = kwargs[0] / kwargs[1]
+                vals = list(kwargs.values())
+                fev1_fvc = vals[0] / vals[1]
         else:
             print("STAR Classifier: Ambiguous number of arguments, STAR expects FEV1/FVC or both variable separately")
             return pd.NA
