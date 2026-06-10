@@ -72,6 +72,86 @@ class Reference(ABC):
         """Return the upper limit of normal (95th percentile)."""
         pass
 
+    def compute(self, df: pandas.DataFrame, parameter: int,
+                sex_col: str = 'sex', age_col: str = 'age', height_col: str = 'height',
+                value_col: str = None, ethnicity_col: str = None, weight_col: str = None,
+                metrics: tuple = ('percent', 'zscore', 'lln', 'uln')) -> pandas.DataFrame:
+        """
+        Apply the reference equation to every row of a DataFrame.
+
+        Parameters
+        ----------
+        df            : DataFrame with one patient per row.
+        parameter     : Parameters enum value (or its integer value) to evaluate.
+        sex_col       : column name for sex (0=female, 1=male).  Default 'sex'.
+        age_col       : column name for age in years.            Default 'age'.
+        height_col    : column name for height in cm.            Default 'height'.
+        value_col     : column name for the measured value.
+                        Required for 'percent' and 'zscore'; optional for 'lln'/'uln'.
+        ethnicity_col : column name for ethnicity code.
+                        Pass for equations that stratify by ethnicity (GLI_2012,
+                        HANKINSON_1999). For equations that accept but ignore
+                        ethnicity (KUSTER_2008), omitting this defaults to 0.
+        weight_col    : column name for body weight in kg.
+                        Required for SCHULZ_2013 lln/uln.
+        metrics       : tuple of metrics to compute, any subset of
+                        ('percent', 'zscore', 'lln', 'uln').  Default: all four.
+
+        Returns
+        -------
+        DataFrame indexed like df with one column per requested metric.
+        """
+        def _explicit_params(metric_name):
+            """Return the set of explicit (non-*args/**kwargs) parameter names."""
+            try:
+                sig = inspect.signature(getattr(self, metric_name))
+                return frozenset(
+                    n for n, p in sig.parameters.items()
+                    if p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD) and n != 'self'
+                )
+            except (TypeError, AttributeError, ValueError):
+                return frozenset()
+
+        sig_cache = {m: _explicit_params(m) for m in metrics}
+
+        for metric, params in sig_cache.items():
+            if 'weight' in params and weight_col is None:
+                raise ValueError(
+                    f"{type(self).__name__}.{metric}() requires a weight argument; "
+                    "pass weight_col='<column_name>' to compute()."
+                )
+            if 'value' in params and value_col is None and metric in ('percent', 'zscore'):
+                raise ValueError(
+                    f"metric '{metric}' requires a measured value; "
+                    "pass value_col='<column_name>' to compute()."
+                )
+
+        def _kw(row, params):
+            kw = {
+                'sex': int(row[sex_col]),
+                'age': float(row[age_col]),
+                'height': float(row[height_col]),
+                'parameter': parameter,
+            }
+            if 'ethnicity' in params:
+                # If no column supplied, default to 0 — equations that ignore ethnicity
+                # (KUSTER_2008) work fine; those that use it (HANKINSON_1999) will raise
+                # a clear ValueError from the equation itself.
+                kw['ethnicity'] = int(row[ethnicity_col]) if ethnicity_col is not None else 0
+            if 'weight' in params:
+                kw['weight'] = float(row[weight_col])
+            if 'value' in params:
+                kw['value'] = float(row[value_col]) if value_col is not None else 0.0
+            return kw
+
+        result = {}
+        for metric in metrics:
+            method = getattr(self, metric)
+            params = sig_cache[metric]
+            result[metric] = df.apply(lambda r, m=method, p=params: m(**_kw(r, p)), axis=1)
+
+        return pandas.DataFrame(result, index=df.index)
+
     def check_range(self, value: float, value_range: tuple):
         return value_range[0] <= value <= value_range[1]
 
@@ -165,7 +245,7 @@ class LMSReference(Reference):
 
     def compute(self, df: pandas.DataFrame, parameter: int,
                 sex_col: str = 'sex', age_col: str = 'age', height_col: str = 'height',
-                value_col: str = None, ethnicity_col: str = None,
+                value_col: str = None, ethnicity_col: str = None, weight_col: str = None,
                 metrics: tuple = ('percent', 'zscore', 'lln', 'uln')) -> pandas.DataFrame:
         """
         Apply the reference equation to every row of a DataFrame.
@@ -182,6 +262,7 @@ class LMSReference(Reference):
         ethnicity_col : column name for ethnicity code.
                         Required when the equation's lms() includes an ethnicity
                         argument (e.g. GLI_2012); ignored otherwise.
+        weight_col    : accepted for API consistency with non-LMS equations; ignored.
         metrics       : tuple of metrics to compute, any subset of
                         ('percent', 'zscore', 'lln', 'uln').  Default: all four.
 
