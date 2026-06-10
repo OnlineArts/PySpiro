@@ -131,30 +131,40 @@ class Spiro:
     def _apply_gli_2012(self):
         eq = GLI_2012()
         eq.set_strategy("closest")
-        self._df["GLI2012_FEV1_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEV1, r.FEV1), axis=1)
-        self._df["GLI2012_FEF75_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, 1, eq.Parameters.FEF75, r.FEF75), axis=1)
+        # Two separate compute() calls because FEV1 and FEF75 live in different columns.
+        # ethnicity column used directly (values 1–4 from the synthetic cohort).
+        self._df["GLI2012_FEV1_pct"] = eq.compute(
+            self._df, eq.Parameters.FEV1,
+            value='FEV1', ethnicity='ethnicity', metrics=('percent',))['percent']
+        self._df["GLI2012_FEF75_pct"] = eq.compute(
+            self._df, eq.Parameters.FEF75,
+            value='FEF75', ethnicity='ethnicity', metrics=('percent',))['percent']
 
     def _apply_gli_2017(self):
         eq = GLI_2017()
         eq.set_strategy("closest")
-        self._df["GLI2017_KCO_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.KCO_SI, r.KCO), axis=1)
+        self._df["GLI2017_KCO_pct"] = eq.compute(
+            self._df, eq.Parameters.KCO_SI,
+            value='KCO', metrics=('percent',))['percent']
 
     def _apply_gli_2021(self):
         eq = GLI_2021()
-        self._df["GLI2021_RV_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.RV, r.RV), axis=1)
+        self._df["GLI2021_RV_pct"] = eq.compute(
+            self._df, eq.Parameters.RV,
+            value='RV', metrics=('percent',))['percent']
 
     def _apply_bowermann_2022(self):
         eq = BOWERMANN_2022()
-        self._df["BOWERMANN_FEV1_pct"] = self._df.apply(
-            lambda r: eq.percent(r.sex, r.age, r.height, eq.Parameters.FEV1, r.FEV1), axis=1)
-        self._df["BOWERMANN_FVC_z"] = self._df.apply(
-            lambda r: eq.zscore(r.sex, r.age, r.height, eq.Parameters.FVC, r.FVC), axis=1)
+        # Two compute() calls: different parameter → different measured-value column.
+        self._df["BOWERMANN_FEV1_pct"] = eq.compute(
+            self._df, eq.Parameters.FEV1,
+            value='FEV1', metrics=('percent',))['percent']
+        self._df["BOWERMANN_FVC_z"] = eq.compute(
+            self._df, eq.Parameters.FVC,
+            value='FVC', metrics=('zscore',))['zscore']
 
     def _apply_schulz_2013(self):
+        # SCHULZ_2013 uses direct percentile regression, not LMS — no compute() API.
         eq = SCHULZ_2013()
         self._df[["X10_p05", "X10_p50", "X10_p95"]] = self._df.apply(
             lambda r: pd.Series(
@@ -164,8 +174,9 @@ class Spiro:
     def _apply_scapis_2023(self):
         eq = SCAPIS_2023()
         eq.set_strategy("closest")
-        self._df["SCAPIS_FEV1_LLN"] = self._df.apply(
-            lambda r: eq.lln(r.sex, r.age, r.height, eq.Parameters.pre_BD_FEV1, r.FEV1), axis=1)
+        self._df["SCAPIS_FEV1_LLN"] = eq.compute(
+            self._df, eq.Parameters.pre_BD_FEV1,
+            value='FEV1', metrics=('lln',))['lln']
 
     def _apply_gold(self):
         gold = GOLD()
@@ -178,10 +189,6 @@ class Spiro:
         star = STAR()
         self._df["STAR"] = self._df.apply(
             lambda r: star.classify(FEV1=r.FEV1, FVC=r.FVC), axis=1)
-
-    # ------------------------------------------------------------------
-    # New feature demos
-    # ------------------------------------------------------------------
 
     def _cross_equation_example(self) -> pd.DataFrame:
         """Return a compare_equations() table for the first patient in the cohort."""
