@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
+import numpy
+import pandas
 from pandas import NA
+
 
 class Reference(ABC):
     """
@@ -13,6 +16,16 @@ class Reference(ABC):
     Out-of-range handling is controlled by set_strategy():
         "ignore"  (default) — returns pd.NA for out-of-range inputs.
         "closest"           — clamps to the nearest boundary value.
+
+    Argument conventions
+    --------------------
+    sex        : 0 = female, 1 = male
+    age        : years
+    height     : cm
+    ethnicity  : equation-specific integer code; omit or pass None for
+                 race-neutral equations that do not stratify by ethnicity.
+    parameter  : Parameters enum value (class-specific)
+    value      : the measured value to evaluate
     """
 
     _strategy = "ignore"
@@ -20,7 +33,7 @@ class Reference(ABC):
 
     def set_strategy(self, strategy: str):
         """Set the out-of-range handling strategy ('ignore' or 'closest')."""
-        if strategy == "ignore" or strategy == "closest":
+        if strategy in ("ignore", "closest"):
             self._strategy = strategy
             return True
         return False
@@ -61,11 +74,10 @@ class Reference(ABC):
     def check_range(self, value: float, value_range: tuple):
         return value_range[0] <= value <= value_range[1]
 
-    def check_tuple(self, value: float, allowed: tuple, value_type: "value"):
+    def check_tuple(self, value: float, allowed: tuple, value_type: str = "value"):
         for i in allowed:
             if value == i:
                 return value
-
         if not self._silent:
             print("The given %s of %.2f is not fitting to the allow values %s" % (value_type, value, str(allowed)))
         return NA
@@ -90,6 +102,106 @@ class Reference(ABC):
     class Sex(Enum):
         FEMALE = 0
         MALE = 1
+
+
+class LMSReference(Reference):
+    """
+    Intermediate base for LMS (Box-Cox) reference equations.
+
+    Provides percent, zscore, lln, uln, and all, all derived from lms().
+    Subclasses only need to implement lms(); the derived metrics are
+    computed automatically.
+
+    Both positional and keyword call conventions are supported so that
+    equations with and without an ethnicity argument work transparently:
+
+        gli.percent(1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.0)  # positional
+        gli.percent(sex=1, age=40, height=175, parameter=1, value=3.0)  # keyword
+    """
+
+    def percent(self, *args, **kwargs):
+        """Return % of predicted median."""
+        l, m, s = self.lms(*args, **kwargs)
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
+            return pandas.NA
+        value = kwargs['value'] if 'value' in kwargs else args[-1]
+        return round((value / m) * 100, 2)
+
+    def zscore(self, *args, **kwargs):
+        """Return z-score."""
+        l, m, s = self.lms(*args, **kwargs)
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
+            return pandas.NA
+        value = kwargs['value'] if 'value' in kwargs else args[-1]
+        return (((value / m) ** l) - 1) / (l * s)
+
+    def lln(self, *args, **kwargs):
+        """Return lower limit of normal (5th percentile)."""
+        l, m, s = self.lms(*args, **kwargs)
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
+            return pandas.NA
+        return numpy.exp(numpy.log(1 - 1.645 * l * s) / l + numpy.log(m))
+
+    def uln(self, *args, **kwargs):
+        """Return upper limit of normal (95th percentile)."""
+        l, m, s = self.lms(*args, **kwargs)
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
+            return pandas.NA
+        return numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m))
+
+    def all(self, *args, **kwargs):
+        """Return (percent, zscore, lln, uln) in a single call."""
+        l, m, s = self.lms(*args, **kwargs)
+        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
+            return pandas.NA, pandas.NA, pandas.NA, pandas.NA
+        value = kwargs['value'] if 'value' in kwargs else args[-1]
+        return (
+            round((value / m) * 100, 2),
+            (((value / m) ** l) - 1) / (l * s),
+            numpy.exp(numpy.log(1 - 1.645 * l * s) / l + numpy.log(m)),
+            numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m)),
+        )
+
+
+class SplineReference(LMSReference):
+    """
+    Shared CSV loader and spline accessor for GLI-family references.
+
+    Subclasses declare two class-level strings:
+        _splines_csv : filename of the age-indexed spline table in pyspiro.data
+        _coeffs_csv  : filename of the var-indexed coefficient table in pyspiro.data
+
+    The constructor loads both CSVs and stores them as self._lookup and
+    self._splines_data. The _get_splines() helper yields (Sspline, Mspline,
+    Lspline) for a given sex/age/parameter combination.
+
+    Subclasses only need to implement lms(); everything else is inherited.
+    """
+
+    _splines_csv: str
+    _coeffs_csv: str
+
+    def __init__(self):
+        import importlib.resources
+        lookup = pandas.read_csv(
+            importlib.resources.open_binary('pyspiro.data', self._splines_csv),
+            delimiter=";",
+        ).set_index("age")
+        splines = pandas.read_csv(
+            importlib.resources.open_binary('pyspiro.data', self._coeffs_csv),
+            delimiter=";",
+        ).set_index("var")
+        self._age_range = (min(lookup.index), max(lookup.index))
+        self._lookup = lookup
+        self._splines_data = splines
+
+    def _get_splines(self, sex: int, age: float, parameter: int):
+        """Yield (Sspline, Mspline, Lspline) from the age-indexed lookup table."""
+        for i in ("Sspline", "Mspline", "Lspline"):
+            yield self._lookup[
+                "%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)
+            ].loc[age]
+
 
 class Classifier(ABC):
     """Abstract base class for spirometry severity classifiers (e.g. GOLD, STAR)."""

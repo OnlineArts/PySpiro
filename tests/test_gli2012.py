@@ -132,16 +132,17 @@ class TestGLI2012All(unittest.TestCase):
     def setUp(self):
         self.gli = GLI_2012()
 
-    def test_all_returns_three_tuple(self):
+    def test_all_returns_four_tuple(self):
         result = self.gli.all(M, 40, 175, E_W, GLI_2012.Parameters.FEV1, 3.0)
         self.assertIsInstance(result, tuple)
-        self.assertEqual(len(result), 3)
+        self.assertEqual(len(result), 4)
 
     def test_all_values_are_finite(self):
-        pct, z, lln = self.gli.all(M, 40, 175, E_W, GLI_2012.Parameters.FEV1, 3.0)
+        pct, z, lln, uln = self.gli.all(M, 40, 175, E_W, GLI_2012.Parameters.FEV1, 3.0)
         self.assertFalse(pd.isna(pct))
         self.assertFalse(pd.isna(z))
         self.assertFalse(pd.isna(lln))
+        self.assertFalse(pd.isna(uln))
 
 
 if __name__ == "__main__":

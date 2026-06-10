@@ -1,11 +1,11 @@
-from ..reference import Reference
+from ..reference import LMSReference
 from enum import Enum
 import importlib.resources
 import numpy
 import pandas
 
 
-class SCAPIS_2023(Reference):
+class SCAPIS_2023(LMSReference):
     """
     SCAPIS 2023 pre- and post-bronchodilator reference equations (Malinovschi et al. 2023).
 
@@ -42,11 +42,10 @@ class SCAPIS_2023(Reference):
     def __load_lookup_table(self) -> tuple:
         lookup_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_splines.csv')
         splines_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_coefficients.csv')
-        lookup = pandas.read_csv(lookup_path, delimiter=",", header = [0,1], index_col = 0)
+        lookup = pandas.read_csv(lookup_path, delimiter=",", header=[0, 1], index_col=0)
         splines = pandas.read_csv(splines_path, delimiter=",", index_col=0)
         self._age_range: tuple = (min(lookup.index), max(lookup.index))
         return lookup, splines
-
 
     def __get_splines(self, sex: int, age: float, parameter: int):
         for i in ("SSpline", "MSpline"):
@@ -60,38 +59,9 @@ class SCAPIS_2023(Reference):
 
         sspline, mspline = self.__get_splines(sex, age, parameter)
         c = self.__splines["%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
-        
+
         m = numpy.exp(c.loc["M1"] + (c.loc["M2"] * numpy.log(height)) + (c.loc["M3"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["S1"] + (c.loc["S2"] * numpy.log(age)) + sspline)
         l = c.loc['L']
- 
+
         return l, m, s
-
-    def percent(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return % of predicted."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else round(( value / m ) * 100, 2)
-
-    def zscore(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return z-score."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else (((value/m)**l) - 1) / (l * s)
-
-    def lln(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return lower limit of normal (5th percentile)."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
-
-    def uln(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return upper limit of normal (95th percentile)."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if (l is pandas.NA or m is pandas.NA or s is pandas.NA) else numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m))
-
-    def all(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return (percent, z-score, lln) in a single call."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        if l is pandas.NA or m is pandas.NA or s is pandas.NA:
-            return pandas.NA
-        else:
-            return round(( value / m ) * 100, 2), (((value/m)**l) - 1) / (l * s), numpy.exp(numpy.log(1 - 1.645 * l * s)/ l + numpy.log(m))
-

@@ -1,11 +1,11 @@
-from ..reference import Reference
+from ..reference import LMSReference
 from enum import Enum
 import importlib.resources
 import numpy
 import pandas
 
 
-class KUBOTA_2014(Reference):
+class KUBOTA_2014(LMSReference):
     """
     JRS 2014 spirometry reference equations (Kubota et al. 2014).
 
@@ -102,35 +102,3 @@ class KUBOTA_2014(Reference):
                       + sspline)
 
         return l, m, s
-
-    def percent(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return % of predicted."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if m is pandas.NA else round(value / m * 100, 2)
-
-    def zscore(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return z-score."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if l is pandas.NA else (((value / m) ** l) - 1) / (l * s)
-
-    def lln(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return lower limit of normal (5th percentile)."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if l is pandas.NA else numpy.exp(numpy.log(1 - 1.645 * l * s) / l + numpy.log(m))
-
-    def uln(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return upper limit of normal (95th percentile)."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        return pandas.NA if l is pandas.NA else numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m))
-
-    def all(self, sex: int, age: float, height: float, parameter: int, value: float):
-        """Return (percent, z-score, lln, uln) in a single call."""
-        l, m, s = self.lms(sex, age, height, parameter, value)
-        if l is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA, pandas.NA
-        return (
-            round(value / m * 100, 2),
-            (((value / m) ** l) - 1) / (l * s),
-            numpy.exp(numpy.log(1 - 1.645 * l * s) / l + numpy.log(m)),
-            numpy.exp(numpy.log(1 + 1.645 * l * s) / l + numpy.log(m)),
-        )
