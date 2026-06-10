@@ -55,7 +55,8 @@ All LMS-based equation classes expose a consistent API:
 | `lln(...)` | Lower limit of normal (5th percentile) |
 | `uln(...)` | Upper limit of normal (95th percentile) |
 | `lms(...)` | Raw (L, M, S) triplet |
-| `all(...)` | Tuple of (% predicted, z-score, LLN) |
+| `all(...)` | Tuple of (% predicted, z-score, LLN, ULN) |
+| `compute(df, parameter, ...)` | Apply to a whole DataFrame; returns a DataFrame of metrics |
 
 **Conventions**: sex as integer (0 = female, 1 = male); age in years; height in cm; measured values in their natural units (L, L/s, mmol/min/kPa, etc.). FEV1/FVC ratios are passed as a fraction (0–1) for LMS-based equations.
 
@@ -79,24 +80,49 @@ pip install pyspiro[viz]   # adds matplotlib and scipy
 
 ### LMS-based equations (GLI, Bowermann, SCAPIS, Kubota)
 
+`compute(df, parameter, ...)` processes an entire cohort DataFrame in one call and
+returns a DataFrame aligned to the original index.
+
 ```python
-import pandas as pd
-from pyspiro import GLI_2012
+from pyspiro import GLI_2012, BOWERMANN_2022
 
+# Multi-ethnic equation — ethnicity column required
 gli = GLI_2012()
+results = gli.compute(
+    df,
+    GLI_2012.Parameters.FEV1,
+    value='fev1',        # column with the measured value
+    ethnicity='eth',     # column with ethnicity code (1=Caucasian, 2=African-American, …)
+)
+# results: DataFrame with columns percent, zscore, lln, uln — same index as df
+df[['fev1_pct', 'fev1_z', 'fev1_lln', 'fev1_uln']] = results
 
+# Race-neutral equation — no ethnicity column needed
+bow = BOWERMANN_2022()
+results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value='fvc')
+```
+
+Column names for `sex`, `age`, and `height` default to those strings; pass explicit
+names if your DataFrame uses different ones:
+
+```python
+results = gli.compute(
+    df,
+    GLI_2012.Parameters.FEV1,
+    sex='gender', age='age_years', height='ht_cm',
+    value='fev1', ethnicity='eth',
+    metrics=('percent', 'lln'),   # only the metrics you need
+)
+```
+
+The scalar methods remain available for single-patient calculations:
+
+```python
+gli = GLI_2012()
 # sex: 0 = female, 1 = male | height in cm | FEV1 in litres | ethnicity: 1 = Caucasian
-df[['fev1_pct', 'fev1_z', 'fev1_lln']] = df.apply(
-    lambda x: pd.Series(
-        gli.all(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.fev1)
-    ),
-    axis=1
-)
-
-df['fev1_uln'] = df.apply(
-    lambda x: gli.uln(x.sex, x.age, x.height, 1, gli.Parameters.FEV1, x.fev1),
-    axis=1
-)
+pct = gli.percent(1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
+z   = gli.zscore (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
+lln = gli.lln    (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 ```
 
 ### NHANES III (polynomial equations)
