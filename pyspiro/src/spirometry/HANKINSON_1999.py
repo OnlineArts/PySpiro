@@ -54,8 +54,26 @@ class HANKINSON_1999(Reference):
     _T4_T5_PARAMS = frozenset({'FVC', 'FEV1', 'FEV6', 'FEF25_75', 'PEF'})
     _T6_PARAMS    = frozenset({'FEV1FVC', 'FEV1FEV6'})
 
-    _CHILD_MAX_AGE = 19
+    # Male child range 8–19, female child range 8–17 (PDF table p.37)
+    _CHILD_MAX_AGE_MALE   = 19
+    _CHILD_MAX_AGE_FEMALE = 17
     _AGE_RANGE = (8, 80)
+
+    # Height ranges per (sex, ethnicity, age_group) in cm (PDF table p.37)
+    _HEIGHT_RANGES = {
+        ('male',   'caucasian',        'child'): (122.0, 192.0),  # 48.0–75.6 in
+        ('male',   'african_american', 'child'): (122.0, 194.0),  # 48.0–76.4 in
+        ('male',   'mexican_american', 'child'): (120.0, 180.0),  # 47.2–70.9 in
+        ('male',   'caucasian',        'adult'): (158.0, 194.0),  # 62.2–76.4 in
+        ('male',   'african_american', 'adult'): (158.0, 196.0),  # 62.2–77.2 in
+        ('male',   'mexican_american', 'adult'): (156.0, 192.0),  # 61.4–75.6 in
+        ('female', 'caucasian',        'child'): (118.0, 178.0),  # 46.5–70.1 in
+        ('female', 'african_american', 'child'): (118.0, 184.0),  # 46.5–72.4 in
+        ('female', 'mexican_american', 'child'): (114.0, 172.0),  # 44.9–67.7 in
+        ('female', 'caucasian',        'adult'): (145.0, 180.0),  # 57.1–70.9 in
+        ('female', 'african_american', 'adult'): (146.0, 180.0),  # 57.5–70.9 in
+        ('female', 'mexican_american', 'adult'): (136.0, 172.0),  # 53.5–67.7 in
+    }
 
     def __init__(self):
         self._coeff_t45, self._coeff_t6 = self._load_coefficients()
@@ -77,8 +95,9 @@ class HANKINSON_1999(Reference):
 
         return df_t45, df_t6
 
-    def _age_group(self, age: float) -> str:
-        return 'child' if age <= self._CHILD_MAX_AGE else 'adult'
+    def _age_group(self, sex: int, age: float) -> str:
+        threshold = self._CHILD_MAX_AGE_MALE if sex == self.Sex.MALE.value else self._CHILD_MAX_AGE_FEMALE
+        return 'child' if age <= threshold else 'adult'
 
     def _compute(self, sex: int, age: float, height: float, ethnicity: int, parameter: int):
         """
@@ -94,7 +113,13 @@ class HANKINSON_1999(Reference):
         eth_name   = self.Ethnicity(ethnicity).name.lower()
 
         if param_name in self._T4_T5_PARAMS:
-            age_group = self._age_group(age)
+            age_group = self._age_group(sex, age)
+            h_range = self._HEIGHT_RANGES.get((sex_name, eth_name, age_group))
+            if h_range is None:
+                return pd.NA, pd.NA
+            height = self.validate_range(height, h_range, 'height')
+            if height is pd.NA:
+                return pd.NA, pd.NA
             try:
                 row = self._coeff_t45.loc[(param_name, sex_name, eth_name, age_group)]
             except KeyError:

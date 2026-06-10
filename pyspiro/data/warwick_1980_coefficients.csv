@@ -1,0 +1,15 @@
+parameter;sex;a;b
+FVC;male;3.0131;-14.0535
+FEV1;male;2.7572;-12.9007
+FEV1FVC;male;-0.2679;1.2137
+FEF50;male;2.1326;-9.3589
+FEF75;male;2.1534;-10.2213
+PEFR;male;2.4991;-10.7785
+FET;male;1.6208;-7.2327
+FVC;female;2.9446;-13.8007
+FEV1;female;2.7522;-12.921
+FEV1FVC;female;-0.2126;0.9719
+FEF50;female;2.1958;-9.6458
+FEF75;female;2.2961;-10.8866
+PEFR;female;2.4369;-10.535
+FET;female;1.2423;-5.3288

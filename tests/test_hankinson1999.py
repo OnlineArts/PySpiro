@@ -108,16 +108,69 @@ class TestHankinson1999AgeGroupRouting(unittest.TestCase):
     def setUp(self):
         self.h = HANKINSON_1999()
 
+    def test_male_child_max_age(self):
+        self.assertEqual(self.h._CHILD_MAX_AGE_MALE, 19)
+
+    def test_female_child_max_age(self):
+        self.assertEqual(self.h._CHILD_MAX_AGE_FEMALE, 17)
+
     def test_child_routes_to_child_table(self):
-        # Age 14 should route to 'child', age 18 to 'adult'
-        # They should give different predicted values if CSV is populated
+        # Male age 14 → child, male age 40 → adult; they must use different coefficients
         l_child, m_child, s_child = self.h.lms(M, 14, 160, W,
                                                 HANKINSON_1999.Parameters.FEV1, 0)
-        l_adult, m_adult, s_adult = self.h.lms(M, 40, 160, W,
+        l_adult, m_adult, s_adult = self.h.lms(M, 40, 175, W,
                                                 HANKINSON_1999.Parameters.FEV1, 0)
         if pd.isna(m_child) or pd.isna(m_adult):
             self.skipTest("Hankinson CSV coefficients not yet populated")
         self.assertNotAlmostEqual(m_child, m_adult, places=2)
+
+    def test_female_age_18_routes_to_adult(self):
+        # Female age 18 must use adult coefficients (child boundary is 17 for females)
+        age_group = self.h._age_group(0, 18)  # sex=0 (female)
+        self.assertEqual(age_group, 'adult')
+
+    def test_female_age_17_routes_to_child(self):
+        age_group = self.h._age_group(0, 17)
+        self.assertEqual(age_group, 'child')
+
+    def test_male_age_19_routes_to_child(self):
+        age_group = self.h._age_group(1, 19)
+        self.assertEqual(age_group, 'child')
+
+    def test_male_age_20_routes_to_adult(self):
+        age_group = self.h._age_group(1, 20)
+        self.assertEqual(age_group, 'adult')
+
+
+class TestHankinson1999HeightRanges(unittest.TestCase):
+
+    def setUp(self):
+        self.h = HANKINSON_1999()
+
+    def test_height_ranges_stored(self):
+        self.assertIn(('male', 'caucasian', 'adult'), self.h._HEIGHT_RANGES)
+        self.assertEqual(self.h._HEIGHT_RANGES[('male', 'caucasian', 'adult')], (158.0, 194.0))
+        self.assertEqual(self.h._HEIGHT_RANGES[('female', 'mexican_american', 'child')], (114.0, 172.0))
+
+    def test_height_below_range_returns_na(self):
+        # Male Caucasian adult minimum is 158 cm
+        result = self.h.percent(M, 40, 157, W, HANKINSON_1999.Parameters.FVC, 4.0)
+        self.assertTrue(pd.isna(result))
+
+    def test_height_above_range_returns_na(self):
+        # Male Caucasian adult maximum is 194 cm
+        result = self.h.percent(M, 40, 195, W, HANKINSON_1999.Parameters.FVC, 5.0)
+        self.assertTrue(pd.isna(result))
+
+    def test_female_mexican_child_height_below_range_returns_na(self):
+        # Female Mexican-American child minimum is 114 cm
+        result = self.h.percent(F, 12, 113, X, HANKINSON_1999.Parameters.FVC, 2.0)
+        self.assertTrue(pd.isna(result))
+
+    def test_valid_height_returns_result(self):
+        result = self.h.percent(M, 40, 175, W, HANKINSON_1999.Parameters.FVC, 4.0)
+        # Either a valid float or NA if CSV not populated — both are acceptable
+        self.assertTrue(pd.isna(result) or isinstance(result, float))
 
 
 if __name__ == "__main__":

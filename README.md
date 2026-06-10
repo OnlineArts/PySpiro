@@ -9,13 +9,78 @@
 ## Available reference equations
 
 ### Spirometry
-| Class | Population | Publication |
-|---|---|---|
-| `GLI_2012` | Multi-ethnic, age 3–95 y | Quanjer et al. 2012, PMID: 22743675 |
-| `BOWERMANN_2022` | Race-neutral (GLI global), age 3–95 y | Bowermann et al. 2023, PMID: 36383197 |
-| `KUSTER_2008` | Swiss LuftiBus, age 18–80 y | Kuster et al. 2008, PMID: 18057057 |
-| `HANKINSON_1999` | NHANES III (US), age 8–80 y | Hankinson et al. 1999, PMID: 9872837 |
-| `KUBOTA_2014` | JRS (Japanese), age 17–95 y | Kubota et al. 2014, PMID: 25278192 |
+| Class | Population | Age range | Publication |
+|---|---|---|---|
+| `BOWERMANN_2022` | Race-neutral (GLI global) | 3–95 y | Bowermann et al. 2023, PMID: 36383197 |
+| `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, PMID: 25278192 |
+| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, PMID: 22743675 |
+| `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, PMID: 29215803 |
+| `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, PMID: 18057057 |
+| `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, PMID: 9872837 |
+| `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. Pediatric Pulmonology 1995; 19: 135–142 |
+| `WANG_1993` | White & Black children (US) | 6–18 y (M) / 7–18 y (F) | Wang et al. Pediatric Pulmonology 1993; 15: 75–88 |
+| `ECCS_1993` | European Caucasian | 18–70 y | Quanjer et al. ERJ 1992–1993; Suppl. 15–16: 5–40 |
+| `ROBERTS_1991` | White urban (UK) | 18–86 y | Roberts et al. Thorax 1991; 46: 643–650 |
+| `ZAPLETAL_1987` | European children | 6–18 y | Zapletal. Progress in Respiration Research Vol 22, 1987 |
+| `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. ARRD 1983; 127(5–6): 725–734 |
+| `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. ARRD 1981; 123: 659–664 |
+| `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick. Minnesota Medicine 1977 & 1980 |
+| `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. J Pediatr 1979; 95: 14–23 |
+| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. ARRD 1971 & 1973 |
+| `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber. ARRD 1972; 106(1): 38–46 |
+| `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat. Pulmonary Function Testing in Children, 1971 |
+
+> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. `HANKINSON_1999` and `KUSTER_2008` remain the only polynomial equations that provide LLN.
+
+#### Parameter availability matrix
+
+`✓` = available, `—` = not available
+
+| Equation | FVC | FEV1 | FEV0.5 | FEV0.75 | FEV3 | FEV6 | SVC | VC | FIVC | FEV1/FVC | FEV1/FEV6 | FEV0.75/FVC | FEV3/FVC |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `BOWERMANN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `KUBOTA_2014` | ✓ | ✓ | — | — | — | — | — | ✓ | — | ✓ | — | — | — |
+| `GLI_2012` | ✓ | ✓ | — | ✓ | — | — | — | — | — | ✓ | — | ✓ | — |
+| `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `KUSTER_2008` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `HANKINSON_1999` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | ✓ | — | — |
+| `QUANJER_1995` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `WANG_1993` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `ECCS_1993` | ✓ | ✓ | — | — | — | — | — | — | ✓ | ✓ | — | — | — |
+| `ROBERTS_1991` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `ZAPLETAL_1987` | ✓ | ✓ | — | — | — | — | ✓ | — | — | ✓ | — | — | — |
+| `KNUDSON_1983` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `CRAPO_1981` | ✓ | ✓ | ✓ | — | ✓ | — | — | — | — | ✓ | — | — | ✓ |
+| `WARWICK_1980` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `HSU_1979` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
+| `MORRIS_1973` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `CHERNIACK_1972` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
+| `POLGAR_1971` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
+
+| Equation | FEF25-75% | FEF25% | FEF50% | FEF75% | PEF | MVV | FET | LLN / z-score |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `BOWERMANN_2022` | — | — | — | — | — | — | — | ✓ |
+| `KUBOTA_2014` | — | — | — | — | — | — | — | ✓ |
+| `GLI_2012` | ✓ | — | — | ✓ | — | — | — | ✓ |
+| `JO_2018` | — | — | — | — | — | — | — | ✓ |
+| `KUSTER_2008` | — | ✓ | ✓ | ✓ | ✓ | — | — | ✓ |
+| `HANKINSON_1999` | ✓ | — | — | — | ✓ | — | — | ✓ |
+| `QUANJER_1995` | — | — | — | — | — | — | — | — |
+| `WANG_1993` | ✓ | — | — | — | — | — | — | — |
+| `ECCS_1993` | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — |
+| `ROBERTS_1991` | — | — | ✓ | — | ✓ | — | — | — |
+| `ZAPLETAL_1987` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
+| `KNUDSON_1983` | ✓ | — | ✓ | ✓ | — | — | — | — |
+| `CRAPO_1981` | ✓ | — | — | — | — | — | — | — |
+| `WARWICK_1980` | — | — | ✓ | ✓ | ✓ | — | ✓ | — |
+| `HSU_1979` | ✓ | — | — | — | ✓ | — | — | — |
+| `MORRIS_1973` | ✓ | — | — | — | — | — | — | — |
+| `CHERNIACK_1972` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
+| `POLGAR_1971` | ✓ | — | — | — | ✓ | ✓ | — | — |
+
+> **KUSTER_2008** names its flow parameters MEF75 (= FEF25%), MEF50 (= FEF50%), and MEF25 (= FEF75%).<br>
+> **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
+> **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.
 
 ### Lung diffusion capacity
 | Class | Population | Publication |
@@ -325,8 +390,6 @@ fig = plot_centile_curves(
 
 ## Planned future implementations
 
-- **Spirometry** — ECCS 1993 (Laszlo 1993)
-- **Spirometry** — South Korean KNHANES IV (Jo 2018, PMID: 29215803)
 - **Spirometry** — Indian reference equations Northern Indian (Chhabra 2014, PMID: 25962195)
 - **Spirometry** — Indian reference equations, Western Indian (Agarwal 2020, PMID: 32366494)
 - **Spirometry** — Indian reference equations, Western Indian (Desai 2016, PMID: 27865240)
