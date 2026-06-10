@@ -61,7 +61,7 @@ class TestApplyPatternGLI2012(unittest.TestCase):
                 GLI_2012.Parameters.FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, GLI_2012.Parameters.FEV1,
-            value='FEV1', ethnicity='ethnicity', metrics=('percent',))['percent']
+            value_col='FEV1', ethnicity_col='ethnicity', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -74,7 +74,7 @@ class TestApplyPatternGLI2012(unittest.TestCase):
                 GLI_2012.Parameters.FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, GLI_2012.Parameters.FEV1,
-            value='FEV1', ethnicity='ethnicity', metrics=('zscore',))['zscore']
+            value_col='FEV1', ethnicity_col='ethnicity', metrics=('zscore',))['zscore']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -87,7 +87,7 @@ class TestApplyPatternGLI2012(unittest.TestCase):
                 GLI_2012.Parameters.FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, GLI_2012.Parameters.FEV1,
-            value='FEV1', ethnicity='ethnicity', metrics=('lln',))['lln']
+            value_col='FEV1', ethnicity_col='ethnicity', metrics=('lln',))['lln']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -100,7 +100,7 @@ class TestApplyPatternGLI2012(unittest.TestCase):
                 GLI_2012.Parameters.FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, GLI_2012.Parameters.FEV1,
-            value='FEV1', ethnicity='ethnicity', metrics=('uln',))['uln']
+            value_col='FEV1', ethnicity_col='ethnicity', metrics=('uln',))['uln']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -129,7 +129,7 @@ class TestApplyPatternBowermann2022(unittest.TestCase):
                 BOWERMANN_2022.Parameters.FVC, r.FVC))
         via_compute = self.eq.compute(
             self.df, BOWERMANN_2022.Parameters.FVC,
-            value='FVC', metrics=('percent',))['percent']
+            value_col='FVC', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -142,7 +142,7 @@ class TestApplyPatternBowermann2022(unittest.TestCase):
                 BOWERMANN_2022.Parameters.FVC, r.FVC))
         via_compute = self.eq.compute(
             self.df, BOWERMANN_2022.Parameters.FVC,
-            value='FVC', metrics=('zscore',))['zscore']
+            value_col='FVC', metrics=('zscore',))['zscore']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -163,7 +163,7 @@ class TestApplyPatternGLI2017(unittest.TestCase):
                 GLI_2017.Parameters.KCO_SI, r.KCO))
         via_compute = self.eq.compute(
             self.df, GLI_2017.Parameters.KCO_SI,
-            value='KCO', metrics=('percent',))['percent']
+            value_col='KCO', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -184,7 +184,7 @@ class TestApplyPatternGLI2021(unittest.TestCase):
                 GLI_2021.Parameters.RV, r.RV))
         via_compute = self.eq.compute(
             self.df, GLI_2021.Parameters.RV,
-            value='RV', metrics=('percent',))['percent']
+            value_col='RV', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -210,7 +210,7 @@ class TestApplyPatternScapis2023(unittest.TestCase):
                 SCAPIS_2023.Parameters.pre_BD_FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, SCAPIS_2023.Parameters.pre_BD_FEV1,
-            value='FEV1', metrics=('lln',))['lln']
+            value_col='FEV1', metrics=('lln',))['lln']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),
@@ -236,7 +236,7 @@ class TestApplyPatternKubota2014(unittest.TestCase):
                 KUBOTA_2014.Parameters.FEV1, r.FEV1))
         via_compute = self.eq.compute(
             self.df, KUBOTA_2014.Parameters.FEV1,
-            value='FEV1', metrics=('percent',))['percent']
+            value_col='FEV1', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
             via_compute.reset_index(drop=True),

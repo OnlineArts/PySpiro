@@ -91,15 +91,15 @@ gli = GLI_2012()
 results = gli.compute(
     df,
     GLI_2012.Parameters.FEV1,
-    value='fev1',        # column with the measured value
-    ethnicity='eth',     # column with ethnicity code (1=Caucasian, 2=African-American, …)
+    value_col='fev1',        # column with the measured value
+    ethnicity_col='eth',     # column with ethnicity code (1=Caucasian, 2=African-American, …)
 )
 # results: DataFrame with columns percent, zscore, lln, uln — same index as df
 df[['fev1_pct', 'fev1_z', 'fev1_lln', 'fev1_uln']] = results
 
 # Race-neutral equation — no ethnicity column needed
 bow = BOWERMANN_2022()
-results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value='fvc')
+results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value_col='fvc')
 ```
 
 Column names for `sex`, `age`, and `height` default to those strings; pass explicit
@@ -109,8 +109,8 @@ names if your DataFrame uses different ones:
 results = gli.compute(
     df,
     GLI_2012.Parameters.FEV1,
-    sex='gender', age='age_years', height='ht_cm',
-    value='fev1', ethnicity='eth',
+    sex_col='gender', age_col='age_years', height_col='ht_cm',
+    value_col='fev1', ethnicity_col='eth',
     metrics=('percent', 'lln'),   # only the metrics you need
 )
 ```

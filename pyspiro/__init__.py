@@ -135,33 +135,33 @@ class Spiro:
         # ethnicity column used directly (values 1–4 from the synthetic cohort).
         self._df["GLI2012_FEV1_pct"] = eq.compute(
             self._df, eq.Parameters.FEV1,
-            value='FEV1', ethnicity='ethnicity', metrics=('percent',))['percent']
+            value_col='FEV1', ethnicity_col='ethnicity', metrics=('percent',))['percent']
         self._df["GLI2012_FEF75_pct"] = eq.compute(
             self._df, eq.Parameters.FEF75,
-            value='FEF75', ethnicity='ethnicity', metrics=('percent',))['percent']
+            value_col='FEF75', ethnicity_col='ethnicity', metrics=('percent',))['percent']
 
     def _apply_gli_2017(self):
         eq = GLI_2017()
         eq.set_strategy("closest")
         self._df["GLI2017_KCO_pct"] = eq.compute(
             self._df, eq.Parameters.KCO_SI,
-            value='KCO', metrics=('percent',))['percent']
+            value_col='KCO', metrics=('percent',))['percent']
 
     def _apply_gli_2021(self):
         eq = GLI_2021()
         self._df["GLI2021_RV_pct"] = eq.compute(
             self._df, eq.Parameters.RV,
-            value='RV', metrics=('percent',))['percent']
+            value_col='RV', metrics=('percent',))['percent']
 
     def _apply_bowermann_2022(self):
         eq = BOWERMANN_2022()
         # Two compute() calls: different parameter → different measured-value column.
         self._df["BOWERMANN_FEV1_pct"] = eq.compute(
             self._df, eq.Parameters.FEV1,
-            value='FEV1', metrics=('percent',))['percent']
+            value_col='FEV1', metrics=('percent',))['percent']
         self._df["BOWERMANN_FVC_z"] = eq.compute(
             self._df, eq.Parameters.FVC,
-            value='FVC', metrics=('zscore',))['zscore']
+            value_col='FVC', metrics=('zscore',))['zscore']
 
     def _apply_schulz_2013(self):
         # SCHULZ_2013 uses direct percentile regression, not LMS — no compute() API.
@@ -176,7 +176,7 @@ class Spiro:
         eq.set_strategy("closest")
         self._df["SCAPIS_FEV1_LLN"] = eq.compute(
             self._df, eq.Parameters.pre_BD_FEV1,
-            value='FEV1', metrics=('lln',))['lln']
+            value_col='FEV1', metrics=('lln',))['lln']
 
     def _apply_gold(self):
         gold = GOLD()

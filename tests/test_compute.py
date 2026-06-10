@@ -54,35 +54,35 @@ class TestComputeGLI2012(unittest.TestCase):
 
     def test_percent_matches_scalar(self):
         result = self.eq.compute(self.df, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         for i, row in self.df.iterrows():
             scalar, _, _, _ = _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=True)
             self.assertAlmostEqual(result.loc[i, 'percent'], scalar, places=5)
 
     def test_zscore_matches_scalar(self):
         result = self.eq.compute(self.df, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         for i, row in self.df.iterrows():
             _, scalar, _, _ = _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=True)
             self.assertAlmostEqual(result.loc[i, 'zscore'], scalar, places=5)
 
     def test_lln_matches_scalar(self):
         result = self.eq.compute(self.df, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         for i, row in self.df.iterrows():
             _, _, scalar, _ = _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=True)
             self.assertAlmostEqual(result.loc[i, 'lln'], scalar, places=5)
 
     def test_uln_matches_scalar(self):
         result = self.eq.compute(self.df, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         for i, row in self.df.iterrows():
             _, _, _, scalar = _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=True)
             self.assertAlmostEqual(result.loc[i, 'uln'], scalar, places=5)
 
     def test_returns_dataframe_with_correct_shape(self):
         result = self.eq.compute(self.df, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         self.assertIsInstance(result, pd.DataFrame)
         self.assertEqual(result.shape, (len(self.df), 4))
         self.assertEqual(list(result.columns), ['percent', 'zscore', 'lln', 'uln'])
@@ -90,21 +90,21 @@ class TestComputeGLI2012(unittest.TestCase):
     def test_index_preserved(self):
         df = self.df.copy()
         df.index = [10, 20, 30]
-        result = self.eq.compute(df, self.param, value='FEV1', ethnicity='ethnicity')
+        result = self.eq.compute(df, self.param, value_col='FEV1', ethnicity_col='ethnicity')
         self.assertEqual(list(result.index), [10, 20, 30])
 
     def test_missing_ethnicity_raises(self):
         with self.assertRaises(ValueError):
-            self.eq.compute(self.df, self.param, value='FEV1')
+            self.eq.compute(self.df, self.param, value_col='FEV1')
 
     def test_partial_metrics(self):
-        result = self.eq.compute(self.df, self.param, value='FEV1',
-                                 ethnicity='ethnicity', metrics=('lln', 'uln'))
+        result = self.eq.compute(self.df, self.param, value_col='FEV1',
+                                 ethnicity_col='ethnicity', metrics=('lln', 'uln'))
         self.assertEqual(list(result.columns), ['lln', 'uln'])
 
     def test_lln_uln_without_value_column(self):
         """lln and uln don't use the measured value — value column is optional for them."""
-        result = self.eq.compute(self.df, self.param, ethnicity='ethnicity',
+        result = self.eq.compute(self.df, self.param, ethnicity_col='ethnicity',
                                  metrics=('lln', 'uln'))
         self.assertFalse(result['lln'].isna().any())
         self.assertFalse(result['uln'].isna().any())
@@ -113,15 +113,15 @@ class TestComputeGLI2012(unittest.TestCase):
         df_oor = self.df.copy()
         df_oor.loc[0, 'age'] = 2.0  # below GLI_2012 minimum age
         result = self.eq.compute(df_oor, self.param,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         self.assertTrue(pd.isna(result.loc[0, 'percent']))
         self.assertFalse(pd.isna(result.loc[1, 'percent']))
 
     def test_enum_value_and_int_parameter_equivalent(self):
         r_enum = self.eq.compute(self.df, GLI_2012.Parameters.FEV1,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         r_int  = self.eq.compute(self.df, GLI_2012.Parameters.FEV1.value,
-                                 value='FEV1', ethnicity='ethnicity')
+                                 value_col='FEV1', ethnicity_col='ethnicity')
         pd.testing.assert_frame_equal(r_enum, r_int)
 
 
@@ -139,7 +139,7 @@ class TestComputeBowermann2022(unittest.TestCase):
         self.param = BOWERMANN_2022.Parameters.FVC
 
     def test_all_metrics_match_scalar(self):
-        result = self.eq.compute(self.df, self.param, value='FVC')
+        result = self.eq.compute(self.df, self.param, value_col='FVC')
         for i, row in self.df.iterrows():
             scalar_pct, scalar_z, scalar_lln, scalar_uln = \
                 _scalar_row(self.eq, row, self.param, 'FVC', with_ethnicity=False)
@@ -150,9 +150,9 @@ class TestComputeBowermann2022(unittest.TestCase):
 
     def test_ethnicity_kwarg_silently_ignored(self):
         """Passing ethnicity to a race-neutral equation is silently ignored."""
-        r_with    = self.eq.compute(self.df, self.param, value='FVC',
-                                    ethnicity='nonexistent_col_never_read')
-        r_without = self.eq.compute(self.df, self.param, value='FVC')
+        r_with    = self.eq.compute(self.df, self.param, value_col='FVC',
+                                    ethnicity_col='nonexistent_col_never_read')
+        r_without = self.eq.compute(self.df, self.param, value_col='FVC')
         pd.testing.assert_frame_equal(r_with, r_without)
 
     def test_missing_value_for_percent_raises(self):
@@ -184,7 +184,7 @@ class TestComputeGLI2017(unittest.TestCase):
             self.assertAlmostEqual(result.loc[i, 'uln'], scalar_uln, places=5)
 
     def test_full_metrics_with_value_column(self):
-        result = self.eq.compute(self.df, self.param, value='KCO')
+        result = self.eq.compute(self.df, self.param, value_col='KCO')
         for i, row in self.df.iterrows():
             scalar_pct, scalar_z, scalar_lln, scalar_uln = \
                 _scalar_row(self.eq, row, self.param, 'KCO', with_ethnicity=False)
@@ -206,7 +206,7 @@ class TestComputeGLI2021(unittest.TestCase):
         self.param = GLI_2021.Parameters.TLC
 
     def test_all_metrics_match_scalar(self):
-        result = self.eq.compute(self.df, self.param, value='TLC')
+        result = self.eq.compute(self.df, self.param, value_col='TLC')
         for i, row in self.df.iterrows():
             scalar_pct, scalar_z, scalar_lln, scalar_uln = \
                 _scalar_row(self.eq, row, self.param, 'TLC', with_ethnicity=False)
@@ -230,7 +230,7 @@ class TestComputeScapis2023(unittest.TestCase):
         self.param = SCAPIS_2023.Parameters.pre_BD_FEV1
 
     def test_all_metrics_match_scalar(self):
-        result = self.eq.compute(self.df, self.param, value='FEV1')
+        result = self.eq.compute(self.df, self.param, value_col='FEV1')
         for i, row in self.df.iterrows():
             scalar_pct, scalar_z, scalar_lln, scalar_uln = \
                 _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=False)
@@ -254,7 +254,7 @@ class TestComputeKubota2014(unittest.TestCase):
         self.param = KUBOTA_2014.Parameters.FEV1
 
     def test_all_metrics_match_scalar(self):
-        result = self.eq.compute(self.df, self.param, value='FEV1')
+        result = self.eq.compute(self.df, self.param, value_col='FEV1')
         for i, row in self.df.iterrows():
             scalar_pct, scalar_z, scalar_lln, scalar_uln = \
                 _scalar_row(self.eq, row, self.param, 'FEV1', with_ethnicity=False)
@@ -278,8 +278,8 @@ class TestComputeNonDefaultColumns(unittest.TestCase):
         })
         result = eq.compute(
             df, GLI_2012.Parameters.FEV1,
-            sex='gender', age='years', height='ht_cm',
-            value='fev1_meas', ethnicity='eth',
+            sex_col='gender', age_col='years', height_col='ht_cm',
+            value_col='fev1_meas', ethnicity_col='eth',
         )
         scalar = eq.percent(M, 40.0, 175.0, 1, GLI_2012.Parameters.FEV1, 3.2)
         self.assertAlmostEqual(result.loc[0, 'percent'], scalar, places=5)

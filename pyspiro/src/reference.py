@@ -164,26 +164,26 @@ class LMSReference(Reference):
         )
 
     def compute(self, df: pandas.DataFrame, parameter: int,
-                sex: str = 'sex', age: str = 'age', height: str = 'height',
-                value: str = None, ethnicity: str = None,
+                sex_col: str = 'sex', age_col: str = 'age', height_col: str = 'height',
+                value_col: str = None, ethnicity_col: str = None,
                 metrics: tuple = ('percent', 'zscore', 'lln', 'uln')) -> pandas.DataFrame:
         """
         Apply the reference equation to every row of a DataFrame.
 
         Parameters
         ----------
-        df        : DataFrame with one patient per row.
-        parameter : Parameters enum value (or its integer value) to evaluate.
-        sex       : column name for sex (0=female, 1=male).  Default 'sex'.
-        age       : column name for age in years.            Default 'age'.
-        height    : column name for height in cm.            Default 'height'.
-        value     : column name for the measured value.
-                    Required for 'percent' and 'zscore'; optional for 'lln'/'uln'.
-        ethnicity : column name for ethnicity code.
-                    Required when the equation's lms() includes an ethnicity
-                    argument (e.g. GLI_2012); ignored otherwise.
-        metrics   : tuple of metrics to compute, any subset of
-                    ('percent', 'zscore', 'lln', 'uln').  Default: all four.
+        df            : DataFrame with one patient per row.
+        parameter     : Parameters enum value (or its integer value) to evaluate.
+        sex_col       : column name for sex (0=female, 1=male).  Default 'sex'.
+        age_col       : column name for age in years.            Default 'age'.
+        height_col    : column name for height in cm.            Default 'height'.
+        value_col     : column name for the measured value.
+                        Required for 'percent' and 'zscore'; optional for 'lln'/'uln'.
+        ethnicity_col : column name for ethnicity code.
+                        Required when the equation's lms() includes an ethnicity
+                        argument (e.g. GLI_2012); ignored otherwise.
+        metrics       : tuple of metrics to compute, any subset of
+                        ('percent', 'zscore', 'lln', 'uln').  Default: all four.
 
         Returns
         -------
@@ -193,35 +193,39 @@ class LMSReference(Reference):
         --------
         >>> gli = GLI_2012()
         >>> results = gli.compute(df, GLI_2012.Parameters.FEV1,
-        ...                       value='FEV1', ethnicity='ethnicity')
+        ...                       value_col='FEV1', ethnicity_col='ethnicity')
         >>> bow = BOWERMANN_2022()
-        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value='FVC')
+        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value_col='FVC')
+        >>> # Custom column names — e.g. 'gender' instead of 'sex':
+        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC,
+        ...                       sex_col='gender', age_col='age_years',
+        ...                       height_col='ht_cm', value_col='fvc_measured')
         """
         lms_params = set(inspect.signature(self.lms).parameters)
         needs_ethnicity = 'ethnicity' in lms_params
 
-        if needs_ethnicity and ethnicity is None:
+        if needs_ethnicity and ethnicity_col is None:
             raise ValueError(
                 f"{type(self).__name__}.lms requires an ethnicity argument; "
-                "pass ethnicity='<column_name>' to compute()."
+                "pass ethnicity_col='<column_name>' to compute()."
             )
         for metric in metrics:
-            if metric in ('percent', 'zscore') and value is None:
+            if metric in ('percent', 'zscore') and value_col is None:
                 raise ValueError(
                     f"metric '{metric}' requires a measured value; "
-                    "pass value='<column_name>' to compute()."
+                    "pass value_col='<column_name>' to compute()."
                 )
 
         def _kw(row):
             kw = {
-                'sex': int(row[sex]),
-                'age': float(row[age]),
-                'height': float(row[height]),
+                'sex': int(row[sex_col]),
+                'age': float(row[age_col]),
+                'height': float(row[height_col]),
                 'parameter': parameter,
-                'value': float(row[value]) if value is not None else 0.0,
+                'value': float(row[value_col]) if value_col is not None else 0.0,
             }
             if needs_ethnicity:
-                kw['ethnicity'] = int(row[ethnicity])
+                kw['ethnicity'] = int(row[ethnicity_col])
             return kw
 
         result = {}
