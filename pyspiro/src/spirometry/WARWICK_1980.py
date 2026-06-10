@@ -37,8 +37,8 @@ class WARWICK_1980(Reference):
 
     def __init__(self):
         self._age_range = self._AGE_RANGE
-        path = importlib.resources.open_binary('pyspiro.data', 'warwick_1980_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'warwick_1980_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex'], inplace=True)
         self._coefficients = df
 

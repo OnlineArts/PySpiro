@@ -41,8 +41,8 @@ class SCHULZ_2013(Reference):
         self.__lookup = self.__load_lookup_table()
 
     def __load_lookup_table(self) -> pandas.DataFrame:
-        splines_path = importlib.resources.open_binary('pyspiro.data', 'schulz_2013_splines.csv')
-        splines = pandas.read_csv(splines_path, delimiter=";").set_index("Var")
+        with (importlib.resources.files('pyspiro.data') / 'schulz_2013_splines.csv').open('rb') as f:
+            splines = pandas.read_csv(f, delimiter=";").set_index("Var")
         return splines
 
     def __get_regression_coeffs(self, sex: int, pct: float, parameter: int):

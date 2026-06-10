@@ -43,16 +43,17 @@ class KUBOTA_2014(LMSReference):
         self._age_range = self._AGE_RANGE
 
     def __load_lookup_table(self):
-        splines_path = importlib.resources.open_binary('pyspiro.data', 'kubota_2014_splines.csv')
-        raw = pandas.read_csv(splines_path, index_col=0)
+        pkg = importlib.resources.files('pyspiro.data')
+        with (pkg / 'kubota_2014_splines.csv').open('rb') as f:
+            raw = pandas.read_csv(f, index_col=0)
 
         # Pre-index by (parameter_name, csv_gender) for O(1) age lookup
         lookup = {}
         for (f, gender), group in raw.groupby(['f', 'gender']):
             lookup[(f, int(gender))] = group.set_index('agebound')
 
-        coeff_path = importlib.resources.open_binary('pyspiro.data', 'kubota_2014_coefficients.csv')
-        coefficients = pandas.read_csv(coeff_path, delimiter=";").set_index("var")
+        with (pkg / 'kubota_2014_coefficients.csv').open('rb') as f:
+            coefficients = pandas.read_csv(f, delimiter=";").set_index("var")
 
         return lookup, coefficients
 

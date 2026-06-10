@@ -80,16 +80,13 @@ class HANKINSON_1999(Reference):
         self._age_range = self._AGE_RANGE
 
     def _load_coefficients(self):
-        path_t45 = importlib.resources.open_binary(
-            'pyspiro.data', 'hankinson_1999_coefficients_t4_t5.csv'
-        )
-        df_t45 = pd.read_csv(path_t45, delimiter=";")
+        pkg = importlib.resources.files('pyspiro.data')
+        with (pkg / 'hankinson_1999_coefficients_t4_t5.csv').open('rb') as f:
+            df_t45 = pd.read_csv(f, delimiter=";")
         df_t45.set_index(['parameter', 'sex', 'ethnicity', 'age_group'], inplace=True)
 
-        path_t6 = importlib.resources.open_binary(
-            'pyspiro.data', 'hankinson_1999_coefficients_t6.csv'
-        )
-        df_t6 = pd.read_csv(path_t6, delimiter=";")
+        with (pkg / 'hankinson_1999_coefficients_t6.csv').open('rb') as f:
+            df_t6 = pd.read_csv(f, delimiter=";")
         df_t6.drop(columns=['R2'], errors='ignore', inplace=True)
         df_t6.set_index(['parameter', 'sex', 'ethnicity'], inplace=True)
 

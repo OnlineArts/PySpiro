@@ -31,8 +31,8 @@ class MORRIS_1973(Reference):
 
     def __init__(self):
         self._age_range = self._AGE_RANGE
-        path = importlib.resources.open_binary('pyspiro.data', 'morris_1973_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'morris_1973_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex'], inplace=True)
         self._coefficients = df
 

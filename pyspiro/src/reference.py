@@ -337,14 +337,11 @@ class SplineReference(LMSReference):
 
     def __init__(self):
         import importlib.resources
-        lookup = pandas.read_csv(
-            importlib.resources.open_binary('pyspiro.data', self._splines_csv),
-            delimiter=";",
-        ).set_index("age")
-        splines = pandas.read_csv(
-            importlib.resources.open_binary('pyspiro.data', self._coeffs_csv),
-            delimiter=";",
-        ).set_index("var")
+        pkg = importlib.resources.files('pyspiro.data')
+        with (pkg / self._splines_csv).open('rb') as f:
+            lookup = pandas.read_csv(f, delimiter=";").set_index("age")
+        with (pkg / self._coeffs_csv).open('rb') as f:
+            splines = pandas.read_csv(f, delimiter=";").set_index("var")
         self._age_range = (min(lookup.index), max(lookup.index))
         self._lookup = lookup
         self._coefficients = splines

@@ -40,10 +40,11 @@ class SCAPIS_2023(LMSReference):
         self.__lookup, self.__coefficients = self.__load_lookup_table()
 
     def __load_lookup_table(self) -> tuple:
-        splines_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_splines.csv')
-        coefficients_path = importlib.resources.open_binary('pyspiro.data', 'scapis_2023_coefficients.csv')
-        lookup = pandas.read_csv(splines_path, delimiter=",", header=[0, 1], index_col=0)
-        coefficients = pandas.read_csv(coefficients_path, delimiter=",", index_col=0)
+        pkg = importlib.resources.files('pyspiro.data')
+        with (pkg / 'scapis_2023_splines.csv').open('rb') as f:
+            lookup = pandas.read_csv(f, delimiter=",", header=[0, 1], index_col=0)
+        with (pkg / 'scapis_2023_coefficients.csv').open('rb') as f:
+            coefficients = pandas.read_csv(f, delimiter=",", index_col=0)
         self._age_range: tuple = (min(lookup.index), max(lookup.index))
         return lookup, coefficients
 

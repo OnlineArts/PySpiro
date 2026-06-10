@@ -33,8 +33,8 @@ class POLGAR_1971(Reference):
 
     def __init__(self):
         self._age_range = self._AGE_RANGE
-        path = importlib.resources.open_binary('pyspiro.data', 'polgar_1971_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'polgar_1971_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex'], inplace=True)
         self._coefficients = df
 

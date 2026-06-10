@@ -33,8 +33,8 @@ class CRAPO_1981(Reference):
 
     def __init__(self):
         self._age_range = (15, 91)
-        path = importlib.resources.open_binary('pyspiro.data', 'crapo_1981_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'crapo_1981_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex'], inplace=True)
         self._coefficients = df
 

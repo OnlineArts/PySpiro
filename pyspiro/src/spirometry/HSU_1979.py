@@ -35,8 +35,8 @@ class HSU_1979(Reference):
 
     def __init__(self):
         self._age_range = (7, 20)
-        path = importlib.resources.open_binary('pyspiro.data', 'hsu_1979_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'hsu_1979_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex', 'ethnicity'], inplace=True)
         self._coefficients = df
 

@@ -42,8 +42,8 @@ class KNUDSON_1983(Reference):
 
     def __init__(self):
         self._age_range = (6, 90)
-        path = importlib.resources.open_binary('pyspiro.data', 'knudson_1983_coefficients.csv')
-        df = pd.read_csv(path, delimiter=';')
+        with (importlib.resources.files('pyspiro.data') / 'knudson_1983_coefficients.csv').open('rb') as f:
+            df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex', 'age_group'], inplace=True)
         self._coefficients = df
 

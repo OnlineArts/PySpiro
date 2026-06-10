@@ -19,6 +19,8 @@ from .src.spirometry.WARWICK_1980 import WARWICK_1980
 from .src.spirometry.POLGAR_1971 import POLGAR_1971
 from .src.spirometry.QUANJER_1995 import QUANJER_1995
 from .src.spirometry.WANG_1993 import WANG_1993
+from .src.spirometry.JIAN_2017 import JIAN_2017
+from .src.spirometry.AGARWAL_2020 import AGARWAL_2020
 from .src.diffusion.GLI_2017 import GLI_2017
 from .src.diffusion.SCAPIS_2023 import SCAPIS_2023
 from .src.volumes.GLI_2021 import GLI_2021

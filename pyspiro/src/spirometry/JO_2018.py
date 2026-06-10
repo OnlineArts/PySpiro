@@ -44,15 +44,16 @@ class JO_2018(LMSReference):
         self._age_range = self._AGE_RANGE
 
     def __load_data(self):
-        splines_path = importlib.resources.open_binary('pyspiro.data', 'jo_2018_splines.csv')
-        raw = pandas.read_csv(splines_path, index_col=0)
+        pkg = importlib.resources.files('pyspiro.data')
+        with (pkg / 'jo_2018_splines.csv').open('rb') as f:
+            raw = pandas.read_csv(f, index_col=0)
 
         lookup = {}
         for (f, gender), group in raw.groupby(['f', 'gender']):
             lookup[(f, int(gender))] = group.set_index('agebound')
 
-        coeff_path = importlib.resources.open_binary('pyspiro.data', 'jo_2018_coefficients.csv')
-        coefficients = pandas.read_csv(coeff_path, delimiter=';').set_index('var')
+        with (pkg / 'jo_2018_coefficients.csv').open('rb') as f:
+            coefficients = pandas.read_csv(f, delimiter=';').set_index('var')
 
         return lookup, coefficients
 

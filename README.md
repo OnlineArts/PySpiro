@@ -6,6 +6,12 @@
 
 ---
 
+> [!WARNING]
+> **For research use only.**
+> pyspiro is intended exclusively for scientific research and data analysis. It must **not** be used as a clinical decision-support tool, for patient diagnosis, or for any medical or clinical purpose. The results produced by this package have not been validated for clinical use and do not constitute medical advice. Always consult a qualified healthcare professional for clinical interpretation of lung function tests.
+
+---
+
 ## Available reference equations
 
 ### Spirometry
@@ -14,6 +20,8 @@
 | `BOWERMANN_2022` | Race-neutral (GLI global) | 3–95 y | Bowermann et al. 2023, PMID: 36383197 |
 | `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, PMID: 25278192 |
 | `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, PMID: 22743675 |
+| `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, PMID: 29268393 |
+| `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, PMID: 31806719 |
 | `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, PMID: 29215803 |
 | `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, PMID: 18057057 |
 | `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, PMID: 9872837 |
@@ -41,6 +49,8 @@
 | `BOWERMANN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `KUBOTA_2014` | ✓ | ✓ | — | — | — | — | — | ✓ | — | ✓ | — | — | — |
 | `GLI_2012` | ✓ | ✓ | — | ✓ | — | — | — | — | — | ✓ | — | ✓ | — |
+| `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `KUSTER_2008` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `HANKINSON_1999` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | ✓ | — | — |
@@ -62,6 +72,8 @@
 | `BOWERMANN_2022` | — | — | — | — | — | — | — | ✓ |
 | `KUBOTA_2014` | — | — | — | — | — | — | — | ✓ |
 | `GLI_2012` | ✓ | — | — | ✓ | — | — | — | ✓ |
+| `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
+| `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
 | `JO_2018` | — | — | — | — | — | — | — | ✓ |
 | `KUSTER_2008` | — | ✓ | ✓ | ✓ | ✓ | — | — | ✓ |
 | `HANKINSON_1999` | ✓ | — | — | — | ✓ | — | — | ✓ |
@@ -80,7 +92,9 @@
 
 > **KUSTER_2008** names its flow parameters MEF75 (= FEF25%), MEF50 (= FEF50%), and MEF25 (= FEF75%).<br>
 > **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
-> **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.
+> **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.<br>
+> **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
+> **AGARWAL_2020** uses pre-computed lookup tables (integer age 20–80, integer height 137–185 cm); inputs are rounded to the nearest integer. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − p5. `zscore()` uses the normal approximation (accurate for males; approximate for females where non-normal GAMLSS families were fitted). `lms()` returns `(NA, NA, NA)`.
 
 ### Lung diffusion capacity
 | Class | Population | Publication |
