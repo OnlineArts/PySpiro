@@ -36,7 +36,7 @@ class AGARWAL_2020(Reference):
         Khatavkar P, Juvekar S; RESPIRE collaboration. Normal spirometry
         predictive values for the Western Indian adult population.
         Eur Respir J. 2020;55(3):1902129.
-        doi: 10.1183/13993003.02129-2019. PMID: 31806719.
+        doi: 10.1183/13993003.02129-2019. PMID: 32366494.
     """
 
     class Parameters(Enum):

@@ -15,30 +15,33 @@
 ## Available reference equations
 
 ### Spirometry
-| Class | Population | Age range | Publication |
-|---|---|---|---|
-| `BOWERMANN_2022` | Race-neutral (GLI global) | 3–95 y | Bowermann et al. 2023, PMID: 36383197 |
-| `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, PMID: 25278192 |
-| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, PMID: 22743675 |
-| `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, PMID: 29268393 |
-| `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, PMID: 31806719 |
-| `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, PMID: 29215803 |
-| `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, PMID: 18057057 |
-| `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, PMID: 9872837 |
-| `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. Pediatric Pulmonology 1995; 19: 135–142 |
-| `WANG_1993` | White & Black children (US) | 6–18 y (M) / 7–18 y (F) | Wang et al. Pediatric Pulmonology 1993; 15: 75–88 |
-| `ECCS_1993` | European Caucasian | 18–70 y | Quanjer et al. ERJ 1992–1993; Suppl. 15–16: 5–40 |
-| `ROBERTS_1991` | White urban (UK) | 18–86 y | Roberts et al. Thorax 1991; 46: 643–650 |
-| `ZAPLETAL_1987` | European children | 6–18 y | Zapletal. Progress in Respiration Research Vol 22, 1987 |
-| `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. ARRD 1983; 127(5–6): 725–734 |
-| `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. ARRD 1981; 123: 659–664 |
-| `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick. Minnesota Medicine 1977 & 1980 |
-| `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. J Pediatr 1979; 95: 14–23 |
-| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. ARRD 1971 & 1973 |
-| `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber. ARRD 1972; 106(1): 38–46 |
-| `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat. Pulmonary Function Testing in Children, 1971 |
+| Class | Population | Age range | Publication                                                                                                                                      |
+|---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `BOWERMANN_2022` | Race-neutral (GLI global) | 3–95 y | Bowermann et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                                             |
+| `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                                             |
+| `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                                        |
+| `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.09.125](https://doi.org/10.21037/jtd.2017.09.125)                                                      |
+| `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                                                 |
+| `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, DOI: [10.1016/j.resinv.2014.03.003](https://doi.org/10.1016/j.resinv.2014.03.003)                                            |
+| `CHHABRA_2014` | Northern Indian (Delhi, Punjab, Haryana, UP) | 18–71 y (M) / 18–65 y (F) | Chhabra et al. 2014, DOI: [10.5005/ijcdas-56-4-221](https://doi.org/10.5005/ijcdas-56-4-221)                                                     |
+| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](10.1183/09031936.00080312)                                                                 |
+| `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, DOI: [10.1183/09031936.00091407](https://doi.org/10.1183/09031936.00091407)                                                  |
+| `CHOI_2005` | Korean (KNHANES 2001–2002) | 18–80 y | Choi et al. 2005, DOI: [10.4046/trd.2005.58.3.230](https://doi.org/10.4046/trd.2005.58.3.230)                                    |
+| `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, DOI: [10.1164/ajrccm.159.1.9712108](https://doi.org/10.1164/ajrccm.159.1.9712108)                                         |
+| `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. 1995, DOI: [10.1002/ppul.1950190209](https://doi.org/10.1002/ppul.1950190209)                                                     |
+| `WANG_1993` | White & Black children (US) | 6–18 y (M) / 7–18 y (F) | Wang et al. 1993, DOI: [10.1002/ppul.1950150204](https://doi.org/10.1002/ppul.1950150204)                                                        |
+| `ECCS_1993` | European Caucasian | 18–70 y | Quanjer et al. 1993, DOI: [10.1183/09041950.005s1693](https://doi.org/10.1183/09041950.005s1693)                                                 |
+| `ROBERTS_1991` | White urban (UK) | 18–86 y | Roberts et al. 1991, DOI: [10.1136/thx.46.9.643](https://doi.org/10.1136/thx.46.9.643)                                                           |
+| `ZAPLETAL_1987` | European children | 6–18 y | Zapletal 1987, DOI: [10.1159/isbn.978-3-318-04125-5](https://doi.org/10.1159/isbn.978-3-318-04125-5)                                             |
+| `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. 1983, DOI: [10.1164/arrd.1983.127.6.725](https://doi.org/10.1164/arrd.1983.127.6.725)                                             |
+| `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. 1981, DOI: [10.1164/arrd.1981.123.6.659](https://doi.org/10.1164/arrd.1981.123.6.659)                                               |
+| `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick 1980, PMID: [7374636](https://pubmed.ncbi.nlm.nih.gov/7374636/)                                                                          |
+| `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. 1979, DOI: [10.1016/S0022-3476(79)80075-X](https://doi.org/10.1016/S0022-3476(79)80075-X)                                             |
+| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1973, DOI: [10.1164/arrd.1971.103.1.57](https://academic.oup.com/ajrccm/article-abstract/103/1/57/8567771?redirectedFrom=fulltext) |
+| `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38)                                            |
+| `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                                       |
 
-> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. `HANKINSON_1999` and `KUSTER_2008` remain the only polynomial equations that provide LLN.
+> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
 
 #### Parameter availability matrix
 
@@ -47,12 +50,15 @@
 | Equation | FVC | FEV1 | FEV0.5 | FEV0.75 | FEV3 | FEV6 | SVC | VC | FIVC | FEV1/FVC | FEV1/FEV6 | FEV0.75/FVC | FEV3/FVC |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | `BOWERMANN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
-| `KUBOTA_2014` | ✓ | ✓ | — | — | — | — | — | ✓ | — | ✓ | — | — | — |
-| `GLI_2012` | ✓ | ✓ | — | ✓ | — | — | — | — | — | ✓ | — | ✓ | — |
-| `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `DESAI_2016` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `KUBOTA_2014` | ✓ | ✓ | — | — | — | — | — | ✓ | — | ✓ | — | — | — |
+| `CHHABRA_2014` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `GLI_2012` | ✓ | ✓ | — | ✓ | — | — | — | — | — | ✓ | — | ✓ | — |
 | `KUSTER_2008` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `CHOI_2005` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | — | — | — |
 | `HANKINSON_1999` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | ✓ | — | — |
 | `QUANJER_1995` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `WANG_1993` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -70,12 +76,15 @@
 | Equation | FEF25-75% | FEF25% | FEF50% | FEF75% | PEF | MVV | FET | LLN / z-score |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | `BOWERMANN_2022` | — | — | — | — | — | — | — | ✓ |
-| `KUBOTA_2014` | — | — | — | — | — | — | — | ✓ |
-| `GLI_2012` | ✓ | — | — | ✓ | — | — | — | ✓ |
-| `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
 | `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
 | `JO_2018` | — | — | — | — | — | — | — | ✓ |
+| `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
+| `DESAI_2016` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
+| `KUBOTA_2014` | — | — | — | — | — | — | — | ✓ |
+| `CHHABRA_2014` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
+| `GLI_2012` | ✓ | — | — | ✓ | — | — | — | ✓ |
 | `KUSTER_2008` | — | ✓ | ✓ | ✓ | ✓ | — | — | ✓ |
+| `CHOI_2005` | — | — | — | — | — | — | — | — |
 | `HANKINSON_1999` | ✓ | — | — | — | ✓ | — | — | ✓ |
 | `QUANJER_1995` | — | — | — | — | — | — | — | — |
 | `WANG_1993` | ✓ | — | — | — | — | — | — | — |
@@ -90,35 +99,38 @@
 | `CHERNIACK_1972` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
 | `POLGAR_1971` | ✓ | — | — | — | ✓ | ✓ | — | — |
 
+> **AGARWAL_2020** uses pre-computed lookup tables (integer age 20–80, integer height 137–185 cm); inputs are rounded to the nearest integer. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − p5. `zscore()` uses the normal approximation (accurate for males; approximate for females where non-normal GAMLSS families were fitted). `lms()` returns `(NA, NA, NA)`.<br>
+> **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
+> **DESAI_2016** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male PEFR and female FEF75; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SE.<br>
+> **CHHABRA_2014** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male FVC, male FEF75, and male FEV1FVC; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SEE.<br>
 > **KUSTER_2008** names its flow parameters MEF75 (= FEF25%), MEF50 (= FEF50%), and MEF25 (= FEF75%).<br>
+> **CHOI_2005** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for FVC and FEV6. `lln()`, `uln()`, and `zscore()` return `pd.NA` (no limits of normal were published).
 > **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
 > **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.<br>
-> **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
-> **AGARWAL_2020** uses pre-computed lookup tables (integer age 20–80, integer height 137–185 cm); inputs are rounded to the nearest integer. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − p5. `zscore()` uses the normal approximation (accurate for males; approximate for females where non-normal GAMLSS families were fitted). `lms()` returns `(NA, NA, NA)`.
 
 ### Multiple breath washout (MBW)
-| Class | Population | Age range | Parameters | Publication |
-|---|---|---|---|---|
-| `RAMSEY_2024` | GLI international (race-neutral) | 2–80 y | LCI, FRC | Ramsey et al. 2024, PMID: 38565204 |
+| Class | Population | Age range | Parameters | Publication                                                                                         |
+|---|---|---|---|-----------------------------------------------------------------------------------------------------|
+| `RAMSEY_2024` | GLI international (race-neutral) | 2–80 y | LCI, FRC | Ramsey et al. 2024, DOI: [10.1183/13993003.00524-2024](https://doi.org/10.1183/13993003.00524-2024) |
 
 RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections from the GLI 2024 supplementary material. LCI has no sex or height dependence; FRC depends on sex, age, and height.
 
 ### Lung diffusion capacity
-| Class | Population | Publication |
-|---|---|---|
-| `GLI_2017` | Caucasian, age 5–80 y | Stanojevic et al. 2017, PMID: 28893868 |
-| `SCAPIS_2023` | Swedish, age 50–65 y | Malinovschi et al. 2023, PMID: 37339507 |
+| Class | Population | Publication                                                                                             |
+|---|---|---------------------------------------------------------------------------------------------------------|
+| `GLI_2017` | Caucasian, age 5–80 y | Stanojevic et al. 2017, DOI: [10.1183/13993003.00010-2017](https://doi.org/10.1183/13993003.00010-2017) |
+| `SCAPIS_2023` | Swedish, age 50–65 y | Malinovschi et al. 2023, DOI: [10.1164/rccm.202212-2341OC](https://doi.org/10.1164/rccm.202212-2341OC)                            |
 
 ### Static lung volumes
-| Class | Population | Publication |
-|---|---|---|
-| `GLI_2021` | European ancestry, age 5–80 y | Hall et al. 2021, PMID: 33707167 |
+| Class | Population | Publication                                                                                       |
+|---|---|---------------------------------------------------------------------------------------------------|
+| `GLI_2021` | European ancestry, age 5–80 y | Hall et al. 2021, DOI: [10.1183/13993003.00289-2020](https://doi.org/10.1183/13993003.00289-2020) |
 
 ### Oscillometry (IOS/FOT)
-| Class | Population | Age / height range | Parameters | Publication |
-|---|---|---|---|---|
-| `SCHULZ_2013` | KORA (German), adults | 40–65 y | R10/15/25/35, X10/20/25/35 | Schulz et al. 2013, PMID: 23691036 |
-| `CALOGERO_2013` | Caucasian children (Perth/Viterbo) | 92–159 cm | Rrs6/8/10, Xrs6/8/10, AX, Fres | Calogero et al. 2013, PMID: 22961800 |
+| Class | Population | Age / height range | Parameters | Publication                                                                                           |
+|---|---|---|---|-------------------------------------------------------------------------------------------------------|
+| `SCHULZ_2013` | KORA (German), adults | 40–65 y | R10/15/25/35, X10/20/25/35 | Schulz et al. 2013, DOI: [10.1371/journal.pone.0063366](https://doi.org/10.1371/journal.pone.0063366) |
+| `CALOGERO_2013` | Caucasian children (Perth/Viterbo) | 92–159 cm | Rrs6/8/10, Xrs6/8/10, AX, Fres | Calogero et al. 2013, DOI: [10.1002/ppul.22699](https://doi.org/10.1002/ppul.22699)                   |
 
 `CALOGERO_2013` uses direct height+sex regression with log/sqrt transformations (not LMS). Z-scores are on the transformed scale; positive z always means worse than predicted. `percent()` is defined for Rrs, AX, and Fres; it returns `pd.NA` for Xrs (signed values). `predicted()` returns the median value directly.
 
@@ -128,10 +140,18 @@ RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections fro
 
 | Class | Basis | Stages / outputs |
 |---|---|---|
+| `ATS_ERS_2022` | FEV1/FVC, FVC, FEV1, TLC z-scores | Normal / Obstructive / Restrictive / Mixed / Non-specific |
+| `LF_SEVERITY_2022` | Any lung function z-score (parameter-agnostic) | Normal / Mild / Moderate / Severe |
+| `BDR_2022` | Pre/post FEV1 and/or FVC vs predicted | Positive (FEV1) / Positive (FVC) / Positive (FEV1 and FVC) / Negative |
 | `GOLD` | FEV1 % predicted (COPD) | I–IV (mild to very severe) |
+| `GOLD_ABE` | Exacerbation history + CAT / mMRC (COPD) | A / B / E |
 | `STAR` | FEV1/FVC ratio (COPD) | I–IV (mild to very severe) |
+| `BODE` | BMI + FEV1 % predicted + mMRC + 6MWT (COPD) | Score 0–10, Quartiles 1–4 |
+| `GAP` | Sex + Age + FVC % predicted + DLCO % predicted (IPF) | Score 0–8, Stages I–III |
 | `WODEHOUSE_2003` | nNO in ppb (PCD screening) | PCD range / Normal |
-| `PCD_SEVERITY` | LCI z-score + FEV1 z-score + nNO (PCD monitoring) | Mild / Moderate / Severe / Inconclusive |
+| `PCD_SEVERITY` ⚠️ | LCI z-score + FEV1 z-score + nNO (PCD monitoring) | Mild / Moderate / Severe / Inconclusive |
+
+> ⚠️ **`PCD_SEVERITY` is experimental.** No PCD-specific severity staging system is currently endorsed by the ERS, ATS, or any other professional society. The combination logic and the specific thresholds used here (LCI z > 3.0 for severe; FEV1 z < −2.5 for severe) are custom-designed and have not been externally validated or peer-reviewed as a staging instrument. The cited references (Ramsey 2024, Wodehouse 2003) support the individual input parameters but do not define this combined staging scheme. Use for exploratory research only.
 
 ---
 
@@ -488,16 +508,10 @@ fig = plot_centile_curves(
 
 ---
 
-## Planned future implementations
-
-- **Spirometry** — Indian reference equations Northern Indian (Chhabra 2014, PMID: 25962195)
-- **Spirometry** — Indian reference equations, Western Indian (Desai 2016, PMID: 27865240)
-- **Spirometry** — Chinese reference equations (Jian 2017, PMID: 29268524)
-
 ---
 
 ## Citation
 
 If you use pyspiro in your research, please cite:
 
-> Hendrik Pott, Roman Martin. pyspiro v0.4.0. doi:10.5281/zenodo.15519193
+> Roman Martin, Hendrik Pott. pyspiro v0.4.0. doi:10.5281/zenodo.15519193

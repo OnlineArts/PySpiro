@@ -7,6 +7,12 @@ class PCD_SEVERITY(Classifier):
     """
     PCD severity and disease-monitoring classifier.
 
+    EXPERIMENTAL — no validated PCD severity staging system is currently endorsed
+    by the ERS, ATS, or any other professional society.  The combination logic and
+    the specific thresholds below are custom-designed for exploratory research and
+    have not been externally validated or peer-reviewed as a staging instrument.
+    Do not use for clinical decision-making.
+
     Combines LCI z-score (from RAMSEY_2024), nNO (from WODEHOUSE_2003), and
     FEV1 z-score (from any spirometry reference, e.g. GLI_2012) to grade the
     severity of lung disease in PCD patients.
@@ -16,15 +22,17 @@ class PCD_SEVERITY(Classifier):
     nNO screening (WODEHOUSE_2003 cut-off):
         nNO ≥ 200 ppb → PCD diagnosis is inconsistent → 'Inconclusive'
 
-    LCI z-score thresholds (RAMSEY_2024; ULN = +1.645 z-scores):
+    LCI z-score thresholds (ULN = +1.645 z-scores, derived from RAMSEY_2024;
+    the z > 3.0 'severe' cut-off is a custom threshold with no published basis):
         ≤ 1.645  : normal ventilation homogeneity
         > 1.645  : elevated (above ULN) → mild or moderate disease
-        > 3.0    : markedly elevated → severe disease
+        > 3.0    : markedly elevated → severe disease (custom threshold)
 
-    FEV1 z-score thresholds (LLN = −1.645 z-scores):
+    FEV1 z-score thresholds (LLN = −1.645 z-scores per ATS/ERS convention;
+    the z < −2.5 'severe' cut-off is a custom threshold with no published basis):
         ≥ −1.645 : normal airflow
         < −1.645 : reduced (below LLN) → moderate disease
-        < −2.5   : markedly reduced → severe disease
+        < −2.5   : markedly reduced → severe disease (custom threshold)
 
     Combined stages:
         Mild       — LCI ≤ ULN AND FEV1 ≥ LLN (ventilation and airflow preserved)
@@ -39,9 +47,9 @@ class PCD_SEVERITY(Classifier):
     severity, marker.  A very low nNO (<77 ppb) confirms ciliary dysfunction
     but does not indicate worse structural lung disease.
 
-    References:
-        Ramsey KA et al. Eur Respir J. 2024;63(1):2400524.   (LCI z-score thresholds)
-        Wodehouse T et al. Eur Respir J. 2003;21(1):43-47.   (nNO cut-off 200 ppb)
+    References (support individual inputs, not the combined staging scheme):
+        Ramsey KA et al. Eur Respir J. 2024;63(1):2400524.   (LCI reference equations and ULN)
+        Wodehouse T et al. Eur Respir J. 2003;21(1):43-47.   (nNO diagnostic cut-off 200 ppb)
         Gonem S et al. Respir Res. 2014;15:59.               (LCI in bronchiectasis)
     """
 

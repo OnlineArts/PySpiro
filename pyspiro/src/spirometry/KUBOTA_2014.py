@@ -27,7 +27,7 @@ class KUBOTA_2014(LMSReference):
         Reference values for spirometry, including vital capacity, in Japanese
         adults calculated with the LMS method and compared with previous values.
         Respir Investig. 2014 Sep;52(5):242-50.
-        doi: 10.1016/j.resinv.2014.03.003. PMID: 25278192.
+        doi: 10.1016/j.resinv.2014.03.003. PMID:  24998371.
     """
 
     class Parameters(Enum):
