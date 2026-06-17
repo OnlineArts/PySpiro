@@ -275,10 +275,10 @@ class LMSReference(Reference):
         >>> gli = GLI_2012()
         >>> results = gli.compute(df, GLI_2012.Parameters.FEV1,
         ...                       value_col='FEV1', ethnicity_col='ethnicity')
-        >>> bow = BOWERMANN_2022()
-        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC, value_col='FVC')
+        >>> bow = BOWERMAN_2022()
+        >>> results = bow.compute(df, BOWERMAN_2022.Parameters.FVC, value_col='FVC')
         >>> # Custom column names — e.g. 'gender' instead of 'sex':
-        >>> results = bow.compute(df, BOWERMANN_2022.Parameters.FVC,
+        >>> results = bow.compute(df, BOWERMAN_2022.Parameters.FVC,
         ...                       sex_col='gender', age_col='age_years',
         ...                       height_col='ht_cm', value_col='fvc_measured')
         """

@@ -5,7 +5,7 @@ from .src.spirometry.KUSTER_2008 import KUSTER_2008
 from .src.spirometry.HANKINSON_1999 import HANKINSON_1999
 from .src.spirometry.KUBOTA_2014 import KUBOTA_2014
 from .src.spirometry.GLI_2012 import GLI_2012
-from .src.spirometry.BOWERMANN_2022 import BOWERMANN_2022
+from .src.spirometry.BOWERMAN_2022 import BOWERMAN_2022
 from .src.spirometry.JO_2018 import JO_2018
 from .src.spirometry.MORRIS_1973 import MORRIS_1973
 from .src.spirometry.CHERNIACK_1972 import CHERNIACK_1972
@@ -54,7 +54,7 @@ class Spiro:
     result.  It is intended as a quick smoke-test and usage showcase — not for
     production use.  Import individual equation classes directly instead:
 
-        from pyspiro import GLI_2012, BOWERMANN_2022, compare_equations
+        from pyspiro import GLI_2012, BOWERMAN_2022, compare_equations
 
     Conventions
     -----------
@@ -72,7 +72,7 @@ class Spiro:
         self._apply_schulz_2013()
         self._apply_gli_2017()
         self._apply_gli_2021()
-        self._apply_bowermann_2022()
+        self._apply_bowerman_2022()
         self._apply_scapis_2023()
         self._apply_gold()
         self._apply_star()
@@ -184,13 +184,13 @@ class Spiro:
             self._df, eq.Parameters.RV,
             value_col='RV', metrics=('percent',))['percent']
 
-    def _apply_bowermann_2022(self):
-        eq = BOWERMANN_2022()
+    def _apply_bowerman_2022(self):
+        eq = BOWERMAN_2022()
         # Two compute() calls: different parameter → different measured-value column.
-        self._df["BOWERMANN_FEV1_pct"] = eq.compute(
+        self._df["BOWERMAN_FEV1_pct"] = eq.compute(
             self._df, eq.Parameters.FEV1,
             value_col='FEV1', metrics=('percent',))['percent']
-        self._df["BOWERMANN_FVC_z"] = eq.compute(
+        self._df["BOWERMAN_FVC_z"] = eq.compute(
             self._df, eq.Parameters.FVC,
             value_col='FVC', metrics=('zscore',))['zscore']
 
@@ -231,7 +231,7 @@ class Spiro:
         return compare_equations(
             patient,
             GLI_2012.Parameters.FEV1,
-            equations=[GLI_2012(), BOWERMANN_2022()],
+            equations=[GLI_2012(), BOWERMAN_2022()],
         )
 
 

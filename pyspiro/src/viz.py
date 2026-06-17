@@ -29,7 +29,7 @@ def plot_centile_curves(
     visualizing reference populations in clinical papers and presentations.
 
     Args:
-        equation: A pyspiro equation instance (e.g., GLI_2012(), BOWERMANN_2022()).
+        equation: A pyspiro equation instance (e.g., GLI_2012(), BOWERMAN_2022()).
         sex (int): Sex of reference individual (0=female, 1=male).
         height (float): Height in cm.
         parameter: Parameter enum or int (e.g., GLI_2012.Parameters.FEV1).

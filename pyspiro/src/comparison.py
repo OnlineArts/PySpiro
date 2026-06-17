@@ -27,10 +27,13 @@ def compare_equations(patient_record, parameter, equations=None):
             - ethnicity (int, optional): required for ethnicity-stratified equations
 
         parameter (int or enum): The parameter being compared (e.g., GLI_2012.Parameters.FEV1).
-                                All equations must have a parameter with the same value
-                                (matching by enum value, not by name).
+                                Matching across equations is done by parameter *name*
+                                (e.g. "FEV1"), since the integer enum values are not
+                                harmonised across equation classes. Passing an enum member
+                                is therefore recommended; a bare integer is resolved against
+                                each equation's own enum by value (single-equation use only).
 
-        equations (list, optional): List of equation instances to use (e.g., [GLI_2012(), BOWERMANN_2022()]).
+        equations (list, optional): List of equation instances to use (e.g., [GLI_2012(), BOWERMAN_2022()]).
                                    If None, defaults to all available equations.
 
     Returns:
@@ -45,7 +48,7 @@ def compare_equations(patient_record, parameter, equations=None):
         TypeError: If parameter type is incompatible.
 
     Example:
-        >>> from pyspiro import GLI_2012, BOWERMANN_2022
+        >>> from pyspiro import GLI_2012, BOWERMAN_2022
         >>> import pandas as pd
         >>>
         >>> patient = pd.Series({
@@ -57,8 +60,8 @@ def compare_equations(patient_record, parameter, equations=None):
         ... })
         >>>
         >>> gli = GLI_2012()
-        >>> bowermann = BOWERMANN_2022()
-        >>> df = compare_equations(patient, gli.Parameters.FEV1, equations=[gli, bowermann])
+        >>> bowerman = BOWERMAN_2022()
+        >>> df = compare_equations(patient, gli.Parameters.FEV1, equations=[gli, bowerman])
         >>> print(df)
     """
 
@@ -76,52 +79,41 @@ def compare_equations(patient_record, parameter, equations=None):
     if equations is None:
         equations = _get_default_equations()
 
+    # Match across equations by parameter *name* (e.g. "FEV1"). Integer enum
+    # values are NOT harmonised across equation classes — e.g. value 1 is FEV1
+    # in GLI_2012 but FVC in HANKINSON_1999 — so matching by value silently
+    # compares the wrong physiological parameter.
+    param_name = getattr(parameter, "name", None)
+
     results = []
+
+    def _not_applicable(name):
+        return {
+            "equation": name,
+            "percent_predicted": pd.NA,
+            "zscore": pd.NA,
+            "applicable": False,
+        }
 
     for eq in equations:
         eq_name = eq.__class__.__name__
 
-
-        # Check if equation has the parameter
-        if not _equation_has_parameter(eq, parameter):
-            results.append(
-                {
-                    "equation": eq_name,
-                    "percent_predicted": pd.NA,
-                    "zscore": pd.NA,
-                    "applicable": False,
-                }
-            )
+        # Resolve this equation's own parameter member matching the request.
+        eq_param = _resolve_equation_parameter(eq, parameter, param_name)
+        if eq_param is None:
+            results.append(_not_applicable(eq_name))
             continue
 
         # Build the arguments for calling equation methods
-        kwargs = _build_kwargs(
-            patient_record, eq, parameter, check_ethnicity=True
-        )
-
+        kwargs = _build_kwargs(patient_record, eq, eq_param)
         if kwargs is None:
-            results.append(
-                {
-                    "equation": eq_name,
-                    "percent_predicted": pd.NA,
-                    "zscore": pd.NA,
-                    "applicable": False,
-                }
-            )
+            results.append(_not_applicable(eq_name))
             continue
 
-        # Get measured value (inferred from parameter name if possible)
-        measured_value = _get_measured_value(patient_record, parameter, eq)
-
+        # Get measured value (looked up by the canonical parameter name)
+        measured_value = _get_measured_value(patient_record, eq_param, param_name)
         if pd.isna(measured_value):
-            results.append(
-                {
-                    "equation": eq_name,
-                    "percent_predicted": pd.NA,
-                    "zscore": pd.NA,
-                    "applicable": False,
-                }
-            )
+            results.append(_not_applicable(eq_name))
             continue
 
         # Calculate results
@@ -140,66 +132,59 @@ def compare_equations(patient_record, parameter, equations=None):
     return pd.DataFrame(results)
 
 
-def _equation_has_parameter(equation, parameter):
-    """Check if an equation has a given parameter."""
-    if hasattr(equation, "Parameters"):
-        try:
-            param_value = parameter.value if hasattr(parameter, 'value') else parameter
-            if isinstance(param_value, int):
-                enum_val = equation.Parameters(param_value)
-                return True
-        except (ValueError, AttributeError):
-            return False
-    return False
+def _resolve_equation_parameter(equation, parameter, param_name):
+    """
+    Return the equation's own ``Parameters`` member for the requested parameter.
+
+    Matching is by name (preferred, so the same physiological parameter is
+    compared across equations despite differing enum integer values). For a bare
+    integer parameter the value is resolved within this equation only. Returns
+    ``None`` if the equation has no ``Parameters`` enum or lacks the parameter.
+    """
+    if not hasattr(equation, "Parameters"):
+        return None
+
+    if param_name is not None:
+        return equation.Parameters.__members__.get(param_name)
+
+    # Fallback: bare integer parameter — resolve within this equation by value.
+    try:
+        return equation.Parameters(int(parameter))
+    except (ValueError, TypeError):
+        return None
 
 
-def _build_kwargs(patient_record, equation, parameter, check_ethnicity=True):
+def _build_kwargs(patient_record, equation, eq_param):
     """
     Build kwargs for calling equation methods.
 
     Returns a dict with: sex, age, height, ethnicity (if needed), parameter.
     Returns None if the equation cannot be applied to the patient.
     """
-    # Convert parameter to its integer value to support both enum and int inputs
-    param_value = parameter.value if hasattr(parameter, 'value') else parameter
-
     kwargs = {
         "sex": int(patient_record["sex"]),
         "age": float(patient_record["age"]),
         "height": float(patient_record["height"]),
-        "parameter": param_value,
+        "parameter": eq_param,
     }
 
-    # Check the equation's lms signature to see what parameters it needs
-    sig = inspect.signature(equation.lms)
-    params = set(sig.parameters.keys())
-
     # Only add ethnicity if the equation's lms method includes it
-    if "ethnicity" in params:
-        if check_ethnicity and "ethnicity" not in patient_record:
+    if "ethnicity" in inspect.signature(equation.lms).parameters:
+        if "ethnicity" not in patient_record:
             return None
-        if "ethnicity" in patient_record:
-            kwargs["ethnicity"] = int(patient_record["ethnicity"])
+        kwargs["ethnicity"] = int(patient_record["ethnicity"])
 
     return kwargs
 
 
-def _get_measured_value(patient_record, parameter, equation):
+def _get_measured_value(patient_record, eq_param, param_name):
     """
-    Extract the measured value from patient_record.
-
-    Tries to infer the column name from the parameter enum name.
+    Extract the measured value from patient_record, looked up by the canonical
+    parameter name (so every equation reads the same patient column).
     """
-    if hasattr(equation, "Parameters"):
-        try:
-            # Convert parameter to integer value to support both enum and int inputs
-            param_value = parameter.value if hasattr(parameter, 'value') else parameter
-            param_name = equation.Parameters(param_value).name
-            if param_name in patient_record and pd.notna(patient_record[param_name]):
-                return float(patient_record[param_name])
-        except (ValueError, AttributeError):
-            pass
-
+    name = param_name if param_name is not None else eq_param.name
+    if name in patient_record and pd.notna(patient_record[name]):
+        return float(patient_record[name])
     return pd.NA
 
 
@@ -210,7 +195,7 @@ def _get_default_equations():
     This imports all equation classes from pyspiro and instantiates them.
     """
     from .spirometry.GLI_2012 import GLI_2012
-    from .spirometry.BOWERMANN_2022 import BOWERMANN_2022
+    from .spirometry.BOWERMAN_2022 import BOWERMAN_2022
     from .spirometry.KUSTER_2008 import KUSTER_2008
     from .spirometry.HANKINSON_1999 import HANKINSON_1999
     from .spirometry.KUBOTA_2014 import KUBOTA_2014
@@ -222,7 +207,7 @@ def _get_default_equations():
 
     return [
         GLI_2012(),
-        BOWERMANN_2022(),
+        BOWERMAN_2022(),
         KUSTER_2008(),
         HANKINSON_1999(),
         KUBOTA_2014(),

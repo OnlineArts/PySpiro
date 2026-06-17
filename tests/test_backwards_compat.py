@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 from pyspiro import (
     GLI_2012,
-    BOWERMANN_2022,
+    BOWERMAN_2022,
     GLI_2017,
     GLI_2021,
     SCAPIS_2023,
@@ -115,20 +115,20 @@ class TestApplyPatternGLI2012(unittest.TestCase):
         self.assertFalse(result.isna().any())
 
 
-class TestApplyPatternBowermann2022(unittest.TestCase):
-    """BOWERMANN_2022: no ethnicity in the positional call."""
+class TestApplyPatternBowerman2022(unittest.TestCase):
+    """BOWERMAN_2022: no ethnicity in the positional call."""
 
     def setUp(self):
-        self.eq = BOWERMANN_2022()
+        self.eq = BOWERMAN_2022()
         self.df = _COHORT.copy()
 
     def test_percent_apply_matches_compute(self):
         via_apply = _apply_col(self.df,
             lambda r: self.eq.percent(
                 r.sex, r.age, r.height,
-                BOWERMANN_2022.Parameters.FVC, r.FVC))
+                BOWERMAN_2022.Parameters.FVC, r.FVC))
         via_compute = self.eq.compute(
-            self.df, BOWERMANN_2022.Parameters.FVC,
+            self.df, BOWERMAN_2022.Parameters.FVC,
             value_col='FVC', metrics=('percent',))['percent']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),
@@ -139,9 +139,9 @@ class TestApplyPatternBowermann2022(unittest.TestCase):
         via_apply = _apply_col(self.df,
             lambda r: self.eq.zscore(
                 r.sex, r.age, r.height,
-                BOWERMANN_2022.Parameters.FVC, r.FVC))
+                BOWERMAN_2022.Parameters.FVC, r.FVC))
         via_compute = self.eq.compute(
-            self.df, BOWERMANN_2022.Parameters.FVC,
+            self.df, BOWERMAN_2022.Parameters.FVC,
             value_col='FVC', metrics=('zscore',))['zscore']
         pd.testing.assert_series_equal(
             via_apply.reset_index(drop=True),

@@ -8,7 +8,7 @@ try:
 except ImportError:
     matplotlib_available = False
 
-from pyspiro import GLI_2012, BOWERMANN_2022
+from pyspiro import GLI_2012, BOWERMAN_2022
 from pyspiro.src.viz import plot_centile_curves
 
 
@@ -17,7 +17,7 @@ class TestPlotCentileCurves(unittest.TestCase):
 
     def setUp(self):
         self.gli = GLI_2012()
-        self.bowermann = BOWERMANN_2022()
+        self.bowerman = BOWERMAN_2022()
 
     def tearDown(self):
         plt.close('all')
@@ -106,13 +106,13 @@ class TestPlotCentileCurves(unittest.TestCase):
         plt.close(fig_male)
         plt.close(fig_female)
 
-    def test_plot_bowermann_no_ethnicity(self):
+    def test_plot_bowerman_no_ethnicity(self):
         """Race-neutral equations should not require ethnicity"""
         fig = plot_centile_curves(
-            self.bowermann,
+            self.bowerman,
             sex=1,
             height=175,
-            parameter=self.bowermann.Parameters.FEV1
+            parameter=self.bowerman.Parameters.FEV1
         )
         self.assertIsNotNone(fig)
 

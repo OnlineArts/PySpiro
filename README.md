@@ -17,7 +17,7 @@
 ### Spirometry
 | Class | Population | Age range | Publication                                                                                                                                      |
 |---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `BOWERMANN_2022` | Race-neutral (GLI global) | 3–95 y | Bowermann et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                                             |
+| `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                                             |
 | `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                                             |
 | `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                                        |
 | `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.09.125](https://doi.org/10.21037/jtd.2017.09.125)                                                      |
@@ -49,7 +49,7 @@
 
 | Equation | FVC | FEV1 | FEV0.5 | FEV0.75 | FEV3 | FEV6 | SVC | VC | FIVC | FEV1/FVC | FEV1/FEV6 | FEV0.75/FVC | FEV3/FVC |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `BOWERMANN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `BOWERMAN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -75,7 +75,7 @@
 
 | Equation | FEF25-75% | FEF25% | FEF50% | FEF75% | PEF | MVV | FET | LLN / z-score |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `BOWERMANN_2022` | — | — | — | — | — | — | — | ✓ |
+| `BOWERMAN_2022` | — | — | — | — | — | — | — | ✓ |
 | `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
 | `JO_2018` | — | — | — | — | — | — | — | ✓ |
 | `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
@@ -201,10 +201,10 @@ pip install pyspiro[viz]   # adds matplotlib and scipy
 
 ## Usage examples
 
-### LMS-based equations (GLI_2012, BOWERMANN_2022, GLI_2017, GLI_2021, SCAPIS_2023, KUBOTA_2014)
+### LMS-based equations (GLI_2012, BOWERMAN_2022, GLI_2017, GLI_2021, SCAPIS_2023, KUBOTA_2014)
 
 ```python
-from pyspiro import GLI_2012, BOWERMANN_2022
+from pyspiro import GLI_2012, BOWERMAN_2022
 
 # Multi-ethnic equation — ethnicity_col required
 gli = GLI_2012()
@@ -218,9 +218,9 @@ results = gli.compute(
 df[['fev1_pct', 'fev1_z', 'fev1_lln', 'fev1_uln']] = results
 
 # Race-neutral — no ethnicity_col needed
-bow = BOWERMANN_2022()
+bow = BOWERMAN_2022()
 df[['fvc_pct', 'fvc_z', 'fvc_lln', 'fvc_uln']] = bow.compute(
-    df, BOWERMANN_2022.Parameters.FVC, value_col='fvc')
+    df, BOWERMAN_2022.Parameters.FVC, value_col='fvc')
 ```
 
 Column name defaults are `sex`, `age`, `height`; override any that differ in your DataFrame:
@@ -289,8 +289,8 @@ pct = gli.percent(1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 z   = gli.zscore (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 lln = gli.lln    (1, 40, 175, 1, GLI_2012.Parameters.FEV1, 3.2)
 
-bow = BOWERMANN_2022()
-pct = bow.percent(1, 40, 175, BOWERMANN_2022.Parameters.FEV1, 3.2)  # no ethnicity
+bow = BOWERMAN_2022()
+pct = bow.percent(1, 40, 175, BOWERMAN_2022.Parameters.FEV1, 3.2)  # no ethnicity
 
 kus = KUSTER_2008()
 pct = kus.percent(1, 40, 175, 1, KUSTER_2008.Parameters.FEV1, 3.2)
@@ -412,7 +412,7 @@ df['GOLD'] = pd.Categorical(df['GOLD'], categories=gold.get_order(), ordered=Tru
 
 ```python
 import pandas as pd
-from pyspiro import GLI_2012, BOWERMANN_2022, HANKINSON_1999, compare_equations
+from pyspiro import GLI_2012, BOWERMAN_2022, HANKINSON_1999, compare_equations
 
 patient = pd.Series({
     'sex':       1,     # male
@@ -425,7 +425,7 @@ patient = pd.Series({
 result = compare_equations(
     patient,
     GLI_2012.Parameters.FEV1,
-    equations=[GLI_2012(), BOWERMANN_2022(), HANKINSON_1999()],
+    equations=[GLI_2012(), BOWERMAN_2022(), HANKINSON_1999()],
 )
 print(result)
 ```
@@ -433,7 +433,7 @@ print(result)
 ```
          equation  percent_predicted    zscore  applicable
 0        GLI_2012              71.12 -2.223992        True
-1  BOWERMANN_2022              75.41 -1.685500        True
+1  BOWERMAN_2022              75.41 -1.685500        True
 2  HANKINSON_1999                NaN       NaN       False
 ```
 
@@ -445,7 +445,7 @@ Pass `equations=None` to compare against all available equations automatically.
 results = []
 for _, row in df.iterrows():
     cmp = compare_equations(row, GLI_2012.Parameters.FEV1,
-                            equations=[GLI_2012(), BOWERMANN_2022()])
+                            equations=[GLI_2012(), BOWERMAN_2022()])
     cmp['patient_id'] = row['patient_id']
     results.append(cmp)
 
@@ -493,16 +493,16 @@ fig = plot_centile_curves(
 )
 ```
 
-Race-neutral equations (e.g. `BOWERMANN_2022`) do not require an ethnicity argument:
+Race-neutral equations (e.g. `BOWERMAN_2022`) do not require an ethnicity argument:
 
 ```python
-from pyspiro import BOWERMANN_2022, plot_centile_curves
+from pyspiro import BOWERMAN_2022, plot_centile_curves
 
 fig = plot_centile_curves(
-    BOWERMANN_2022(),
+    BOWERMAN_2022(),
     sex=1,
     height=175,
-    parameter=BOWERMANN_2022.Parameters.FEV1,
+    parameter=BOWERMAN_2022.Parameters.FEV1,
 )
 ```
 

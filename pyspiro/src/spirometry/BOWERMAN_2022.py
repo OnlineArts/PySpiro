@@ -4,9 +4,9 @@ import numpy
 import pandas
 
 
-class BOWERMANN_2022(SplineReference):
+class BOWERMAN_2022(SplineReference):
     """
-    GLI 2022 race-neutral spirometry reference equations (Bowermann et al. 2023).
+    GLI 2022 race-neutral spirometry reference equations (Bowerman et al. 2023).
 
     Race-neutral Global Lung Function Initiative reference equations for
     spirometry. Designed to eliminate race-based correction factors. Covers
@@ -17,13 +17,13 @@ class BOWERMANN_2022(SplineReference):
     No ethnicity stratification (race-neutral design).
 
     Citation:
-        Bowermann C, Bhakta NR, Brazzale D, et al. A Race-neutral Approach to
+        Bowerman C, Bhakta NR, Brazzale D, et al. A Race-neutral Approach to
         the Interpretation of Lung Function Measurements. Am J Respir Crit Care
         Med. 2023;207(6):768-774. doi: 10.1164/rccm.202205-0963OC. PMID: 36383197.
     """
 
-    _splines_csv = 'bowermann_2022_splines.csv'
-    _coeffs_csv  = 'bowermann_2022_coefficients.csv'
+    _splines_csv = 'bowerman_2022_splines.csv'
+    _coeffs_csv  = 'bowerman_2022_coefficients.csv'
 
     class Parameters(Enum):
         FEV1 = 1

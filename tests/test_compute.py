@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from pyspiro import (
     GLI_2012,
-    BOWERMANN_2022,
+    BOWERMAN_2022,
     GLI_2017,
     GLI_2021,
     SCAPIS_2023,
@@ -125,18 +125,18 @@ class TestComputeGLI2012(unittest.TestCase):
         pd.testing.assert_frame_equal(r_enum, r_int)
 
 
-class TestComputeBowermann2022(unittest.TestCase):
-    """BOWERMANN_2022 is race-neutral — no ethnicity argument in lms()."""
+class TestComputeBowerman2022(unittest.TestCase):
+    """BOWERMAN_2022 is race-neutral — no ethnicity argument in lms()."""
 
     def setUp(self):
-        self.eq = BOWERMANN_2022()
+        self.eq = BOWERMAN_2022()
         self.df = pd.DataFrame({
             'sex':    [M, F],
             'age':    [40.0, 55.0],
             'height': [175.0, 163.0],
             'FVC':    [4.1, 2.8],
         })
-        self.param = BOWERMANN_2022.Parameters.FVC
+        self.param = BOWERMAN_2022.Parameters.FVC
 
     def test_all_metrics_match_scalar(self):
         result = self.eq.compute(self.df, self.param, value_col='FVC')
