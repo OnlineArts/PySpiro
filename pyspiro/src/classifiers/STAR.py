@@ -18,6 +18,12 @@ class STAR(Classifier):
 
     Input: FEV1/FVC as FEV1_FVC (ratio), or FEV1 and FVC separately.
     Accepts both 0-1 and 0-100 notation.
+
+    Citation:
+        Bhatt SP, Nakhmani A, Fortis S, Strand MJ, Silverman EK, Sciurba FC, Bodduluri S.
+        FEV1/FVC Severity Stages for Chronic Obstructive Pulmonary Disease Get access Arrow
+        Am J Respir Crit Care Med. 2023 Sep 15;208(6):676-684
+        doi: 10.1164/rccm.202303-0450OC.
     """
 
     _order = [1, 2, 3, 4]

@@ -95,8 +95,12 @@ def plot_centile_curves(
     standard_linestyles = {5: "--", 25: "--", 50: "-", 75: "--", 95: "--"}
 
     # Generate colors for all percentiles
-    import matplotlib.cm as cm
-    cmap = cm.get_cmap('viridis')
+    try:
+        import matplotlib
+        cmap = matplotlib.colormaps['viridis']   # matplotlib >= 3.6
+    except (AttributeError, KeyError):
+        import matplotlib.cm as cm               # older matplotlib
+        cmap = cm.get_cmap('viridis')
     colors = {}
     for p in percentiles:
         if p in standard_colors:

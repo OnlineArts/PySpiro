@@ -15,31 +15,31 @@
 ## Available reference equations
 
 ### Spirometry
-| Class | Population | Age range | Publication                                                                                                                                      |
-|---|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                                             |
-| `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                                             |
-| `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                                        |
-| `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.09.125](https://doi.org/10.21037/jtd.2017.09.125)                                                      |
-| `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                                                 |
-| `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, DOI: [10.1016/j.resinv.2014.03.003](https://doi.org/10.1016/j.resinv.2014.03.003)                                            |
-| `CHHABRA_2014` | Northern Indian (Delhi, Punjab, Haryana, UP) | 18–71 y (M) / 18–65 y (F) | Chhabra et al. 2014, DOI: [10.5005/ijcdas-56-4-221](https://doi.org/10.5005/ijcdas-56-4-221)                                                     |
-| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](10.1183/09031936.00080312)                                                                 |
-| `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, DOI: [10.1183/09031936.00091407](https://doi.org/10.1183/09031936.00091407)                                                  |
-| `CHOI_2005` | Korean (KNHANES 2001–2002) | 18–80 y | Choi et al. 2005, DOI: [10.4046/trd.2005.58.3.230](https://doi.org/10.4046/trd.2005.58.3.230)                                    |
-| `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, DOI: [10.1164/ajrccm.159.1.9712108](https://doi.org/10.1164/ajrccm.159.1.9712108)                                         |
-| `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. 1995, DOI: [10.1002/ppul.1950190209](https://doi.org/10.1002/ppul.1950190209)                                                     |
-| `WANG_1993` | White & Black children (US) | 6–18 y (M) / 7–18 y (F) | Wang et al. 1993, DOI: [10.1002/ppul.1950150204](https://doi.org/10.1002/ppul.1950150204)                                                        |
-| `ECCS_1993` | European Caucasian | 18–70 y | Quanjer et al. 1993, DOI: [10.1183/09041950.005s1693](https://doi.org/10.1183/09041950.005s1693)                                                 |
-| `ROBERTS_1991` | White urban (UK) | 18–86 y | Roberts et al. 1991, DOI: [10.1136/thx.46.9.643](https://doi.org/10.1136/thx.46.9.643)                                                           |
-| `ZAPLETAL_1987` | European children | 6–18 y | Zapletal 1987, DOI: [10.1159/isbn.978-3-318-04125-5](https://doi.org/10.1159/isbn.978-3-318-04125-5)                                             |
-| `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. 1983, DOI: [10.1164/arrd.1983.127.6.725](https://doi.org/10.1164/arrd.1983.127.6.725)                                             |
-| `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. 1981, DOI: [10.1164/arrd.1981.123.6.659](https://doi.org/10.1164/arrd.1981.123.6.659)                                               |
-| `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick 1980, PMID: [7374636](https://pubmed.ncbi.nlm.nih.gov/7374636/)                                                                          |
-| `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. 1979, DOI: [10.1016/S0022-3476(79)80075-X](https://doi.org/10.1016/S0022-3476(79)80075-X)                                             |
-| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1973, DOI: [10.1164/arrd.1971.103.1.57](https://academic.oup.com/ajrccm/article-abstract/103/1/57/8567771?redirectedFrom=fulltext) |
-| `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38)                                            |
-| `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                                       |
+| Class | Population | Age range | Publication                                                                                                                    |
+|---|---|---|--------------------------------------------------------------------------------------------------------------------------------|
+| `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                            |
+| `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                           |
+| `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                      |
+| `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.10.110](https://doi.org/10.21037/jtd.2017.10.110)                                    |
+| `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                               |
+| `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, DOI: [10.1016/j.resinv.2014.03.003](https://doi.org/10.1016/j.resinv.2014.03.003)                          |
+| `CHHABRA_2014` | Northern Indian (Delhi, Punjab, Haryana, UP) | 18–71 y (M) / 18–65 y (F) | Chhabra et al. 2014, DOI: [10.5005/ijcdas-56-4-221](https://doi.org/10.5005/ijcdas-56-4-221)                                   |
+| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](10.1183/09031936.00080312)                                               |
+| `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, DOI: [10.1183/09031936.00091407](https://doi.org/10.1183/09031936.00091407)                                |
+| `CHOI_2005` | Korean (KNHANES 2001–2002) | 18–80 y | Choi et al. 2005, DOI: [10.4046/trd.2005.58.3.230](https://doi.org/10.4046/trd.2005.58.3.230)                                  |
+| `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, DOI: [10.1164/ajrccm.159.1.9712108](https://doi.org/10.1164/ajrccm.159.1.9712108)                       |
+| `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. 1995, DOI: [10.1002/ppul.1950190209](https://doi.org/10.1002/ppul.1950190209)                                   |
+| `WANG_1993` | White & Black children (US) | 6–18 y (M) / 7–18 y (F) | Wang et al. 1993, DOI: [10.1002/ppul.1950150204](https://doi.org/10.1002/ppul.1950150204)                                      |
+| `ECCS_1993` | European Caucasian | 18–70 y | Quanjer et al. 1993, DOI: [10.1183/09041950.005s1693](https://doi.org/10.1183/09041950.005s1693)                               |
+| `ROBERTS_1991` | White urban (UK) | 18–86 y | Roberts et al. 1991, DOI: [10.1136/thx.46.9.643](https://doi.org/10.1136/thx.46.9.643)                                         |
+| `ZAPLETAL_1987` | European children | 6–18 y | Zapletal 1987, DOI: [10.1159/isbn.978-3-318-04125-5](https://doi.org/10.1159/isbn.978-3-318-04125-5)                           |
+| `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. 1983, PMID: [6859656](https://pubmed.ncbi.nlm.nih.gov/6859656/)                                                 |
+| `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. 1981, PMID: [7271065](https://pubmed.ncbi.nlm.nih.gov/7271065/)                                                   |
+| `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick 1980, PMID: [7374636](https://pubmed.ncbi.nlm.nih.gov/7374636/)                                                        |
+| `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. 1979, DOI: [10.1016/S0022-3476(79)80075-X](https://doi.org/10.1016/S0022-3476(79)80075-X)                           |
+| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1973, PMID: [5540840](https://pubmed.ncbi.nlm.nih.gov/5540840/) |
+| `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38)                          |
+| `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                     |
 
 > **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
 
@@ -433,9 +433,15 @@ print(result)
 ```
          equation  percent_predicted    zscore  applicable
 0        GLI_2012              71.12 -2.223992        True
-1  BOWERMAN_2022              75.41 -1.685500        True
-2  HANKINSON_1999                NaN       NaN       False
+1   BOWERMAN_2022              75.41 -1.685500        True
+2  HANKINSON_1999              71.13 -2.450593        True
 ```
+
+Parameters are matched across equations **by name** (e.g. `FEV1`), so the same
+physiological parameter is compared even though each equation encodes it with a
+different internal enum value. An equation is marked `applicable=False` only when
+it does not define the requested parameter or the inputs fall outside its valid
+range.
 
 Pass `equations=None` to compare against all available equations automatically.
 

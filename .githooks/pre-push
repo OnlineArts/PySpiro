@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# pre-push hook — run the full PySpiro test suite before allowing a push.
+#
+# This hook is version-controlled in .githooks/. Activate it once per clone with:
+#     git config core.hooksPath .githooks
+#
+# It ensures the suite passes before any change reaches the remote. A non-zero
+# test exit code aborts the push.
+#
+# Bypass in an emergency with:  git push --no-verify
+# Override the interpreter with:  PYTHON=python3.11 git push
+#
+set -uo pipefail
+
+# Always run from the repository root, regardless of where git invokes us.
+repo_root="$(git rev-parse --show-toplevel)" || exit 1
+cd "$repo_root" || exit 1
+
+# Pick an interpreter (env override wins, else prefer python3).
+PYTHON="${PYTHON:-}"
+if [ -z "$PYTHON" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    PYTHON=python3
+  else
+    PYTHON=python
+  fi
+fi
+
+echo "pre-push: running test suite ($PYTHON -m unittest discover -s tests)..."
+if "$PYTHON" -m unittest discover -s tests; then
+  echo "pre-push: all tests passed — proceeding with push."
+  exit 0
+else
+  status=$?
+  echo "pre-push: tests FAILED (exit ${status}) — push aborted." >&2
+  echo "          Fix the failures, or bypass with 'git push --no-verify'." >&2
+  exit "${status}"
+fi
