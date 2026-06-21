@@ -520,4 +520,4 @@ fig = plot_centile_curves(
 
 If you use pyspiro in your research, please cite:
 
-> Roman Martin, Hendrik Pott. pyspiro v0.4.0. doi:10.5281/zenodo.15519193
+> Hendrik Pott, Roman Martin. pyspiro v0.9.0. doi:10.5281/zenodo.15519193

@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "pyspiro"
+abstract: "pyspiro is a Python package implementing lung function reference equations for spirometry, static lung volumes, diffusion capacity, and oscillometry. It provides predicted values, z-scores, % predicted, lower limits of normal (LLN), and upper limits of normal (ULN) for research and clinical data analysis pipelines."
+type: software
+authors:
+  - family-names: Pott
+    given-names: Hendrik
+    email: hendrik.pott@uni-marburg.de
+    affiliation: "University of Marburg"
+    orcid: "https://orcid.org/0000-0002-6842-143X"
+  - family-names: Schmeck
+    given-names: Bernd
+    email: bernd.schmeck@uni-marburg.de
+    affiliation: "University of Marburg"
+    orcid: "https://orcid.org/0000-0002-2767-3606"
+  - family-names: Heider
+    given-names: Dominik
+    email: dominik.heider@uni-muenster.de
+    affiliation: "University of Münster"
+    orcid: "https://orcid.org/0000-0002-3108-8311"
+  - family-names: Martin
+    given-names: Roman
+    email: roman.martin@uni-muenster.de
+    affiliation: "University of Münster"
+    orcid: "https://orcid.org/0000-0001-7678-7856"
+version: 0.9.0
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.15519193
+license: MIT
+keywords:
+  - python
+  - respirology
+  - spirometry
+  - bodyplethysmograph
+  - plethysmograph
+url: "https://github.com/OnlineArts/PySpiro"
+repository-code: "https://github.com/OnlineArts/PySpiro"
