@@ -1,0 +1,11 @@
+parameter;sex;type;coeff_a;coeff_b;divisor
+FVC;male;power;4.4e-6;2.67;1
+FEV1;male;power;2.1e-6;2.8;1
+FEF25_75;male;linear;-207.70;2.621;60
+PEFR;male;linear;-425.5714;5.2428;60
+MVV;male;linear;-99.507;1.276;1
+FVC;female;power;3.3e-6;2.72;1
+FEV1;female;power;2.1e-6;2.8;1
+FEF25_75;female;linear;-207.70;2.621;60
+PEFR;female;linear;-425.5714;5.2428;60
+MVV;female;linear;-99.507;1.276;1

@@ -1,0 +1,13 @@
+parameter;sex;ethnicity;a0_pred;a0_lln;a1_age;R2
+FEV1FEV6;male;caucasian;87.34;78.372;-0.1382;0.2151
+FEV1FVC;male;caucasian;88.066;78.388;-0.2066;0.3448
+FEV1FEV6;male;african_american;88.841;78.979;-0.1305;0.0937
+FEV1FVC;male;african_american;89.239;78.822;-0.1828;0.1538
+FEV1FEV6;male;mexican_american;89.388;80.81;-0.1534;0.1711
+FEV1FVC;male;mexican_american;90.024;80.925;-0.2186;0.2713
+FEV1FEV6;female;caucasian;90.107;81.307;-0.1563;0.3048
+FEV1FVC;female;caucasian;90.809;81.015;-0.2125;0.3955
+FEV1FEV6;female;african_american;91.229;81.396;-0.1558;0.1693
+FEV1FVC;female;african_american;91.655;80.978;-0.2039;0.2284
+FEV1FEV6;female;mexican_american;91.664;83.034;-0.167;0.2449
+FEV1FVC;female;mexican_american;92.36;83.044;-0.2248;0.3352

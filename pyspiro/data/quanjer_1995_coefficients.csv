@@ -1,0 +1,7 @@
+parameter;sex;type;a0;b0;b1
+FVC;male;lnexp;-1.2782;1.3731;0.0164
+FEV1;male;lnexp;-1.2933;1.2669;0.0174
+FEV1FVC;male;const;86.2;0.0;0.0
+FVC;female;lnexp;-1.4507;1.4800;0.0127
+FEV1;female;lnexp;-1.5974;1.5016;0.0119
+FEV1FVC;female;const;88.9;0.0;0.0

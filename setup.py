@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-VERSION = "0.4.0"
+VERSION = "1.0.0"
 DESCRIPTION = "pyspiro"
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
@@ -15,15 +15,12 @@ setup(
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         packages=find_packages(),
-        package_data={"": ["data/test_file.csv", "data/pyspiro_250x.png",
-        "data/gli_2012_splines.csv", "data/gli_2012_coefficients.csv",
-        "data/schulz_2013_splines.csv",
-        "data/gli_2017_splines.csv", "data/gli_2017_coefficients.csv",
-        "data/gli_2021_splines.csv", "data/gli_2021_coefficients.csv",
-        "data/bowermann_2022_splines.csv", "data/bowermann_2022_coefficients.csv",
-        "data/scapis_2023_splines.csv", "data/scapis_2023_coefficients.csv"]},
+        package_data={"pyspiro": ["data/*.csv", "data/*.png"]},
         include_package_data=True,
         install_requires=["pandas", "numpy"],
+        extras_require={
+            "viz": ["matplotlib>=3.0", "scipy>=1.0"],
+        },
         keywords=["python", "respirology", "spirometry", "bodyplethysmograph", "plethysmograph"],
         classifiers= [
             "Development Status :: 4 - Beta",
