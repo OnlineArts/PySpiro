@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-VERSION = "0.9.0"
+VERSION = "0.9.1"
 DESCRIPTION = "pyspiro"
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
@@ -9,7 +9,7 @@ LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 setup(
         name="pyspiro",
         version=VERSION,
-        author="Hendrik Pott, Roman Martin",
+        author="Hendrik Pott, Bernd Schmeck, Dominik Heider, Roman Martin",
         author_email="hendrik.pott@uni-marburg.de, roman.martin@uni-muenster.de",
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,

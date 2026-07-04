@@ -15,6 +15,10 @@ class GLI_2021(SplineReference):
     Parameters: FRC, TLC, RV, RV/TLC, ERV, IC, VC.
     No ethnicity stratification (European ancestry only).
 
+    Units: absolute volumes (FRC, TLC, RV, ERV, IC, VC) are in litres; RV/TLC
+    is modelled as a percentage (~15-45), so a measured ratio must be supplied
+    as a percentage (e.g. 35), not a fraction (0.35).
+
     Citation:
         Hall GL, Filipow N, Ruppel G, et al.; GLI Network members. Official ERS
         technical standard: Global Lung Function Initiative reference values for
@@ -42,14 +46,39 @@ class GLI_2021(SplineReference):
 
         sspline, mspline, lspline = self._get_splines(sex, age, parameter)
         c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        param = self.Parameters(parameter)
 
-        if self.Parameters(parameter) in (self.Parameters.FRC, self.Parameters.TLC,
-                                           self.Parameters.RV, self.Parameters.RV_TLC):
-            s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)) + sspline)
+        a0, a1, a2 = float(c.loc["a0"]), float(c.loc["a1"]), float(c.loc["a2"])
+        p0, p1 = float(c.loc["p0"]), float(c.loc["p1"])
+
+        # Hall 2021 (table 3) does NOT use a single functional form for every
+        # index. a1 is always the age coefficient, a2 the height coefficient,
+        # but the predictors are log-transformed for some parameters and left
+        # linear for others:
+        #   FRC, TLC     : M = a0 + a1*log(age) + a2*log(height) + Mspline
+        #   RV, RV/TLC   : M = a0 + a1*age      + a2*height       + Mspline
+        #   ERV, IC, VC  : M = a0 + a1*age      + a2*log(height)  + Mspline
+        if param in (self.Parameters.FRC, self.Parameters.TLC):
+            m_age, m_height = numpy.log(age), numpy.log(height)
+        elif param in (self.Parameters.RV, self.Parameters.RV_TLC):
+            m_age, m_height = age, height
+        else:  # ERV, IC, VC
+            m_age, m_height = age, numpy.log(height)
+
+        m = numpy.exp(a0 + (a1 * m_age) + (a2 * m_height) + mspline)
+
+        # S equation (table 3): FRC uses log(age); every other index uses
+        # linear age. Only FRC/TLC/RV/RV_TLC carry an age-varying Sspline.
+        #   FRC              : S = p0 + p1*log(age) + Sspline
+        #   TLC, RV, RV/TLC  : S = p0 + p1*age      + Sspline
+        #   ERV, IC, VC      : S = p0 + p1*age
+        s_age = numpy.log(age) if param is self.Parameters.FRC else age
+        if param in (self.Parameters.FRC, self.Parameters.TLC,
+                     self.Parameters.RV, self.Parameters.RV_TLC):
+            s = numpy.exp(p0 + (p1 * s_age) + sspline)
         else:
-            s = numpy.exp(float(c.loc["p0"]) + (float(c.loc["p1"]) * numpy.log(age)))
+            s = numpy.exp(p0 + (p1 * s_age))
 
-        m = numpy.exp(float(c.loc["a0"]) + (float(c.loc["a1"]) * numpy.log(height)) + (float(c.loc["a2"]) * numpy.log(age)) + mspline)
         l = float(c.loc["q0"])
 
         return l, m, s
