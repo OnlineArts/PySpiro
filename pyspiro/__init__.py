@@ -24,6 +24,7 @@ from .src.spirometry.AGARWAL_2020 import AGARWAL_2020
 from .src.spirometry.CHOI_2005 import CHOI_2005
 from .src.spirometry.CHHABRA_2014 import CHHABRA_2014
 from .src.spirometry.DESAI_2016 import DESAI_2016
+from .src.spirometry.LOELOE_2025 import LOELOE_2025
 from .src.mbw.RAMSEY_2024 import RAMSEY_2024
 from .src.diffusion.GLI_2017 import GLI_2017
 from .src.diffusion.SCAPIS_2023 import SCAPIS_2023
