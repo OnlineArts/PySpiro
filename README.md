@@ -37,7 +37,7 @@
 | `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. 1981, PMID: [7271065](https://pubmed.ncbi.nlm.nih.gov/7271065/)                                                   |
 | `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick 1980, PMID: [7374636](https://pubmed.ncbi.nlm.nih.gov/7374636/)                                                        |
 | `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. 1979, DOI: [10.1016/S0022-3476(79)80075-X](https://doi.org/10.1016/S0022-3476(79)80075-X)                           |
-| `MORRIS_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1973, PMID: [5540840](https://pubmed.ncbi.nlm.nih.gov/5540840/) |
+| `MORRIS_1971_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1971/1973, PMID: [5540840](https://pubmed.ncbi.nlm.nih.gov/5540840/), [4741868](https://pubmed.ncbi.nlm.nih.gov/4741868/) |
 | `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38)                          |
 | `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                     |
 
@@ -69,7 +69,7 @@
 | `CRAPO_1981` | ✓ | ✓ | ✓ | — | ✓ | — | — | — | — | ✓ | — | — | ✓ |
 | `WARWICK_1980` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `HSU_1979` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
-| `MORRIS_1973` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `MORRIS_1971_1973` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `CHERNIACK_1972` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
 | `POLGAR_1971` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
 
@@ -95,7 +95,7 @@
 | `CRAPO_1981` | ✓ | — | — | — | — | — | — | — |
 | `WARWICK_1980` | — | — | ✓ | ✓ | ✓ | — | ✓ | — |
 | `HSU_1979` | ✓ | — | — | — | ✓ | — | — | — |
-| `MORRIS_1973` | ✓ | — | — | — | — | — | — | — |
+| `MORRIS_1971_1973` | ✓ | — | — | — | — | — | — | — |
 | `CHERNIACK_1972` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
 | `POLGAR_1971` | ✓ | — | — | — | ✓ | ✓ | — | — |
 
