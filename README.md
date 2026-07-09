@@ -19,6 +19,7 @@
 |---|---|---|--------------------------------------------------------------------------------------------------------------------------------|
 | `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                            |
 | `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                           |
+| `ALQEREM_2019` | Jordanian (Middle Eastern) | 18–83 y (M) / 18–78 y (F) | Al Qerem et al. 2019, DOI: [10.1080/17476348.2019.1601560](https://doi.org/10.1080/17476348.2019.1601560)                      |
 | `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                      |
 | `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.10.110](https://doi.org/10.21037/jtd.2017.10.110)                                    |
 | `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                               |
@@ -35,6 +36,7 @@
 | `ZAPLETAL_1987` | European children | 6–18 y | Zapletal 1987, DOI: [10.1159/isbn.978-3-318-04125-5](https://doi.org/10.1159/isbn.978-3-318-04125-5)                           |
 | `KNUDSON_1983` | Caucasian (US) | 6–90 y (M) / 6–88 y (F) | Knudson et al. 1983, PMID: [6859656](https://pubmed.ncbi.nlm.nih.gov/6859656/)                                                 |
 | `CRAPO_1981` | Caucasian (US), non-smokers | 15–91 y (M) / 17–84 y (F) | Crapo et al. 1981, PMID: [7271065](https://pubmed.ncbi.nlm.nih.gov/7271065/)                                                   |
+| `SLIMAN_1981` | Jordanian (Amman) | 20–60 y | Sliman et al. 1981, DOI: [10.1136/thx.36.7.546](https://doi.org/10.1136/thx.36.7.546)                                          |
 | `WARWICK_1980` | Caucasian children (US) | 0–18 y | Warwick 1980, PMID: [7374636](https://pubmed.ncbi.nlm.nih.gov/7374636/)                                                        |
 | `HSU_1979` | White, Black, Mexican-American | 7–20 y (M) / 7–18 y (F) | Hsu et al. 1979, DOI: [10.1016/S0022-3476(79)80075-X](https://doi.org/10.1016/S0022-3476(79)80075-X)                           |
 | `MORRIS_1971_1973` | Caucasian (US), non-smokers | 20–90 y | Morris et al. 1971/1973, PMID: [5540840](https://pubmed.ncbi.nlm.nih.gov/5540840/), [4741868](https://pubmed.ncbi.nlm.nih.gov/4741868/) |
@@ -51,6 +53,7 @@
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | `BOWERMAN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `ALQEREM_2019` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `DESAI_2016` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -67,6 +70,7 @@
 | `ZAPLETAL_1987` | ✓ | ✓ | — | — | — | — | ✓ | — | — | ✓ | — | — | — |
 | `KNUDSON_1983` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `CRAPO_1981` | ✓ | ✓ | ✓ | — | ✓ | — | — | — | — | ✓ | — | — | ✓ |
+| `SLIMAN_1981` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
 | `WARWICK_1980` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `HSU_1979` | ✓ | ✓ | — | — | — | — | — | — | — | — | — | — | — |
 | `MORRIS_1971_1973` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -77,6 +81,7 @@
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | `BOWERMAN_2022` | — | — | — | — | — | — | — | ✓ |
 | `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
+| `ALQEREM_2019` | ✓ | ✓ | ✓ | ✓ | — | — | — | ✓ |
 | `JO_2018` | — | — | — | — | — | — | — | ✓ |
 | `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
 | `DESAI_2016` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
@@ -93,6 +98,7 @@
 | `ZAPLETAL_1987` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
 | `KNUDSON_1983` | ✓ | — | ✓ | ✓ | — | — | — | — |
 | `CRAPO_1981` | ✓ | — | — | — | — | — | — | — |
+| `SLIMAN_1981` | ✓ | — | — | — | — | — | — | ✓ |
 | `WARWICK_1980` | — | — | ✓ | ✓ | ✓ | — | ✓ | — |
 | `HSU_1979` | ✓ | — | — | — | ✓ | — | — | — |
 | `MORRIS_1971_1973` | ✓ | — | — | — | — | — | — | — |
@@ -103,6 +109,8 @@
 > **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
 > **DESAI_2016** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male PEFR and female FEF75; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SE.<br>
 > **CHHABRA_2014** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male FVC, male FEF75, and male FEV1FVC; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SEE.<br>
+> **ALQEREM_2019** is a GAMLSS reference; parameters use different distribution families (Normal for male FEV1/FEF25 and female FVC; BCCG/LMS otherwise), captured in `alqerem_2019_coefficients.csv`. Age-splines (`alqerem_2019_splines.csv`, sampled every 0.25 y) are applied where fitted. `FEV1FVC` is expressed as a **percentage (0–100)**. `lms()` returns `(nu, mu, sigma)` for BCCG parameters and `(NA, NA, NA)` for the Normal ones. Where the BCCG skewness constant was not tabulated (male FVC, female FEV1), `nu = 1.0` is used, consistent with the other Model 2/6 parameters.<br>
+> **SLIMAN_1981** is the historical Jordanian reference (linear regression). `FEF25_75` is the paper's FMF 25-75%. LLN/ULN and z-scores use the published residual SD (predicted ∓ 1.645 × SD); `lms()` returns `(NA, NA, NA)`. Superseded by `ALQEREM_2019` for most uses but retained for comparison.<br>
 > **KUSTER_2008** names its flow parameters MEF75 (= FEF25%), MEF50 (= FEF50%), and MEF25 (= FEF75%).<br>
 > **CHOI_2005** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for FVC and FEV6. `lln()`, `uln()`, and `zscore()` return `pd.NA` (no limits of normal were published).
 > **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
