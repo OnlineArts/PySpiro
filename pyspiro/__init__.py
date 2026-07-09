@@ -26,6 +26,10 @@ from .src.spirometry.CHHABRA_2014 import CHHABRA_2014
 from .src.spirometry.DESAI_2016 import DESAI_2016
 from .src.spirometry.PEREIRA_2007 import PEREIRA_2007
 from .src.spirometry.PRATA_2018 import PRATA_2018
+from .src.spirometry.LOELOE_2025 import LOELOE_2025
+from .src.spirometry.SLIMAN_1981 import SLIMAN_1981
+from .src.spirometry.ALQEREM_2019 import ALQEREM_2019
+from .src.spirometry.ALQEREM_2021 import ALQEREM_2021
 from .src.mbw.RAMSEY_2024 import RAMSEY_2024
 from .src.diffusion.GLI_2017 import GLI_2017
 from .src.diffusion.SCAPIS_2023 import SCAPIS_2023
