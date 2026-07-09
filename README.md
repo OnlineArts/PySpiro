@@ -20,12 +20,14 @@
 | `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                            |
 | `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                           |
 | `JO_2018` | Korean (KNHANES IV & V) | 19–90 y | Jo et al. 2018, DOI: [10.3346/jkms.2018.33.e16](https://doi.org/10.3346/jkms.2018.33.e16)                                      |
+| `PRATA_2018` | Black Brazilian adults | 26–82 y (M) / 20–83 y (F) | Prata et al. 2018, DOI: [10.1590/S1806-37562018000000082](https://doi.org/10.1590/S1806-37562018000000082)                     |
 | `JIAN_2017` | Han Chinese | 4–80 y | Jian et al. 2017, DOI: [10.21037/jtd.2017.10.110](https://doi.org/10.21037/jtd.2017.10.110)                                    |
 | `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                               |
 | `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, DOI: [10.1016/j.resinv.2014.03.003](https://doi.org/10.1016/j.resinv.2014.03.003)                          |
 | `CHHABRA_2014` | Northern Indian (Delhi, Punjab, Haryana, UP) | 18–71 y (M) / 18–65 y (F) | Chhabra et al. 2014, DOI: [10.5005/ijcdas-56-4-221](https://doi.org/10.5005/ijcdas-56-4-221)                                   |
 | `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](10.1183/09031936.00080312)                                               |
 | `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, DOI: [10.1183/09031936.00091407](https://doi.org/10.1183/09031936.00091407)                                |
+| `PEREIRA_2007` | White Brazilian adults | 26–86 y (M) / 20–85 y (F) | Pereira et al. 2007, DOI: [10.1590/S1806-37132007000400008](https://doi.org/10.1590/S1806-37132007000400008)                   |
 | `CHOI_2005` | Korean (KNHANES 2001–2002) | 18–80 y | Choi et al. 2005, DOI: [10.4046/trd.2005.58.3.230](https://doi.org/10.4046/trd.2005.58.3.230)                                  |
 | `HANKINSON_1999` | NHANES III (US); Caucasian, Black, Mexican-American | 8–80 y | Hankinson et al. 1999, DOI: [10.1164/ajrccm.159.1.9712108](https://doi.org/10.1164/ajrccm.159.1.9712108)                       |
 | `QUANJER_1995` | White European children | 6–18 y | Quanjer et al. 1995, DOI: [10.1002/ppul.1950190209](https://doi.org/10.1002/ppul.1950190209)                                   |
@@ -41,7 +43,9 @@
 | `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38)                          |
 | `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                     |
 
-> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
+> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `PEREIRA_2007`, `PRATA_2018`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
+
+> **Note on the Brazilian equations:** `PEREIRA_2007` (White adults) and `PRATA_2018` (Black adults) are a companion pair derived by overlapping author groups under the same protocol. Prata's central finding is that predicted FVC and FEV1 are significantly lower in Black than in White Brazilian adults — on average 0.30 L and 0.28 L lower in men — so the two populations should not share one equation. Use the set that matches the patient.
 
 #### Parameter availability matrix
 
@@ -52,12 +56,14 @@
 | `BOWERMAN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JO_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `PRATA_2018` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `JIAN_2017` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `DESAI_2016` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `KUBOTA_2014` | ✓ | ✓ | — | — | — | — | — | ✓ | — | ✓ | — | — | — |
 | `CHHABRA_2014` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `GLI_2012` | ✓ | ✓ | — | ✓ | — | — | — | — | — | ✓ | — | ✓ | — |
 | `KUSTER_2008` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
+| `PEREIRA_2007` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | ✓ | — | — |
 | `CHOI_2005` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | — | — | — |
 | `HANKINSON_1999` | ✓ | ✓ | — | — | — | ✓ | — | — | — | ✓ | ✓ | — | — |
 | `QUANJER_1995` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -78,12 +84,14 @@
 | `BOWERMAN_2022` | — | — | — | — | — | — | — | ✓ |
 | `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
 | `JO_2018` | — | — | — | — | — | — | — | ✓ |
+| `PRATA_2018` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
 | `JIAN_2017` | ✓ | — | — | — | ✓ | — | — | ✓ |
 | `DESAI_2016` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
 | `KUBOTA_2014` | — | — | — | — | — | — | — | ✓ |
 | `CHHABRA_2014` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
 | `GLI_2012` | ✓ | — | — | ✓ | — | — | — | ✓ |
 | `KUSTER_2008` | — | ✓ | ✓ | ✓ | ✓ | — | — | ✓ |
+| `PEREIRA_2007` | ✓ | — | ✓ | ✓ | ✓ | — | — | ✓ |
 | `CHOI_2005` | — | — | — | — | — | — | — | — |
 | `HANKINSON_1999` | ✓ | — | — | — | ✓ | — | — | ✓ |
 | `QUANJER_1995` | — | — | — | — | — | — | — | — |
@@ -104,6 +112,8 @@
 > **DESAI_2016** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male PEFR and female FEF75; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SE.<br>
 > **CHHABRA_2014** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male FVC, male FEF75, and male FEV1FVC; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SEE.<br>
 > **KUSTER_2008** names its flow parameters MEF75 (= FEF25%), MEF50 (= FEF50%), and MEF25 (= FEF75%).<br>
+> **PRATA_2018** `FEV1FVC` is expressed as a **percentage (0–100)**. No weight argument: weight played no role in any equation. LLN is the published 5th percentile of the residuals — subtracted for the linear parameters (FVC, FEV1, FEV1/FVC, PEF) and multiplied for the log-transformed flows. `zscore()`, `uln()`, and `lms()` return `pd.NA` (no SEE was published). As published, the three FEF equations depend on **age alone**, and female PEF carries no height term. The `FEV1FVC` LLN uses the offsets printed in Tables 3/4 (8.70 M, 7.8 F); the paper's Results text rounds these to 9 and 8.<br>
+> **PEREIRA_2007** `FEV1FVC` and `FEV1FEV6` are expressed as **percentages (0–100)**, as are the four flow/FVC ratios (`FEF50_FVC`, `FEF75_FVC`, `FEF25_75_FVC`, `FEF75_85_FVC`). Also provides `FEF75_85`. Weight influenced predicted volumes in males only, so Table 3's two models are exposed separately: `FVC`/`FEV6`/`FEV1` (height + age) and `FVC_WT`/`FEV6_WT`/`FEV1_WT` (height + age + weight, males only — these return `pd.NA` for females and when `weight=None`). All other parameters ignore weight. LLN is the published 5th percentile of the residuals; `zscore()`, `uln()`, and `lms()` return `pd.NA`. Male FEF50/FEF75/FEF25-75/FEF75-85 carry no height term, as published. Two coefficients required editorial judgement against the printed tables; see the class docstring.<br>
 > **CHOI_2005** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for FVC and FEV6. `lln()`, `uln()`, and `zscore()` return `pd.NA` (no limits of normal were published).
 > **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
 > **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.<br>
