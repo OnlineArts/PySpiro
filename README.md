@@ -17,6 +17,7 @@
 ### Spirometry
 | Class | Population | Age range | Publication                                                                                                                    |
 |---|---|---|--------------------------------------------------------------------------------------------------------------------------------|
+| `LOELOE_2025` | Iranian (Shahedieh PERSIAN cohort) | 38–69 y | Loeloe et al. 2025, DOI: [10.3389/fmed.2025.1480931](https://doi.org/10.3389/fmed.2025.1480931)                                |
 | `BOWERMAN_2022` | Race-neutral (GLI global) | 3–95 y | Bowerman et al. 2023, DOI: [10.1164/rccm.202205-0963OC](https://doi.org/10.1164/rccm.202205-0963OC)                            |
 | `ALQEREM_2021` | Middle Eastern children (Jordan) | 6–17.75 y | Al-Qerem 2021, DOI: [10.1111/ijcp.14598](https://doi.org/10.1111/ijcp.14598)                                                   |
 | `AGARWAL_2020` | Western Indian (rural Pune) | 20–80 y | Agarwal et al. 2020, DOI: [10.1183/13993003.02129-2019](https://doi.org/10.1183/13993003.02129-2019)                           |
@@ -55,6 +56,7 @@
 
 | Equation | FVC | FEV1 | FEV0.5 | FEV0.75 | FEV3 | FEV6 | SVC | VC | FIVC | FEV1/FVC | FEV1/FEV6 | FEV0.75/FVC | FEV3/FVC |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `LOELOE_2025` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `BOWERMAN_2022` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `ALQEREM_2021` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
 | `AGARWAL_2020` | ✓ | ✓ | — | — | — | — | — | — | — | ✓ | — | — | — |
@@ -86,6 +88,7 @@
 
 | Equation | FEF25-75% | FEF25% | FEF50% | FEF75% | PEF | MVV | FET | LLN / z-score |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `LOELOE_2025` | ✓ | — | — | — | — | — | — | ✓ |
 | `BOWERMAN_2022` | — | — | — | — | — | — | — | ✓ |
 | `ALQEREM_2021` | ✓ | — | — | — | — | — | — | ✓ |
 | `AGARWAL_2020` | — | — | — | — | — | — | — | ✓ |
@@ -115,6 +118,7 @@
 | `CHERNIACK_1972` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
 | `POLGAR_1971` | ✓ | — | — | — | ✓ | ✓ | — | — |
 
+> **LOELOE_2025** uses pre-computed KNN-based lookup tables (age 38–69 y, height 142–189 cm; inputs rounded to the nearest 0.1). `FEV1FVC` is expressed as a **percentage (0–100)**. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − LLN. `zscore()` uses the normal approximation ((value − predicted) / ((predicted − LLN) / 1.645)). `lms()` returns `(NA, NA, NA)`. Some tall-female (age, height) combinations have no reference data and return `pd.NA`.<br>
 > **AGARWAL_2020** uses pre-computed lookup tables (integer age 20–80, integer height 137–185 cm); inputs are rounded to the nearest integer. `lln()` returns the 5th centile; `uln()` is approximated as 2×predicted − p5. `zscore()` uses the normal approximation (accurate for males; approximate for females where non-normal GAMLSS families were fitted). `lms()` returns `(NA, NA, NA)`.<br>
 > **JIAN_2017** `FEV1FVC` is expressed as a **percentage (0–100)**, not a unitless ratio. Pass the measured FEV1/FVC in % (e.g. `83.0`) for `percent()`, `zscore()`, `lln()`, and `uln()`; these methods return LLN/ULN in % as well. `MMEF` corresponds to FEF25-75%.<br>
 > **DESAI_2016** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for male PEFR and female FEF75; pass `weight=None` for all other parameters. LLN is computed as predicted − 1.645 × SE.<br>

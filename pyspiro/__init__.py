@@ -24,6 +24,7 @@ from .src.spirometry.AGARWAL_2020 import AGARWAL_2020
 from .src.spirometry.CHOI_2005 import CHOI_2005
 from .src.spirometry.CHHABRA_2014 import CHHABRA_2014
 from .src.spirometry.DESAI_2016 import DESAI_2016
+from .src.spirometry.LOELOE_2025 import LOELOE_2025
 from .src.spirometry.SLIMAN_1981 import SLIMAN_1981
 from .src.spirometry.ALQEREM_2019 import ALQEREM_2019
 from .src.spirometry.ALQEREM_2021 import ALQEREM_2021
