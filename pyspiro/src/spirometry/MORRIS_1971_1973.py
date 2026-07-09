@@ -4,7 +4,7 @@ import importlib.resources
 import pandas as pd
 
 
-class MORRIS_1973(Reference):
+class MORRIS_1971_1973(Reference):
     """
     Morris (1971/73) spirometry reference equations.
 
@@ -31,7 +31,7 @@ class MORRIS_1973(Reference):
 
     def __init__(self):
         self._age_range = self._AGE_RANGE
-        with (importlib.resources.files('pyspiro.data') / 'morris_1973_coefficients.csv').open('rb') as f:
+        with (importlib.resources.files('pyspiro.data') / 'morris_1971_1973_coefficients.csv').open('rb') as f:
             df = pd.read_csv(f, delimiter=';')
         df.set_index(['parameter', 'sex'], inplace=True)
         self._coefficients = df
