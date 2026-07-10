@@ -52,7 +52,7 @@
 > **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `PEREIRA_2007`, `PRATA_2018`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
 > **Note on the Brazilian equations:** `PEREIRA_2007` (White adults) and `PRATA_2018` (Black adults) are a companion pair derived by overlapping author groups under the same protocol. Prata's central finding is that predicted FVC and FEV1 are significantly lower in Black than in White Brazilian adults — on average 0.30 L and 0.28 L lower in men — so the two populations should not share one equation. Use the set that matches the patient.
 > **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
-> **LOUW_1996** and **MOKOETLE_1994** are linear regression equations for South African populations. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA`. Where a European equation must be used instead, `KOEGELENBERG_2013` supplies the SATS correction factors — 0.9 for black or Asian individuals, 0.95 for individuals of mixed ethnicity — via `correct(predicted, ethnicity)`. It is a helper, not a reference equation, and so is absent from the tables above.
+> **LOUW_1996** and **MOKOETLE_1994** are linear regression equations for South African populations. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA`. `LOUW_1996` is men-only and requires an `ethnicity` argument (0 = Black, 1 = White); a `spirometer` option selects the Autolink (default) or Vitalograph equations. The companion `KOEGELENBERG_2013` helper supplies the SATS correction factors — 0.9 for black or Asian individuals (ethnicity 0), 0.95 for individuals of mixed ethnicity (ethnicity 1) — via `correct(predicted, ethnicity)`; it is a helper, not a reference equation, and so is absent from the tables above.
 
 #### Parameter availability matrix
 
@@ -151,8 +151,8 @@ RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections fro
 ### Lung diffusion capacity
 | Class | Population | Publication                                                                                             |
 |---|---|---------------------------------------------------------------------------------------------------------|
-| `GLI_2017` | Caucasian, age 5–80 y | Stanojevic et al. 2017, DOI: [10.1183/13993003.00010-2017](https://doi.org/10.1183/13993003.00010-2017) |
 | `SCAPIS_2023` | Swedish, age 50–65 y | Malinovschi et al. 2023, DOI: [10.1164/rccm.202212-2341OC](https://doi.org/10.1164/rccm.202212-2341OC)                            |
+| `GLI_2017` | Caucasian, age 5–80 y | Stanojevic et al. 2017, DOI: [10.1183/13993003.00010-2017](https://doi.org/10.1183/13993003.00010-2017) |
 
 ### Static lung volumes
 | Class | Population | Publication                                                                                       |
@@ -178,6 +178,7 @@ RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections fro
 | `BDR_2022` | Pre/post FEV1 and/or FVC vs predicted | Positive (FEV1) / Positive (FVC) / Positive (FEV1 and FVC) / Negative |
 | `GOLD` | FEV1 % predicted (COPD) | I–IV (mild to very severe) |
 | `GOLD_ABE` | Exacerbation history + CAT / mMRC (COPD) | A / B / E |
+| `ECOPD_ROME_2021` | ABG (PaCO2, pH) + dyspnea VAS, RR, HR, SaO2, CRP (COPD exacerbation) | Mild / Moderate / Severe |
 | `STAR` | FEV1/FVC ratio (COPD) | I–IV (mild to very severe) |
 | `BODE` | BMI + FEV1 % predicted + mMRC + 6MWT (COPD) | Score 0–10, Quartiles 1–4 |
 | `GAP` | Sex + Age + FVC % predicted + DLCO % predicted (IPF) | Score 0–8, Stages I–III |
