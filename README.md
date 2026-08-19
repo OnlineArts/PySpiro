@@ -2,7 +2,7 @@
 
 ![logo](https://github.com/OnlineArts/PySpiro/blob/main/pyspiro/data/pyspiro_250x.png?raw=true)
 
-**pyspiro** is a Python package implementing lung function reference equations for spirometry, static lung volumes, diffusion capacity, and oscillometry. It provides predicted values, z-scores, % predicted, lower limits of normal (LLN), and upper limits of normal (ULN) for research and clinical data analysis pipelines.
+**pyspiro** is a Python package implementing lung function reference equations for spirometry, static lung volumes, diffusion capacity, and oscillometry. It provides predicted values, z-scores, % predicted, lower limits of normal (LLN), and upper limits of normal (ULN) for research and clinical data analysis pipelines, alongside severity classifiers and reference-equation-free physiological quotients.
 
 ---
 
@@ -166,6 +166,36 @@ RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections fro
 | `CALOGERO_2013` | Caucasian children (Perth/Viterbo) | 92–159 cm | Rrs6/8/10, Xrs6/8/10, AX, Fres | Calogero et al. 2013, DOI: [10.1002/ppul.22699](https://doi.org/10.1002/ppul.22699)                   |
 
 `CALOGERO_2013` uses direct height+sex regression with log/sqrt transformations (not LMS). Z-scores are on the transformed scale; positive z always means worse than predicted. `percent()` is defined for Rrs, AX, and Fres; it returns `pd.NA` for Xrs (signed values). `predicted()` returns the median value directly.
+
+---
+
+## Physiological quotients
+
+| Class | Basis | Parameters | Publication |
+|---|---|---|---|
+| `KNOX_BROWN_2026` | 1st percentile ("minimally survivable") values from 13 771 UK hospital patients | FEV1, FVC, FEV1/FVC, DLCO, KCO, VA, TLC | Knox-Brown et al. 2026, DOI: [10.1183/13993003.02204-2025](https://doi.org/10.1183/13993003.02204-2025) |
+
+A physiological quotient expresses a measurement as a multiple of the 1st percentile value observed in a hospital lung function population:
+
+```
+Q = measured value / 1st percentile value
+```
+
+Introduced for FEV1 by Miller and Pedersen (2010) and extended to six further measures by Knox-Brown et al. Because the 1st percentiles are stable across age — and across sex for FEV1/FVC, DLCO and KCO — a quotient needs no age, height or ethnicity, and is therefore still defined for patients no reference equation can score (e.g. static lung volumes above age 80, the limit of `GLI_2021`).
+
+| Parameter | Male | Female |
+|---|---|---|
+| FEV1, L | 0.50 | 0.40 |
+| FVC, L | 1.50 | 1.20 |
+| FEV1/FVC, ratio | 0.15 | 0.15 |
+| DLCO, mmol·min⁻¹·kPa⁻¹ | 1.60 | 1.60 |
+| KCO, mmol·min⁻¹·kPa⁻¹·L⁻¹ | 0.40 | 0.40 |
+| VA, L | 2.40 | 2.00 |
+| TLC, L | 2.60 | 2.30 |
+
+`KNOX_BROWN_2026` is **not** a `Reference` subclass — there is no predicted median, z-score or limit of normal to take. It exposes `percentile1()`, `quotient()`, `band()`, a vectorised `compute()`, and `expressions()` for reading one measurement as quotient, % predicted and z-score side by side. The published survival statistics are available as data: `hazard_ratio()` (table 4 and supplementary table S3, including Harrell's C-index) and `cohort_reference()` (supplementary tables S1–S2).
+
+> ⚠️ **Not a replacement for reference equations.** The authors state that until the 1st percentiles are replicated in more diverse cohorts and against outcomes other than mortality, "physiological quotients cannot replace reference equation-based metrics". The derivation cohorts were 95–97% White European. FEV1/FVCQ was **not** associated with mortality after adjustment (HR 0.99–1.01, p>0.4) and the authors judge it of little clinical benefit. DLCO/KCO thresholds were published in SI units only; the `DLCO_trad` and `KCO_trad` parameters are unit conversions performed by this package, not published values.
 
 ---
 
@@ -421,6 +451,56 @@ stage = sev.classify(
 # → 'Mild', 'Moderate', 'Severe', or 'Inconclusive'
 ```
 
+### Physiological quotients (KNOX_BROWN_2026)
+
+```python
+from pyspiro import KNOX_BROWN_2026, GLI_2017, GLI_2021
+
+kbq = KNOX_BROWN_2026()
+P   = KNOX_BROWN_2026.Parameters
+
+# Q = measured / 1st percentile. Sex is required for FEV1, FVC, VA and TLC...
+kbq.quotient(P.FEV1, 1.20, sex=0)   # → 3.0  (1.20 / 0.40)
+kbq.quotient(P.FEV1, 1.20, sex=1)   # → 2.4  (1.20 / 0.50)
+
+# ...and ignored for FEV1/FVC, DLCO and KCO, whose 1st percentiles are sex-neutral
+kbq.quotient(P.DLCO_SI, 3.20)       # → 2.0  (3.20 / 1.60)
+kbq.quotient(P.FEV1FVC, 0.60)       # → 4.0  (ratio as a fraction, not 0–100)
+
+# Whole-quotient band used in the published Kaplan–Meier curves (0–6)
+kbq.band(P.FEV1, 1.20, sex=0)       # → 3
+
+# Batch over a cohort
+df['FEV1Q'] = kbq.compute(df, P.FEV1, value_col='FEV1')['quotient']
+df['DLCOQ'] = kbq.compute(df, P.DLCO_SI, value_col='DLCO', sex_col=None)['quotient']
+```
+
+`expressions()` reads one measurement three ways. Where the equation runs out of range the quotient is still defined:
+
+```python
+kbq.expressions(P.TLC, 5.10, sex=1,
+                equation=GLI_2021(), equation_parameter=GLI_2021.Parameters.TLC,
+                age=82, height=178)
+# {'parameter': 'TLC', 'value': 5.1, 'percentile_1': 2.6, 'quotient': 1.96,
+#  'band': 1, 'equation': 'GLI_2021', 'percent': <NA>, 'zscore': <NA>}
+```
+
+Published survival statistics are carried as data — hazard ratios per 1-unit increase in the quotient, and the quotient distributions of the two derivation cohorts:
+
+```python
+kbq.hazard_ratio(P.VA, site='RPH', model='model2')
+# {'hr': 0.31, 'ci': (0.28, 0.34), 'p': '<0.001'}
+
+kbq.hazard_ratio(P.DLCO_SI, site='RPH', model='unadjusted')
+# {'hr': 0.51, 'ci': (0.49, 0.53), 'p': '<0.001',
+#  'c_index': 0.73, 'c_index_ci': (0.72, 0.73)}
+
+kbq.cohort_reference(P.FEV1, site='CUH', stratum='age_ge_70')
+# {'n': 1911, 'mean': 4.27, 'sd': 1.51}
+```
+
+Sites are `'CUH'` (n=7717, 19% mortality over 5.8 years) and `'RPH'` (n=6054, 39% over 5.5 years); models are `'unadjusted'`, `'model1'` (age, sex, height, smoking, referral reason) and `'model2'` (model 1 plus ethnicity). Strata are `'overall'`, `'male'`, `'female'` and the five age groups.
+
 ### COPD severity staging
 
 ```python
@@ -545,6 +625,37 @@ fig = plot_centile_curves(
     parameter=BOWERMAN_2022.Parameters.FEV1,
 )
 ```
+
+### Centiles on a quotient axis
+
+`plot_quotient_centiles()` draws the same centile curves rescaled onto a physiological quotient axis, with the fixed quotient bands overlaid. The equation supplies the centiles; the quotient supplies only the constant denominator and the band grid.
+
+```python
+from pyspiro import BOWERMAN_2022, KNOX_BROWN_2026, plot_quotient_centiles
+
+fig = plot_quotient_centiles(
+    BOWERMAN_2022(),          # GLI global — supplies the centiles
+    KNOX_BROWN_2026(),        # supplies the 0.50 L denominator and Q=1…6 grid
+    sex=1,
+    height=175,
+    parameter=BOWERMAN_2022.Parameters.FEV1,
+)
+```
+
+The quotient's `Parameters` member is resolved from the equation's by name. Pass `quotient_parameter=` where the names differ — `GLI_2017` calls the SI transfer factor `TLCO`, the quotient calls it `DLCO_SI`:
+
+```python
+fig = plot_quotient_centiles(
+    GLI_2017(), KNOX_BROWN_2026(),
+    sex=1, height=175,
+    parameter=GLI_2017.Parameters.TLCO,
+    quotient_parameter=KNOX_BROWN_2026.Parameters.DLCO_SI,
+)
+```
+
+`bands=` overrides the horizontal grid (pass an empty sequence to omit it); `percentiles=`, `age_range=`, `figsize=` and `ax=` behave as in `plot_centile_curves()`.
+
+> **Read the falling curves carefully.** This is *not* a centile chart of the quotient — a quotient has no distribution, only a fixed denominator. The curves fall across age even though the denominator does not, because the underlying reference values fall. With GLI global (`BOWERMAN_2022`) for a 175 cm man, the lower limit of normal is FEV1Q ≈ 6.6 at age 20 and ≈ 3.5 at age 90: a fixed quotient is not a fixed centile. The 1st percentile is age-stable; the quotient it produces is not age-neutral to interpret.
 
 ---
 

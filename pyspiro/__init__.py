@@ -40,6 +40,8 @@ from .src.diffusion.GLI_2017 import GLI_2017
 from .src.volumes.GLI_2021 import GLI_2021
 from .src.oscillometry.SCHULZ_2013 import SCHULZ_2013
 from .src.oscillometry.CALOGERO_2013 import CALOGERO_2013
+# Physiological quotients — reference-equation-free, so not a Reference subclass
+from .src.quotients.KNOX_BROWN_2026 import KNOX_BROWN_2026
 from .src.classifiers.ATS_ERS_2022 import ATS_ERS_2022
 from .src.classifiers.LF_SEVERITY_2022 import LF_SEVERITY_2022
 from .src.classifiers.BDR_2022 import BDR_2022
@@ -51,7 +53,7 @@ from .src.classifiers.BODE import BODE
 from .src.classifiers.GAP import GAP
 from .src.classifiers.WODEHOUSE_2003 import WODEHOUSE_2003
 from .src.classifiers.PCD_SEVERITY import PCD_SEVERITY
-from .src.viz import plot_centile_curves
+from .src.viz import plot_centile_curves, plot_quotient_centiles
 from .src.comparison import compare_equations
 
 
