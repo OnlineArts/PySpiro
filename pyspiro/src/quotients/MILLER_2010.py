@@ -2,8 +2,10 @@ from enum import Enum
 
 import pandas as pd
 
+from .quotient import Quotient
 
-class MILLER_2010:
+
+class MILLER_2010(Quotient):
     """
     FEV1 quotient and height-standardised FEV1 indices (Miller & Pedersen 2010).
 
@@ -36,7 +38,9 @@ class MILLER_2010:
     and TLC. For anything other than FEV1, and for batch work across parameters,
     use [KNOX_BROWN_2026]; this class exists for the original derivation and for
     the height-standardised indices, which no later paper carries. The two give
-    identical FEV1Q values.
+    identical FEV1Q values, but neither derives its percentiles from the other:
+    both are Quotient subclasses declaring their own published tables, so a
+    correction to one cannot silently move the other.
 
     No normative range is published for the height-standardised indices
     ------------------------------------------------------------------
@@ -68,111 +72,34 @@ class MILLER_2010:
         Eur Respir J 2010;35(4):873-882. doi: 10.1183/09031936.00110809
     """
 
-    # 1st percentile of FEV1 in litres, by sex (paper, figure 2)
-    PERCENTILE_1 = {0: 0.40, 1: 0.50}
-
-    _silent = True
-
-    class Sex(Enum):
-        FEMALE = 0
-        MALE = 1
-
     class Parameters(Enum):
         FEV1Q = 1        # FEV1 / sex-specific 1st percentile
         FEV1_HT3 = 2     # FEV1 / height(m)^3 -- the authors' preferred power
         FEV1_HT2 = 3     # FEV1 / height(m)^2
+
+    # 1st percentile of FEV1 in litres: (female, male), from figure 2.
+    # The height-standardised indices are not quotients and have no denominator.
+    _PERCENTILE_1_BY_SEX = {Parameters.FEV1Q.value: (0.40, 0.50)}
 
     _HEIGHT_POWERS = {
         Parameters.FEV1_HT3.value: 3,
         Parameters.FEV1_HT2.value: 2,
     }
 
-    # ------------------------------------------------------------------
-    # Configuration
-    # ------------------------------------------------------------------
-
-    def set_silence(self, silent: bool):
-        """Suppress (True) or enable (False) input validation messages."""
-        self._silent = silent
-
-    def _warn(self, message: str):
-        if not self._silent:
-            print("MILLER_2010: %s" % message)
-
-    # ------------------------------------------------------------------
-    # Input handling
-    # ------------------------------------------------------------------
-
-    def _resolve_parameter(self, parameter):
-        """Return the integer value of a Parameters member, or pd.NA if unknown."""
-        try:
-            return self.Parameters(getattr(parameter, "value", parameter)).value
-        except ValueError:
-            self._warn("unknown parameter %r; expected a Parameters member." % (parameter,))
-            return pd.NA
-
-    def _resolve_sex(self, sex):
-        """Return 0/1, or pd.NA if the code is missing or unrecognised."""
-        if sex is None or (not isinstance(sex, bool) and pd.isna(sex)):
-            return pd.NA
-        try:
-            return self.Sex(int(getattr(sex, "value", sex))).value
-        except (ValueError, TypeError):
-            self._warn("sex must be 0 (female) or 1 (male), got %r." % (sex,))
-            return pd.NA
-
-    def _resolve_fev1(self, fev1):
-        """Return a non-negative float FEV1, or pd.NA."""
-        if fev1 is None or pd.isna(fev1):
-            return pd.NA
-        try:
-            fev1 = float(fev1)
-        except (TypeError, ValueError):
-            self._warn("FEV1 must be numeric, got %r." % (fev1,))
-            return pd.NA
-        if fev1 < 0:
-            self._warn("FEV1 must not be negative, got %.2f." % fev1)
-            return pd.NA
-        return fev1
+    def _value_label(self, parameter) -> str:
+        return "FEV1"
 
     # ------------------------------------------------------------------
     # Core API
     # ------------------------------------------------------------------
-
-    def percentile1(self, sex: int) -> float:
-        """
-        Return the sex-specific 1st percentile of FEV1 in litres.
-
-        0.50 L for males, 0.40 L for females; pd.NA if the sex code is missing
-        or unrecognised. Identical to KNOX_BROWN_2026.percentile1() for FEV1.
-        """
-        code = self._resolve_sex(sex)
-        if code is pd.NA:
-            self._warn("FEV1Q is sex-specific; pass sex=0 (female) or sex=1 (male).")
-            return pd.NA
-        return self.PERCENTILE_1[code]
-
-    def quotient(self, fev1: float, sex: int) -> float:
-        """
-        Return FEV1Q = FEV1 / the sex-specific 1st percentile.
-
-        A man with an FEV1 of 1.20 L has an FEV1Q of 2.40 (1.20 / 0.50); the same
-        value in a woman gives 3.00 (1.20 / 0.40). Higher is better.
-
-        Miller and Pedersen note that within a single sex FEV1Q is a constant
-        rescaling of FEV1 and so "has no advantage over raw FEV1" -- its value is
-        in making measurements comparable across sexes without a reference
-        equation.
-
-        Returns a float rounded to 2 decimal places, or pd.NA on invalid input.
-        """
-        fev1 = self._resolve_fev1(fev1)
-        if fev1 is pd.NA:
-            return pd.NA
-        denominator = self.percentile1(sex)
-        if denominator is pd.NA:
-            return pd.NA
-        return round(fev1 / denominator, 2)
+    #
+    # percentile1(), quotient() and band() are inherited from Quotient.  Only
+    # FEV1Q has a 1st percentile: percentile1() and quotient() return pd.NA for
+    # FEV1_HT3 and FEV1_HT2, which are reached through height_standardised().
+    #
+    # Miller and Pedersen note that within a single sex FEV1Q is a constant
+    # rescaling of FEV1 and so "has no advantage over raw FEV1" -- its value is in
+    # making measurements comparable across sexes without a reference equation.
 
     def height_standardised(self, fev1: float, height: float, power: int = 3) -> float:
         """
@@ -199,7 +126,7 @@ class MILLER_2010:
             self._warn("power must be 2 or 3, got %r." % (power,))
             return pd.NA
 
-        fev1 = self._resolve_fev1(fev1)
+        fev1 = self._resolve_value(fev1, "FEV1")
         if fev1 is pd.NA:
             return pd.NA
 
@@ -263,7 +190,8 @@ class MILLER_2010:
                     "MILLER_2010.compute: FEV1Q is sex-specific; "
                     "pass sex_col='<column_name>'."
                 )
-            series = df.apply(lambda r: self.quotient(r[value_col], r[sex_col]), axis=1)
+            series = df.apply(
+                lambda r: self.quotient(param, r[value_col], r[sex_col]), axis=1)
         else:
             if height_col is None:
                 raise ValueError(

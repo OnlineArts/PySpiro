@@ -28,7 +28,7 @@
 | `DESAI_2016` | Western Indian (Mumbai) | 18–82 y (M) / 18–72 y (F) | Desai et al. 2016, DOI: [10.1016/j.ijtb.2016.08.005](https://doi.org/10.1016/j.ijtb.2016.08.005)                               |
 | `CHHABRA_2014` | Northern Indian (Delhi, Punjab, Haryana, UP) | 18–71 y (M) / 18–65 y (F) | Chhabra et al. 2014, DOI: [10.5005/ijcdas-56-4-221](https://doi.org/10.5005/ijcdas-56-4-221)                                   |
 | `KUBOTA_2014` | JRS (Japanese) | 17–95 y | Kubota et al. 2014, DOI: [10.1016/j.resinv.2014.03.003](https://doi.org/10.1016/j.resinv.2014.03.003)                          |
-| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](10.1183/09031936.00080312)                                               |
+| `GLI_2012` | Multi-ethnic | 3–95 y | Quanjer et al. 2012, DOI: [10.1183/09031936.00080312](https://doi.org/10.1183/09031936.00080312)                               |
 | `KUSTER_2008` | Swiss LuftiBus | 18–80 y | Kuster et al. 2008, DOI: [10.1183/09031936.00091407](https://doi.org/10.1183/09031936.00091407)                                |
 | `PEREIRA_2007` | White Brazilian adults | 26–86 y (M) / 20–85 y (F) | Pereira et al. 2007, DOI: [10.1590/S1806-37132007000400008](https://doi.org/10.1590/S1806-37132007000400008)                   |
 | `CHOI_2005` | Korean (KNHANES 2001–2002) | 18–80 y | Choi et al. 2005, DOI: [10.4046/trd.2005.58.3.230](https://doi.org/10.4046/trd.2005.58.3.230)                                  |
@@ -49,9 +49,8 @@
 | `CHERNIACK_1972` | Caucasian (US) | 15–79 y | Cherniack & Raber 1972, DOI: [10.1164/arrd.1972.106.1.38](https://doi.org/10.1164/arrd.1972.106.1.38) |
 | `POLGAR_1971` | Children | 4–17 y | Polgar & Promadhat 1971, DOI: [10.7326/0003-4819-75-5-819_2](https://doi.org/10.7326/0003-4819-75-5-819_2)                     |
 
-> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `PEREIRA_2007`, `PRATA_2018`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
-> **Note on the Brazilian equations:** `PEREIRA_2007` (White adults) and `PRATA_2018` (Black adults) are a companion pair derived by overlapping author groups under the same protocol. Prata's central finding is that predicted FVC and FEV1 are significantly lower in Black than in White Brazilian adults — on average 0.30 L and 0.28 L lower in men — so the two populations should not share one equation. Use the set that matches the patient.
-> **Note on classic equations (POLGAR_1971 – QUANJER_1995):** These are regression-based equations from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `CHHABRA_2014`, and `DESAI_2016` provide LLN.
+> **Classic equations (POLGAR_1971 – QUANJER_1995)** are regression-based, from the pre-LMS era. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA` because no lower/upper limits of normal were published. Among the polynomial equations, `HANKINSON_1999`, `KUSTER_2008`, `PEREIRA_2007`, `PRATA_2018`, `CHHABRA_2014`, and `DESAI_2016` do provide LLN.<br>
+> **PEREIRA_2007** (White adults) and **PRATA_2018** (Black adults) are a companion Brazilian pair, derived by overlapping author groups under the same protocol. Prata's central finding is that predicted FVC and FEV1 are significantly lower in Black than in White Brazilian adults — on average 0.30 L and 0.28 L lower in men — so the two populations should not share one equation. Use the set that matches the patient.<br>
 > **LOUW_1996** and **MOKOETLE_1994** are linear regression equations for South African populations. Only `percent()` returns a value; `lln()`, `uln()`, and `zscore()` return `pd.NA`. `LOUW_1996` is men-only and requires an `ethnicity` argument (0 = Black, 1 = White); a `spirometer` option selects the Autolink (default) or Vitalograph equations. The companion `KOEGELENBERG_2013` helper supplies the SATS correction factors — 0.9 for black or Asian individuals (ethnicity 0), 0.95 for individuals of mixed ethnicity (ethnicity 1) — via `correct(predicted, ethnicity)`; it is a helper, not a reference equation, and so is absent from the tables above.
 
 #### Parameter availability matrix
@@ -137,9 +136,9 @@
 > **PRATA_2018** `FEV1FVC` is expressed as a **percentage (0–100)**. No weight argument: weight played no role in any equation. LLN is the published 5th percentile of the residuals — subtracted for the linear parameters (FVC, FEV1, FEV1/FVC, PEF) and multiplied for the log-transformed flows. `zscore()`, `uln()`, and `lms()` return `pd.NA` (no SEE was published). As published, the three FEF equations depend on **age alone**, and female PEF carries no height term. The `FEV1FVC` LLN uses the offsets printed in Tables 3/4 (8.70 M, 7.8 F); the paper's Results text rounds these to 9 and 8.<br>
 > **PEREIRA_2007** `FEV1FVC` and `FEV1FEV6` are expressed as **percentages (0–100)**, as are the four flow/FVC ratios (`FEF50_FVC`, `FEF75_FVC`, `FEF25_75_FVC`, `FEF75_85_FVC`). Also provides `FEF75_85`. Weight influenced predicted volumes in males only, so Table 3's two models are exposed separately: `FVC`/`FEV6`/`FEV1` (height + age) and `FVC_WT`/`FEV6_WT`/`FEV1_WT` (height + age + weight, males only — these return `pd.NA` for females and when `weight=None`). All other parameters ignore weight. LLN is the published 5th percentile of the residuals; `zscore()`, `uln()`, and `lms()` return `pd.NA`. Male FEF50/FEF75/FEF25-75/FEF75-85 carry no height term, as published. Two coefficients required editorial judgement against the printed tables; see the class docstring.<br>
 > **ALQEREM_2021** `FEV1FVC` is expressed as a **percentage (0–100)**. The cohort is Jordanian; the paper's title says "a Middle Eastern population". Age is rounded to the nearest 0.25 y for the age-spline lookup, as for the GLI equations. Two coefficients in the published Table 2 are corrected here, both settled against the author's own data set: the male FVC `log(age)` term is `+0.24743`, not `−0.24743` (as printed it predicts an FVC below the FEV1), and the male FEV1/FVC intercept is `4.5068298`, not `4.5057904` (the printed value is inconsistent with the published Table A4 spline by a constant 0.104%).<br>
-> **CHOI_2005** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for FVC and FEV6. `lln()`, `uln()`, and `zscore()` return `pd.NA` (no limits of normal were published).
+> **CHOI_2005** `FEV1FVC` is expressed as a **percentage (0–100)**. Weight is required for FVC and FEV6. `lln()`, `uln()`, and `zscore()` return `pd.NA` (no limits of normal were published).<br>
 > **HSU_1979** and **WANG_1993** require an `ethnicity` argument.<br>
-> **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.<br>
+> **WANG_1993** currently implements the Male White subgroup only; other subgroups can be added to `wang_1993_coefficients.csv`.
 
 ### Multiple breath washout (MBW)
 | Class | Population | Age range | Parameters | Publication                                                                                         |
@@ -182,7 +181,9 @@ A physiological quotient expresses a measurement as a multiple of the 1st percen
 Q = measured value / 1st percentile value
 ```
 
-Introduced for FEV1 by Miller and Pedersen (2010) and extended to six further measures by Knox-Brown et al. Because the 1st percentiles are stable across age — and across sex for FEV1/FVC, DLCO and KCO — a quotient needs no age, height or ethnicity, and is therefore still defined for patients no reference equation can score (e.g. static lung volumes above age 80, the limit of `GLI_2021`).
+Because the 1st percentiles are stable across age — and across sex for FEV1/FVC, DLCO and KCO — a quotient needs no age, height or ethnicity, and is therefore still defined for patients no reference equation can score (e.g. static lung volumes above age 80, the limit of `GLI_2021`). Miller & Pedersen introduced the idea for FEV1; Knox-Brown et al. independently reproduced their thresholds and extended the approach to six further measures, so the two classes agree exactly on FEV1Q.
+
+Consensus 1st percentiles (`KNOX_BROWN_2026`; `MILLER_2010` publishes the FEV1 row only):
 
 | Parameter | Male | Female |
 |---|---|---|
@@ -194,32 +195,12 @@ Introduced for FEV1 by Miller and Pedersen (2010) and extended to six further me
 | VA, L | 2.40 | 2.00 |
 | TLC, L | 2.60 | 2.30 |
 
-`KNOX_BROWN_2026` is **not** a `Reference` subclass — there is no predicted median, z-score or limit of normal to take. It exposes `percentile1()`, `quotient()`, `band()`, a vectorised `compute()`, and `expressions()` for reading one measurement as quotient, % predicted and z-score side by side. The published survival statistics are available as data: `hazard_ratio()` (table 4 and supplementary table S3, including Harrell's C-index) and `cohort_reference()` (supplementary tables S1–S2).
+Both classes derive from `Quotient`, **not** `Reference`: there is no predicted median, z-score or limit of normal to take. The shared API is `percentile1()`, `quotient()`, `band()` (the whole-quotient bands 0–6 of the published survival curves) and a vectorised `compute()`. `KNOX_BROWN_2026` adds `expressions()`, which reads one measurement as quotient, % predicted and z-score side by side, and carries the published survival statistics as data via `hazard_ratio()` and `cohort_reference()`. `MILLER_2010` adds `height_standardised()` for the paper's second proposal, FEV1 divided by height in metres cubed or squared.
 
-> ⚠️ **Not a replacement for reference equations.** The authors state that until the 1st percentiles are replicated in more diverse cohorts and against outcomes other than mortality, "physiological quotients cannot replace reference equation-based metrics". The derivation cohorts were 95–97% White European. FEV1/FVCQ was **not** associated with mortality after adjustment (HR 0.99–1.01, p>0.4) and the authors judge it of little clinical benefit. DLCO/KCO thresholds were published in SI units only; the `DLCO_trad` and `KCO_trad` parameters are unit conversions performed by this package, not published values.
-
-### `MILLER_2010` — the original quotient, and height-standardised FEV1
-
-Miller & Pedersen introduced the physiological quotient using 26 967 subjects (Copenhagen City Heart Study, a COPD cohort, and hospital lung function patients). Their FEV1 1st percentiles — 0.50 L male, 0.40 L female — are the same values Knox-Brown et al. reproduced in 2026, so `MILLER_2010.quotient()` and `KNOX_BROWN_2026.quotient(…FEV1…)` agree exactly. Use `KNOX_BROWN_2026` for anything beyond FEV1.
-
-What `MILLER_2010` adds is the paper's second proposal: standardising FEV1 by body size rather than by a predicted value.
-
-```python
-from pyspiro import MILLER_2010
-
-miller = MILLER_2010()
-
-miller.quotient(1.20, sex=1)                    # → 2.40  (FEV1Q, 1.20 / 0.50 L)
-miller.height_standardised(0.67, 176.0)         # → 0.1229  (FEV1·Ht⁻³)
-miller.height_standardised(0.67, 176.0, power=2) # → 0.2163  (FEV1·Ht⁻²)
-
-df['FEV1Q']    = miller.compute(df, MILLER_2010.Parameters.FEV1Q)['FEV1Q']
-df['FEV1_HT3'] = miller.compute(df, MILLER_2010.Parameters.FEV1_HT3)['FEV1_HT3']
-```
-
-Height is passed in cm as everywhere else in the package and converted to metres internally. `FEV1·Ht⁻³` was the authors' preferred power and their second-best mortality predictor after FEV1Q, ahead of both % predicted and the standardised residual.
-
-> ⚠️ **No normative range exists for the height-standardised indices.** Miller & Pedersen publish no predicted value, LLN, centile or z-score for `FEV1·Ht⁻³` or `FEV1·Ht⁻²` — in the paper they are interpreted purely through a survival analysis, which this package does not implement. `height_standardised()` returns a size-corrected magnitude with nothing here to say whether it is normal. The paper's table 6 survival polynomials are omitted by design and should not be added without first resolving that they do not reproduce the paper's own worked examples in table 7 (the published median-survival coefficients over-predict every table 7 value, by +1.0 yr at Q=1.34 rising to +3.6 yr at Q=7.50).
+> ⚠️ **Not a replacement for reference equations.** The authors state that until the 1st percentiles are replicated in more diverse cohorts and against outcomes other than mortality, "physiological quotients cannot replace reference equation-based metrics"; the derivation cohorts were 95–97% White European.<br>
+> **FEV1/FVCQ** was **not** associated with mortality after adjustment (HR 0.99–1.01, p>0.4) and the authors judge it of little clinical benefit.<br>
+> **`DLCO_trad` and `KCO_trad`** are unit conversions performed by this package — the thresholds were published in SI units only.<br>
+> **The height-standardised indices have no normative range.** Miller & Pedersen publish no predicted value, LLN, centile or z-score for `FEV1·Ht⁻³` or `FEV1·Ht⁻²`; in the paper they are read purely through a survival analysis, which this package does not implement. The paper's table 6 survival polynomials are omitted by design — they do not reproduce the paper's own worked examples; see the class docstring.
 
 ---
 
@@ -475,10 +456,10 @@ stage = sev.classify(
 # → 'Mild', 'Moderate', 'Severe', or 'Inconclusive'
 ```
 
-### Physiological quotients (KNOX_BROWN_2026)
+### Physiological quotients (KNOX_BROWN_2026, MILLER_2010)
 
 ```python
-from pyspiro import KNOX_BROWN_2026, GLI_2017, GLI_2021
+from pyspiro import KNOX_BROWN_2026, MILLER_2010, GLI_2017, GLI_2021
 
 kbq = KNOX_BROWN_2026()
 P   = KNOX_BROWN_2026.Parameters
@@ -497,6 +478,19 @@ kbq.band(P.FEV1, 1.20, sex=0)       # → 3
 # Batch over a cohort
 df['FEV1Q'] = kbq.compute(df, P.FEV1, value_col='FEV1')['quotient']
 df['DLCOQ'] = kbq.compute(df, P.DLCO_SI, value_col='DLCO', sex_col=None)['quotient']
+```
+
+`MILLER_2010` follows the same API, and adds the height-standardised indices (height in cm as everywhere else, converted to metres internally):
+
+```python
+miller = MILLER_2010()
+M      = MILLER_2010.Parameters
+
+miller.quotient(M.FEV1Q, 1.20, sex=1)              # → 2.40  (same as kbq FEV1Q)
+miller.height_standardised(0.67, 176.0)            # → 0.1229  (FEV1·Ht⁻³)
+miller.height_standardised(0.67, 176.0, power=2)   # → 0.2163  (FEV1·Ht⁻²)
+
+df['FEV1_HT3'] = miller.compute(df, M.FEV1_HT3)['FEV1_HT3']
 ```
 
 `expressions()` reads one measurement three ways. Where the equation runs out of range the quotient is still defined:
@@ -666,7 +660,7 @@ fig = plot_quotient_centiles(
 )
 ```
 
-The quotient's `Parameters` member is resolved from the equation's by name. Pass `quotient_parameter=` where the names differ — `GLI_2017` calls the SI transfer factor `TLCO`, the quotient calls it `DLCO_SI`:
+Any `Quotient` implementation can be passed as the second argument. Its `Parameters` member is resolved from the equation's by name, with a `Q` suffix accepted — an equation's `FEV1` finds `MILLER_2010.Parameters.FEV1Q`. Pass `quotient_parameter=` where the names differ further; `GLI_2017` calls the SI transfer factor `TLCO`, the quotient calls it `DLCO_SI`:
 
 ```python
 fig = plot_quotient_centiles(
@@ -680,8 +674,6 @@ fig = plot_quotient_centiles(
 `bands=` overrides the horizontal grid (pass an empty sequence to omit it); `percentiles=`, `age_range=`, `figsize=` and `ax=` behave as in `plot_centile_curves()`.
 
 > **Read the falling curves carefully.** This is *not* a centile chart of the quotient — a quotient has no distribution, only a fixed denominator. The curves fall across age even though the denominator does not, because the underlying reference values fall. With GLI global (`BOWERMAN_2022`) for a 175 cm man, the lower limit of normal is FEV1Q ≈ 6.6 at age 20 and ≈ 3.5 at age 90: a fixed quotient is not a fixed centile. The 1st percentile is age-stable; the quotient it produces is not age-neutral to interpret.
-
----
 
 ---
 

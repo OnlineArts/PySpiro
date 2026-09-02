@@ -210,15 +210,16 @@ def plot_quotient_centiles(
     Args:
         equation: A pyspiro equation instance supplying the centiles
                   (e.g. BOWERMAN_2022(), GLI_2017(), GLI_2021()).
-        quotient: A quotient instance supplying the denominator
-                  (e.g. KNOX_BROWN_2026()).
+        quotient: A Quotient instance supplying the denominator
+                  (e.g. KNOX_BROWN_2026(), MILLER_2010()).
         sex (int): 0 = female, 1 = male.
         height (float): Height in cm.
         parameter: The equation's Parameters member (e.g. BOWERMAN_2022.Parameters.FEV1).
         quotient_parameter (optional): The quotient's Parameters member. If None,
-                  it is resolved from ``parameter`` by name. Pass it explicitly
-                  where the names differ -- GLI_2017 calls the SI transfer factor
-                  TLCO, the quotient calls it DLCO_SI.
+                  it is resolved from ``parameter`` by name, with a 'Q' suffix
+                  accepted (an equation's FEV1 finds MILLER_2010's FEV1Q). Pass it
+                  explicitly where the names differ further -- GLI_2017 calls the
+                  SI transfer factor TLCO, the quotient calls it DLCO_SI.
         ethnicity (int, optional): Ethnicity code, for equations that take one.
         age_range (tuple, optional): (min_age, max_age). Defaults to the
                   equation's own range.
@@ -262,7 +263,7 @@ def plot_quotient_centiles(
     # Resolve the quotient's own parameter member, by name unless given.
     if quotient_parameter is None:
         param_name = getattr(parameter, "name", None)
-        quotient_parameter = quotient.Parameters.__members__.get(param_name)
+        quotient_parameter = quotient.parameter_for(param_name)
         if quotient_parameter is None:
             raise ValueError(
                 f"cannot resolve a {type(quotient).__name__} parameter matching "

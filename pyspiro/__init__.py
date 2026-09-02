@@ -40,7 +40,8 @@ from .src.diffusion.GLI_2017 import GLI_2017
 from .src.volumes.GLI_2021 import GLI_2021
 from .src.oscillometry.SCHULZ_2013 import SCHULZ_2013
 from .src.oscillometry.CALOGERO_2013 import CALOGERO_2013
-# Physiological quotients — reference-equation-free, so not a Reference subclass
+# Physiological quotients — reference-equation-free, so Quotient rather than Reference
+from .src.quotients.quotient import Quotient
 from .src.quotients.KNOX_BROWN_2026 import KNOX_BROWN_2026
 from .src.quotients.MILLER_2010 import MILLER_2010
 from .src.classifiers.ATS_ERS_2022 import ATS_ERS_2022

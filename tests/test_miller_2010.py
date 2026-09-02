@@ -14,23 +14,28 @@ class TestPercentile1(unittest.TestCase):
         self.miller = MILLER_2010()
 
     def test_male(self):
-        self.assertEqual(self.miller.percentile1(1), 0.50)
+        self.assertEqual(self.miller.percentile1(P.FEV1Q, 1), 0.50)
 
     def test_female(self):
-        self.assertEqual(self.miller.percentile1(0), 0.40)
+        self.assertEqual(self.miller.percentile1(P.FEV1Q, 0), 0.40)
 
     def test_missing_sex(self):
-        self.assertTrue(pd.isna(self.miller.percentile1(None)))
+        self.assertTrue(pd.isna(self.miller.percentile1(P.FEV1Q, None)))
 
     def test_invalid_sex(self):
-        self.assertTrue(pd.isna(self.miller.percentile1(2)))
+        self.assertTrue(pd.isna(self.miller.percentile1(P.FEV1Q, 2)))
+
+    def test_height_indices_have_no_percentile(self):
+        # FEV1.Ht^-3 and FEV1.Ht^-2 are not quotients; there is no denominator.
+        self.assertTrue(pd.isna(self.miller.percentile1(P.FEV1_HT3, 1)))
+        self.assertTrue(pd.isna(self.miller.percentile1(P.FEV1_HT2, 1)))
 
     def test_matches_knox_brown_2026(self):
         # Knox-Brown et al. independently reproduced Miller's 1st percentiles;
         # the two classes must not drift apart.
         kbq = KNOX_BROWN_2026()
         for sex in (0, 1):
-            self.assertEqual(self.miller.percentile1(sex),
+            self.assertEqual(self.miller.percentile1(P.FEV1Q, sex),
                              kbq.percentile1(KNOX_BROWN_2026.Parameters.FEV1, sex))
 
 
@@ -45,43 +50,53 @@ class TestQuotient(unittest.TestCase):
 
     def test_reproduces_table_7(self):
         for fev1, sex, published in self.TABLE_7:
-            self.assertEqual(self.miller.quotient(fev1, sex), published)
+            self.assertEqual(self.miller.quotient(P.FEV1Q, fev1, sex), published)
 
     def test_male_and_female_differ_for_the_same_fev1(self):
-        self.assertEqual(self.miller.quotient(1.20, 1), 2.40)
-        self.assertEqual(self.miller.quotient(1.20, 0), 3.00)
+        self.assertEqual(self.miller.quotient(P.FEV1Q, 1.20, 1), 2.40)
+        self.assertEqual(self.miller.quotient(P.FEV1Q, 1.20, 0), 3.00)
 
     def test_quotient_of_one_at_the_first_percentile(self):
-        self.assertEqual(self.miller.quotient(0.50, 1), 1.00)
-        self.assertEqual(self.miller.quotient(0.40, 0), 1.00)
+        self.assertEqual(self.miller.quotient(P.FEV1Q, 0.50, 1), 1.00)
+        self.assertEqual(self.miller.quotient(P.FEV1Q, 0.40, 0), 1.00)
 
     def test_below_the_first_percentile(self):
-        self.assertEqual(self.miller.quotient(0.25, 1), 0.50)
+        self.assertEqual(self.miller.quotient(P.FEV1Q, 0.25, 1), 0.50)
+
+    def test_band_is_the_number_of_whole_turnovers(self):
+        self.assertEqual(self.miller.band(P.FEV1Q, 1.20, 0), 3)
+        self.assertEqual(self.miller.band(P.FEV1Q, 0.25, 1), 0)
 
     def test_agrees_with_knox_brown_2026(self):
         kbq = KNOX_BROWN_2026()
         for fev1 in (0.30, 0.50, 1.20, 2.50, 4.00):
             for sex in (0, 1):
                 self.assertEqual(
-                    self.miller.quotient(fev1, sex),
+                    self.miller.quotient(P.FEV1Q, fev1, sex),
                     kbq.quotient(KNOX_BROWN_2026.Parameters.FEV1, fev1, sex))
 
     # ── Invalid input ──────────────────────────────────────────────────────
 
     def test_missing_sex(self):
-        self.assertTrue(pd.isna(self.miller.quotient(1.20, None)))
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1Q, 1.20, None)))
 
     def test_none_fev1(self):
-        self.assertTrue(pd.isna(self.miller.quotient(None, 1)))
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1Q, None, 1)))
 
     def test_na_fev1(self):
-        self.assertTrue(pd.isna(self.miller.quotient(pd.NA, 1)))
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1Q, pd.NA, 1)))
 
     def test_negative_fev1(self):
-        self.assertTrue(pd.isna(self.miller.quotient(-1.0, 1)))
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1Q, -1.0, 1)))
 
     def test_non_numeric_fev1(self):
-        self.assertTrue(pd.isna(self.miller.quotient("abc", 1)))
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1Q, "abc", 1)))
+
+    def test_unknown_parameter(self):
+        self.assertTrue(pd.isna(self.miller.quotient(99, 1.20, 1)))
+
+    def test_height_index_is_not_a_quotient(self):
+        self.assertTrue(pd.isna(self.miller.quotient(P.FEV1_HT3, 1.20, 1)))
 
 
 class TestHeightStandardised(unittest.TestCase):
@@ -114,7 +129,7 @@ class TestHeightStandardised(unittest.TestCase):
         # FEV1Q ones; this keeps the two indices on their published relative scales.
         for fev1, sex, height in ((3.00, 1, 176.0), (1.20, 0, 163.0), (2.50, 1, 180.0)):
             ratio = (self.miller.height_standardised(fev1, height)
-                     / self.miller.quotient(fev1, sex))
+                     / self.miller.quotient(P.FEV1Q, fev1, sex))
             self.assertTrue(0.05 < ratio < 0.15, "ratio %.3f out of range" % ratio)
 
     # ── Invalid input ──────────────────────────────────────────────────────

@@ -3,8 +3,10 @@ from enum import Enum
 
 import pandas as pd
 
+from .quotient import Quotient
 
-class KNOX_BROWN_2026:
+
+class KNOX_BROWN_2026(Quotient):
     """
     Physiological quotients (Q) for spirometry, gas transfer and lung volumes.
 
@@ -28,8 +30,8 @@ class KNOX_BROWN_2026:
     GLI_2017 gas transfer runs to age 90 here, above the 85-year ceiling the authors
     report for their software.
 
-    This is not a reference equation.  It is deliberately not a Reference subclass:
-    there is no predicted median, no z-score and no limit of normal to take.  Use it
+    This is not a reference equation.  It is a Quotient, not a Reference: there is
+    no predicted median, no z-score and no limit of normal to take.  Use it
     alongside an equation, not instead of one -- see expressions().
 
     Consensus 1st percentile values (table 2)
@@ -98,12 +100,6 @@ class KNOX_BROWN_2026:
     # Highest quotient band used in the published Kaplan-Meier analyses (figures 3 and 4)
     MAX_BAND = 6
 
-    _silent = True
-
-    class Sex(Enum):
-        FEMALE = 0
-        MALE = 1
-
     class Parameters(Enum):
         FEV1 = 1
         FVC = 2
@@ -132,6 +128,9 @@ class KNOX_BROWN_2026:
         Parameters.KCO_SI.value:    0.40,
         Parameters.KCO_trad.value:  0.40 * SI_TO_TRADITIONAL,
     }
+
+    # FEV1/FVC is a fraction (0-1), consistent with the LMS equations in this package
+    _FRACTION_PARAMETERS = frozenset({Parameters.FEV1FVC.value})
 
     # Traditional-unit variants share the survival statistics of their SI counterpart
     _UNIT_ALIASES = {
@@ -331,145 +330,22 @@ class KNOX_BROWN_2026:
     }
 
     # ------------------------------------------------------------------
-    # Configuration
-    # ------------------------------------------------------------------
-
-    def set_silence(self, silent: bool):
-        """Suppress (True) or enable (False) input validation messages."""
-        self._silent = silent
-
-    def _warn(self, message: str):
-        if not self._silent:
-            print("KNOX_BROWN_2026: %s" % message)
-
-    # ------------------------------------------------------------------
-    # Input handling
-    # ------------------------------------------------------------------
-
-    def _resolve_parameter(self, parameter):
-        """Return the integer value of a Parameters member, or pd.NA if unknown."""
-        try:
-            return self.Parameters(getattr(parameter, "value", parameter)).value
-        except ValueError:
-            self._warn("unknown parameter %r; expected a Parameters member." % (parameter,))
-            return pd.NA
-
-    def _resolve_sex(self, sex):
-        """Return 0/1, or pd.NA if the code is missing or unrecognised."""
-        if sex is None or (not isinstance(sex, bool) and pd.isna(sex)):
-            return pd.NA
-        try:
-            return self.Sex(int(getattr(sex, "value", sex))).value
-        except (ValueError, TypeError):
-            self._warn("sex must be 0 (female) or 1 (male), got %r." % (sex,))
-            return pd.NA
-
-    # ------------------------------------------------------------------
     # Core API
     # ------------------------------------------------------------------
-
-    def is_sex_specific(self, parameter) -> bool:
-        """
-        Return True if the parameter has separate 1st percentiles for males and females.
-
-        True for FEV1, FVC, VA and TLC; False for FEV1/FVC, DLCO and KCO, whose 1st
-        percentiles were stable across sex as well as age.
-        """
-        return self._resolve_parameter(parameter) in self._PERCENTILE_1_BY_SEX
-
-    def percentile1(self, parameter, sex: int = None) -> float:
-        """
-        Return the consensus 1st percentile value used as the denominator of Q.
-
-        Parameters
-        ----------
-        parameter : Parameters member (or its integer value).
-        sex       : 0 = female, 1 = male.  Required for FEV1, FVC, VA and TLC;
-                    ignored for FEV1/FVC, DLCO and KCO.
-
-        Returns
-        -------
-        float, in the units of the requested parameter; pd.NA on invalid input.
-        """
-        param = self._resolve_parameter(parameter)
-        if param is pd.NA:
-            return pd.NA
-
-        if param in self._PERCENTILE_1_SEX_NEUTRAL:
-            return self._PERCENTILE_1_SEX_NEUTRAL[param]
-
-        code = self._resolve_sex(sex)
-        if code is pd.NA:
-            self._warn("%s has sex-specific 1st percentiles; pass sex=0 or sex=1."
-                       % self.Parameters(param).name)
-            return pd.NA
-        return self._PERCENTILE_1_BY_SEX[param][code]
-
-    def quotient(self, parameter, value: float, sex: int = None) -> float:
-        """
-        Return the physiological quotient Q = measured value / 1st percentile.
-
-        A 62-year-old woman with an FEV1 of 1.20 L has an FEV1Q of 3.00 (1.20/0.40);
-        the same value in a man gives 2.40 (1.20/0.50).
-
-        Parameters
-        ----------
-        parameter : Parameters member (or its integer value).
-        value     : the measured value, in the units of that parameter.  FEV1/FVC is
-                    a fraction (0-1); values above 1 are rejected.
-        sex       : 0 = female, 1 = male.  Required for FEV1, FVC, VA and TLC.
-
-        Returns
-        -------
-        float, rounded to 2 decimal places; pd.NA on invalid input.
-        """
-        param = self._resolve_parameter(parameter)
-        if param is pd.NA:
-            return pd.NA
-
-        if value is None or pd.isna(value):
-            return pd.NA
-        try:
-            value = float(value)
-        except (TypeError, ValueError):
-            self._warn("value must be numeric, got %r." % (value,))
-            return pd.NA
-
-        if value < 0:
-            self._warn("value must not be negative, got %.2f." % value)
-            return pd.NA
-        if param == self.Parameters.FEV1FVC.value and value > 1:
-            self._warn("FEV1/FVC must be a fraction (0-1), got %.2f; %.2f%% would be %.2f."
-                       % (value, value, value / 100))
-            return pd.NA
-
-        denominator = self.percentile1(param, sex)
-        if denominator is pd.NA:
-            return pd.NA
-        return round(value / denominator, 2)
-
-    def band(self, parameter, value: float, sex: int = None) -> int:
-        """
-        Return the integer quotient band used in the published survival curves.
-
-        The Kaplan-Meier analyses (figures 3 and 4) grouped patients by whole
-        quotients from 1 to 6 -- the number of complete "turnovers" a measurement
-        sits above the minimally survivable value.  This returns floor(Q), capped at
-        MAX_BAND, with 0 meaning the measurement is at or below the 1st percentile.
-
-        The paper attaches no severity labels to these bands, and this method
-        deliberately does not invent any.  For orientation, in the COPD cohort a
-        FEV1Q, DLCOQ or VAQ of 2 corresponded to roughly 70% 5-year survival; in the
-        ILD cohort an FVCQ of 2 to roughly 60% and a DLCOQ of 2 to roughly 50%.
-
-        Returns
-        -------
-        int in 0..MAX_BAND; pd.NA on invalid input.
-        """
-        q = self.quotient(parameter, value, sex)
-        if q is pd.NA:
-            return pd.NA
-        return min(int(q), self.MAX_BAND)
+    #
+    # percentile1(), quotient() and band() are inherited from Quotient; the tables
+    # above are all this paper adds to them.  In this class:
+    #
+    #   percentile1()  needs sex for FEV1, FVC, VA and TLC, and ignores it for
+    #                  FEV1/FVC, DLCO and KCO, whose 1st percentiles were stable
+    #                  across sex as well as age.
+    #   band()         is the whole-quotient grouping of the Kaplan-Meier analyses
+    #                  (figures 3 and 4), 0 to MAX_BAND.  The paper attaches no
+    #                  severity labels to these bands and neither does this class.
+    #                  For orientation, in the COPD cohort a FEV1Q, DLCOQ or VAQ of
+    #                  2 corresponded to roughly 70% 5-year survival; in the ILD
+    #                  cohort an FVCQ of 2 to roughly 60% and a DLCOQ of 2 to
+    #                  roughly 50%.
 
     # ------------------------------------------------------------------
     # Batch API

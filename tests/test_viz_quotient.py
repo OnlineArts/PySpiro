@@ -10,7 +10,8 @@ try:
 except ImportError:
     matplotlib_available = False
 
-from pyspiro import BOWERMAN_2022, GLI_2012, GLI_2017, GLI_2021, KNOX_BROWN_2026
+from pyspiro import (BOWERMAN_2022, GLI_2012, GLI_2017, GLI_2021,
+                     KNOX_BROWN_2026, MILLER_2010)
 from pyspiro.src.viz import plot_quotient_centiles
 
 
@@ -159,6 +160,23 @@ class TestPlotQuotientCentiles(unittest.TestCase):
         fig = plot_quotient_centiles(BOWERMAN_2022(), self.quotient, sex=1, height=175,
                                      parameter=BOWERMAN_2022.Parameters.FEV1FVC)
         self.assertIn("0.15", fig.axes[0].get_ylabel())
+
+    # ── Other quotients ────────────────────────────────────────────────────
+
+    def test_accepts_any_quotient_implementation(self):
+        # MILLER_2010 names its member FEV1Q; the equation's FEV1 still resolves.
+        fig = plot_quotient_centiles(BOWERMAN_2022(), MILLER_2010(), sex=1, height=175,
+                                     parameter=BOWERMAN_2022.Parameters.FEV1)
+        self.assertIn("0.50", fig.axes[0].get_ylabel())
+        self.assertIn("MILLER_2010", fig.axes[0].get_title())
+
+    def test_the_two_quotients_draw_the_same_fev1_curve(self):
+        shared = dict(sex=0, height=163, parameter=BOWERMAN_2022.Parameters.FEV1,
+                      percentiles=[50], bands=[])
+        knox = plot_quotient_centiles(BOWERMAN_2022(), KNOX_BROWN_2026(), **shared)
+        miller = plot_quotient_centiles(BOWERMAN_2022(), MILLER_2010(), **shared)
+        np.testing.assert_allclose(knox.axes[0].get_lines()[0].get_ydata(),
+                                   miller.axes[0].get_lines()[0].get_ydata())
 
 
 if __name__ == "__main__":
