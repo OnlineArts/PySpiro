@@ -174,6 +174,7 @@ RAMSEY_2024 uses the GAMLSS BCCG model with age-dependent spline corrections fro
 | Class | Basis | Parameters | Publication |
 |---|---|---|---|
 | `KNOX_BROWN_2026` | 1st percentile ("minimally survivable") values from 13 771 UK hospital patients | FEV1, FVC, FEV1/FVC, DLCO, KCO, VA, TLC | Knox-Brown et al. 2026, DOI: [10.1183/13993003.02204-2025](https://doi.org/10.1183/13993003.02204-2025) |
+| `MILLER_2010` | The original derivation, from 26 967 subjects; plus height-standardised FEV1 | FEV1Q, FEV1·Ht⁻³, FEV1·Ht⁻² | Miller & Pedersen 2010, DOI: [10.1183/09031936.00110809](https://doi.org/10.1183/09031936.00110809) |
 
 A physiological quotient expresses a measurement as a multiple of the 1st percentile value observed in a hospital lung function population:
 
@@ -196,6 +197,29 @@ Introduced for FEV1 by Miller and Pedersen (2010) and extended to six further me
 `KNOX_BROWN_2026` is **not** a `Reference` subclass — there is no predicted median, z-score or limit of normal to take. It exposes `percentile1()`, `quotient()`, `band()`, a vectorised `compute()`, and `expressions()` for reading one measurement as quotient, % predicted and z-score side by side. The published survival statistics are available as data: `hazard_ratio()` (table 4 and supplementary table S3, including Harrell's C-index) and `cohort_reference()` (supplementary tables S1–S2).
 
 > ⚠️ **Not a replacement for reference equations.** The authors state that until the 1st percentiles are replicated in more diverse cohorts and against outcomes other than mortality, "physiological quotients cannot replace reference equation-based metrics". The derivation cohorts were 95–97% White European. FEV1/FVCQ was **not** associated with mortality after adjustment (HR 0.99–1.01, p>0.4) and the authors judge it of little clinical benefit. DLCO/KCO thresholds were published in SI units only; the `DLCO_trad` and `KCO_trad` parameters are unit conversions performed by this package, not published values.
+
+### `MILLER_2010` — the original quotient, and height-standardised FEV1
+
+Miller & Pedersen introduced the physiological quotient using 26 967 subjects (Copenhagen City Heart Study, a COPD cohort, and hospital lung function patients). Their FEV1 1st percentiles — 0.50 L male, 0.40 L female — are the same values Knox-Brown et al. reproduced in 2026, so `MILLER_2010.quotient()` and `KNOX_BROWN_2026.quotient(…FEV1…)` agree exactly. Use `KNOX_BROWN_2026` for anything beyond FEV1.
+
+What `MILLER_2010` adds is the paper's second proposal: standardising FEV1 by body size rather than by a predicted value.
+
+```python
+from pyspiro import MILLER_2010
+
+miller = MILLER_2010()
+
+miller.quotient(1.20, sex=1)                    # → 2.40  (FEV1Q, 1.20 / 0.50 L)
+miller.height_standardised(0.67, 176.0)         # → 0.1229  (FEV1·Ht⁻³)
+miller.height_standardised(0.67, 176.0, power=2) # → 0.2163  (FEV1·Ht⁻²)
+
+df['FEV1Q']    = miller.compute(df, MILLER_2010.Parameters.FEV1Q)['FEV1Q']
+df['FEV1_HT3'] = miller.compute(df, MILLER_2010.Parameters.FEV1_HT3)['FEV1_HT3']
+```
+
+Height is passed in cm as everywhere else in the package and converted to metres internally. `FEV1·Ht⁻³` was the authors' preferred power and their second-best mortality predictor after FEV1Q, ahead of both % predicted and the standardised residual.
+
+> ⚠️ **No normative range exists for the height-standardised indices.** Miller & Pedersen publish no predicted value, LLN, centile or z-score for `FEV1·Ht⁻³` or `FEV1·Ht⁻²` — in the paper they are interpreted purely through a survival analysis, which this package does not implement. `height_standardised()` returns a size-corrected magnitude with nothing here to say whether it is normal. The paper's table 6 survival polynomials are omitted by design and should not be added without first resolving that they do not reproduce the paper's own worked examples in table 7 (the published median-survival coefficients over-predict every table 7 value, by +1.0 yr at Q=1.34 rising to +3.6 yr at Q=7.50).
 
 ---
 

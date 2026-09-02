@@ -42,6 +42,7 @@ from .src.oscillometry.SCHULZ_2013 import SCHULZ_2013
 from .src.oscillometry.CALOGERO_2013 import CALOGERO_2013
 # Physiological quotients — reference-equation-free, so not a Reference subclass
 from .src.quotients.KNOX_BROWN_2026 import KNOX_BROWN_2026
+from .src.quotients.MILLER_2010 import MILLER_2010
 from .src.classifiers.ATS_ERS_2022 import ATS_ERS_2022
 from .src.classifiers.LF_SEVERITY_2022 import LF_SEVERITY_2022
 from .src.classifiers.BDR_2022 import BDR_2022
