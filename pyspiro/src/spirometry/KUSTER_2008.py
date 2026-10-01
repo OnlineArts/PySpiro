@@ -110,7 +110,7 @@ class KUSTER_2008(Reference):
                     m = np.exp( -2.227 + 0.812 * np.log(height) + 0.00977 * (age) - 0.000132 * (age ** 2) )
                 case self.Parameters.MEF50:
                     # MEF50 L·s−1 = exp(-3.055+0.911 ln(H)+0.00249A-0.000109A2)
-                    m = np.exp( -3.055 + 0.911 * np.log(height) - 0.00249 * (age) - 0.000109 * (age ** 2) )
+                    m = np.exp( -3.055 + 0.911 * np.log(height) + 0.00249 * (age) - 0.000109 * (age ** 2) )
                 case self.Parameters.MEF25:
                     # MEF25 L·s−1 = exp(-3.970+1.009 ln(H)-0.01645A-0.000020A2)
                     m = np.exp( -3.970 + 1.009 * np.log(height) - 0.01645 * (age) -0.000020 * (age ** 2) )

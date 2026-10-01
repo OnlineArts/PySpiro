@@ -120,5 +120,32 @@ class TestKuster2008OutOfRange(unittest.TestCase):
         self.assertTrue(pd.isna(result))
 
 
+
+class TestKuster2008PublishedEquations(unittest.TestCase):
+    """Predicted values re-evaluated from the published equations (Kuster et al. 2008).
+
+    Guards the sign of every age coefficient; the male MEF50 age term was
+    previously transcribed as -0.00249 A instead of +0.00249 A.
+    """
+
+    def setUp(self):
+        self.k = KUSTER_2008()
+
+    def _pred(self, sex, param):
+        # value 1000 makes the 2-decimal rounding of percent() negligible
+        return 1000.0 / (self.k.percent(sex, 40, 175, 0, param, 1000.0) / 100.0)
+
+    def test_male_mef50_predicted(self):
+        # MEF50 = exp(-3.055 + 0.911 ln(H) + 0.00249 A - 0.000109 A^2), H = 175, A = 40
+        self.assertAlmostEqual(self._pred(M, KUSTER_2008.Parameters.MEF50), 4.8322878103, places=4)
+
+    def test_male_mef50_increases_slightly_until_midlife(self):
+        # with a positive linear age term the male MEF50 predicted value peaks near
+        # A = 0.00249 / (2 * 0.000109) ~ 11 y, so 18 y > 40 y > 70 y
+        p = KUSTER_2008.Parameters.MEF50
+        v = [self.k.percent(M, a, 175, 0, p, 1000.0) for a in (18, 40, 70)]
+        self.assertLess(v[0], v[1])
+        self.assertLess(v[1], v[2])
+
 if __name__ == "__main__":
     unittest.main()
