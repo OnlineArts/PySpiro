@@ -1,3 +1,4 @@
+import math
 import unittest
 import pandas as pd
 from pyspiro import GLI_2021
@@ -142,6 +143,80 @@ class TestGLI2021ReferenceValues(unittest.TestCase):
         z = float(self.gli.zscore(M, 40, 175, GLI_2021.Parameters.RV_TLC, 30.0))
         self.assertTrue(-1.0 < z < 3.0)
 
+
+
+class TestGLI2021Table3Exact(unittest.TestCase):
+    """
+    Exact check against Hall et al. 2021 (ERJ 57:2000289), Table 3, evaluated by
+    hand with the age-varying Mspline/Sspline values of the published look-up
+    tables (supplementary material 2, inline-supplementary-material-2.xlsx).
+    All seven indices, male 40 y 175 cm and female 60 y 162 cm. The coefficients
+    and spline values below are literals copied from the paper/workbook, so the
+    test does not depend on pyspiro/data.
+
+    Note: Supplement 1, table S3 lists RV = 1.533 L for a 40-year-old 175 cm male,
+    whereas Table 3 with the published look-up table gives 1.5526 L, and the
+    official GLI calculator returns 1.553 L for the same input. The table S3 value
+    is therefore a probable typographical error (1.553 -> 1.533). PySpiro follows
+    Table 3.
+    """
+
+    # (M equation, S equation, L) from Table 3; ms/ss = Mspline/Sspline at the case age
+    CASES = [
+        # sex, age, height, parameter, M(age, ht, ms), S(age, ss), L, ms, ss
+        (M, 40, 175, "FRC", lambda a, h, ms: math.exp(-13.4898 + 0.1111 * math.log(a) + 2.7634 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.60197 + 0.01513 * math.log(a) + ss), 0.3416,
+         -0.0346783008046163, 0.0271613631819752),
+        (M, 40, 175, "TLC", lambda a, h, ms: math.exp(-10.5861 + 0.1433 * math.log(a) + 2.3155 * math.log(h) + ms),
+         lambda a, ss: math.exp(-2.0616143 - 0.0008534 * a + ss), 0.9337,
+         0.0318859822724828, -0.0469374292404532),
+        (M, 40, 175, "RV", lambda a, h, ms: math.exp(-2.37211 + 0.01346 * a + 0.01307 * h + ms),
+         lambda a, ss: math.exp(-0.878572 - 0.007032 * a + ss), 0.5931,
+         -0.0136063778815025, -0.00636014426010312),
+        (M, 40, 175, "RV_TLC", lambda a, h, ms: math.exp(2.634 + 0.01302 * a - 0.00008862 * h + ms),
+         lambda a, ss: math.exp(-0.96804 - 0.01004 * a + ss), 0.8646,
+         -0.0343075571987033, -0.00404147561534751),
+        (M, 40, 175, "ERV", lambda a, h, ms: math.exp(-17.328650 - 0.006288 * a + 3.478116 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.307616 + 0.009177 * a), 0.5517, 0.0279636177678171, 0.0),
+        (M, 40, 175, "IC", lambda a, h, ms: math.exp(-10.121688 + 0.001265 * a + 2.188801 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.856546 + 0.002008 * a), 1.146, 0.0865356453467374, 0.0),
+        (M, 40, 175, "VC", lambda a, h, ms: math.exp(-10.134371 - 0.003532 * a + 2.307980 * math.log(h) + ms),
+         lambda a, ss: math.exp(-2.1367411 + 0.0009367 * a), 0.8611, 0.0362506609552984, 0.0),
+        (F, 60, 162, "FRC", lambda a, h, ms: math.exp(-12.7674 + 0.1251 * math.log(a) + 2.6049 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.48310 - 0.03372 * math.log(a) + ss), 0.2898,
+         -0.00867006307005092, 0.00114727066128206),
+        (F, 60, 162, "TLC", lambda a, h, ms: math.exp(-10.1128 + 0.1062 * math.log(a) + 2.2259 * math.log(h) + ms),
+         lambda a, ss: math.exp(-2.0999321 + 0.0001564 * a + ss), 0.4636,
+         -0.0232888415469912, -0.00339370668009664),
+        (F, 60, 162, "RV", lambda a, h, ms: math.exp(-2.50593 + 0.01307 * a + 0.01379 * h + ms),
+         lambda a, ss: math.exp(-0.902550 - 0.006005 * a + ss), 0.4197,
+         0.023598070842455, -0.0404415051253932),
+        (F, 60, 162, "RV_TLC", lambda a, h, ms: math.exp(2.666 + 0.01411 * a - 0.00003689 * h + ms),
+         lambda a, ss: math.exp(-0.976602 - 0.009679 * a + ss), 0.8037,
+         -0.00186003227991938, -0.0247551739326295),
+        (F, 60, 162, "ERV", lambda a, h, ms: math.exp(-14.145513 - 0.009573 * a + 2.871446 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.54992 + 0.01409 * a), 0.5326, -0.0717122533204559, 0.0),
+        (F, 60, 162, "IC", lambda a, h, ms: math.exp(-9.4438787 - 0.0002484 * a + 2.0312769 * math.log(h) + ms),
+         lambda a, ss: math.exp(-1.775276 + 0.002673 * a), 0.9726, 0.0208265870779449, 0.0),
+        (F, 60, 162, "VC", lambda a, h, ms: math.exp(-9.230600 - 0.005517 * a + 2.116822 * math.log(h) + ms),
+         lambda a, ss: math.exp(-2.220260 + 0.002956 * a), 1.038, 0.00949220131507822, 0.0),
+    ]
+
+    def setUp(self):
+        self.gli = GLI_2021()
+
+    def test_lms_matches_table3(self):
+        for sex, age, h, p, m_eq, s_eq, l_ref, ms, ss in self.CASES:
+            with self.subTest(sex=sex, parameter=p):
+                l, m, s = self.gli.lms(sex, age, h, GLI_2021.Parameters[p], 0)
+                self.assertAlmostEqual(float(m), m_eq(age, h, ms), places=10)
+                self.assertAlmostEqual(float(s), s_eq(age, ss), places=10)
+                self.assertAlmostEqual(float(l), l_ref, places=10)
+
+    def test_rv_male_40_175_predicted(self):
+        # Table 3 by hand: exp(-2.37211 + 0.01346*40 + 0.01307*175 - 0.0136063778815025)
+        m = self.gli.lms(M, 40, 175, GLI_2021.Parameters.RV, 0)[1]
+        self.assertAlmostEqual(float(m), 1.5526041565, places=8)
 
 if __name__ == "__main__":
     unittest.main()
