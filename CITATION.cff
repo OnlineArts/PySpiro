@@ -7,12 +7,12 @@ authors:
   - family-names: Pott
     given-names: Hendrik
     email: hendrik.pott@uni-marburg.de
-    affiliation: "University of Marburg"
+    affiliation: "Marburg University"
     orcid: "https://orcid.org/0000-0002-6842-143X"
   - family-names: Schmeck
     given-names: Bernd
     email: bernd.schmeck@uni-marburg.de
-    affiliation: "University of Marburg"
+    affiliation: "Marburg University"
     orcid: "https://orcid.org/0000-0002-2767-3606"
   - family-names: Heider
     given-names: Dominik
@@ -24,7 +24,7 @@ authors:
     email: roman.martin@uni-muenster.de
     affiliation: "University of Münster"
     orcid: "https://orcid.org/0000-0001-7678-7856"
-version: 0.9.3
+version: 0.9.4
 identifiers:
   - type: doi
     value: 10.5281/zenodo.15519193
