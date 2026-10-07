@@ -1,3 +1,5 @@
+import warnings
+
 import pandas as pd
 
 from ..reference import Classifier
@@ -65,6 +67,13 @@ class PCD_SEVERITY(Classifier):
 
     # nNO diagnostic cut-off (ppb, Wodehouse 2003)
     NNO_PCD_CUTOFF = 200
+
+    def __init__(self):
+        warnings.warn(
+            "PCD_SEVERITY is experimental: its combination logic and the severe thresholds "
+            "(LCI z > 3.0, FEV1 z < -2.5) are custom and it is not a validated staging system.",
+            UserWarning, stacklevel=2)
+        super().__init__()
 
     def classify(self, **kwargs):
         """

@@ -208,17 +208,19 @@ Both classes derive from `Quotient`, **not** `Reference`: there is no predicted 
 
 | Class | Basis | Stages / outputs |
 |---|---|---|
-| `ATS_ERS_2022` | FEV1/FVC, FVC, FEV1, TLC z-scores | Normal / Obstructive / Restrictive / Mixed / Non-specific |
+| `ATS_ERS_2022` | FEV1/FVC, FVC, FEV1, TLC z-scores | Normal / Obstructive / Restrictive / Mixed / Non-specific pattern |
 | `LF_SEVERITY_2022` | Any lung function z-score (parameter-agnostic) | Normal / Mild / Moderate / Severe |
 | `BDR_2022` | Pre/post FEV1 and/or FVC vs predicted | Positive (FEV1) / Positive (FVC) / Positive (FEV1 and FVC) / Negative |
 | `GOLD` | FEV1 % predicted (COPD) | I–IV (mild to very severe) |
 | `GOLD_ABE` | Exacerbation history + CAT / mMRC (COPD) | A / B / E |
-| `ECOPD_ROME_2021` | ABG (PaCO2, pH) + dyspnea VAS, RR, HR, SaO2, CRP (COPD exacerbation) | Mild / Moderate / Severe |
+| `ECOPD_ROME_2021` | Dyspnea VAS, respiratory rate, heart rate, SaO2 (or change from baseline), CRP, PaCO2, pH (COPD exacerbation) | Mild / Moderate / Severe |
 | `STAR` | FEV1/FVC ratio (COPD) | I–IV (mild to very severe) |
 | `BODE` | BMI + FEV1 % predicted + mMRC + 6MWT (COPD) | Score 0–10, Quartiles 1–4 |
 | `GAP` | Sex + Age + FVC % predicted + DLCO % predicted (IPF) | Score 0–8, Stages I–III |
 | `WODEHOUSE_2003` | nNO in ppb (PCD screening) | PCD range / Normal |
 | `PCD_SEVERITY` ⚠️ | LCI z-score + FEV1 z-score + nNO (PCD monitoring) | Mild / Moderate / Severe / Inconclusive |
+
+10 published classifiers; `PCD_SEVERITY` is experimental (`UserWarning` on instantiation).
 
 > ⚠️ **`PCD_SEVERITY` is experimental.** No PCD-specific severity staging system is currently endorsed by the ERS, ATS, or any other professional society. The combination logic and the specific thresholds used here (LCI z > 3.0 for severe; FEV1 z < −2.5 for severe) are custom-designed and have not been externally validated or peer-reviewed as a staging instrument. The cited references (Ramsey 2024, Wodehouse 2003) support the individual input parameters but do not define this combined staging scheme. Use for exploratory research only.
 

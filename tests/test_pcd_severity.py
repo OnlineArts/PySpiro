@@ -4,15 +4,30 @@ Tests for PCD_SEVERITY classifier.
 
 import sys
 import unittest
+import warnings
 
 sys.path.insert(0, '/media/veracrypt1/Projekte/PySpiro')
 from pyspiro.src.classifiers.PCD_SEVERITY import PCD_SEVERITY
 
 
+def _classifier():
+    """PCD_SEVERITY instance without its experimental-use UserWarning."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        return PCD_SEVERITY()
+
+
+class TestPCDSeverityWarning(unittest.TestCase):
+
+    def test_instantiation_warns_experimental(self):
+        with self.assertWarns(UserWarning):
+            PCD_SEVERITY()
+
+
 class TestPCDSeverityMild(unittest.TestCase):
 
     def setUp(self):
-        self.c = PCD_SEVERITY()
+        self.c = _classifier()
 
     def test_mild_normal_lci_normal_fev1(self):
         result = self.c.classify(lci_zscore=0.5, fev1_zscore=-0.5)
@@ -39,7 +54,7 @@ class TestPCDSeverityMild(unittest.TestCase):
 class TestPCDSeverityModerate(unittest.TestCase):
 
     def setUp(self):
-        self.c = PCD_SEVERITY()
+        self.c = _classifier()
 
     def test_moderate_lci_above_uln(self):
         result = self.c.classify(lci_zscore=2.0)
@@ -78,7 +93,7 @@ class TestPCDSeverityModerate(unittest.TestCase):
 class TestPCDSeveritySevere(unittest.TestCase):
 
     def setUp(self):
-        self.c = PCD_SEVERITY()
+        self.c = _classifier()
 
     def test_severe_lci_markedly_elevated(self):
         result = self.c.classify(lci_zscore=4.0)
@@ -112,7 +127,7 @@ class TestPCDSeveritySevere(unittest.TestCase):
 class TestPCDSeverityInconclusive(unittest.TestCase):
 
     def setUp(self):
-        self.c = PCD_SEVERITY()
+        self.c = _classifier()
 
     def test_inconclusive_no_data(self):
         result = self.c.classify()
@@ -145,7 +160,7 @@ class TestPCDSeverityNnoEffect(unittest.TestCase):
     """nNO < 200 ppb should not override severity grading."""
 
     def setUp(self):
-        self.c = PCD_SEVERITY()
+        self.c = _classifier()
 
     def test_nno_low_does_not_change_mild(self):
         result = self.c.classify(lci_zscore=0.5, nno_ppb=50)
@@ -178,7 +193,7 @@ class TestPCDSeverityThresholds(unittest.TestCase):
         self.assertEqual(PCD_SEVERITY.NNO_PCD_CUTOFF, 200)
 
     def test_order(self):
-        c = PCD_SEVERITY()
+        c = _classifier()
         self.assertEqual(c.get_order(), ['Mild', 'Moderate', 'Severe', 'Inconclusive'])
 
 
