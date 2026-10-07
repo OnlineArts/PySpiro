@@ -685,4 +685,4 @@ fig = plot_quotient_centiles(
 
 If you use pyspiro in your research, please cite:
 
-> Hendrik Pott, Roman Martin. pyspiro v0.9.4. doi:10.5281/zenodo.15519193
+> Hendrik Pott, Roman Martin. pyspiro v1.0.0. doi:10.5281/zenodo.15519193
