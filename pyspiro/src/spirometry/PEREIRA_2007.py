@@ -1,11 +1,9 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import math
 import pandas as pd
 
 
-class PEREIRA_2007(Reference):
+class PEREIRA_2007(RegressionReference):
     """
     Pereira et al. (2007) spirometry reference equations for White adults in Brazil.
 
@@ -82,57 +80,46 @@ class PEREIRA_2007(Reference):
 
     _WEIGHT_PARAMS = ('FVC_WT', 'FEV6_WT', 'FEV1_WT')
 
-    def __init__(self):
-        self._age_range = (20, 86)
-        with (importlib.resources.files('pyspiro.data') / 'pereira_2007_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = (20, 86)
+    _coeffs_csv = 'pereira_2007_coefficients.csv'
 
-    def _compute_raw(self, sex: int, age: float, height: float, weight, parameter: int):
-        """Return (predicted, lln, is_log) or (pd.NA, pd.NA, False)."""
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         male = sex == self.Sex.MALE.value
         sex_name = self.Sex(sex).name.lower()
 
         if param_name in self._WEIGHT_PARAMS and weight is None:
-            return pd.NA, pd.NA, False
+            return RegressionResult.missing()
 
-        age = self.validate_range(
+        age, na = self._validated(
             age, self._AGE_RANGE_MALE if male else self._AGE_RANGE_FEMALE, 'age')
-        if age is pd.NA:
-            return pd.NA, pd.NA, False
-
-        height = self.validate_range(
-            height, self._HEIGHT_RANGE_MALE if male else self._HEIGHT_RANGE_FEMALE, 'height')
-        if height is pd.NA:
-            return pd.NA, pd.NA, False
+        height, na = self._validated(
+            height, self._HEIGHT_RANGE_MALE if male else self._HEIGHT_RANGE_FEMALE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         # The female half of the CSV carries no _WT rows: weight did not influence
         # predicted volumes in females, so those models were never derived.
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA, pd.NA, False
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
         a0, a_ht, a_age, a_wt, lln = (
             float(row['a0']), float(row['a_ht']), float(row['a_age']),
             float(row['a_wt']), float(row['lln']))
-
         if row['kind'] == 'log':
-            pred = math.exp(a0 + a_ht * math.log(height) + a_age * math.log(age))
-            return pred, pred * lln, True
-
-        pred = a0 + a_ht * height + a_age * age + a_wt * (weight or 0.0)
-        return pred, pred - lln, False
+            pred = self._exp(a0 + a_ht * self._log(height) + a_age * self._log(age))
+            return RegressionResult(pred, lln=pred * lln, na=na)
+        pred = a0 + a_ht * height + a_age * age + a_wt * (0.0 if weight is None else weight)
+        return RegressionResult(pred, lln=pred - lln, na=na)
 
     def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        pred, _, _ = self._compute_raw(sex, age, height, weight, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
+        return self._percent(self._scalar_regression(sex, age, height, ethnicity, weight, parameter), value)
 
     def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        _, lln, _ = self._compute_raw(sex, age, height, weight, parameter)
-        return lln
+        return self._lln(self._scalar_regression(sex, age, height, ethnicity, weight, parameter))
 
     def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
         """Not available — no SEE or residual SD was published."""

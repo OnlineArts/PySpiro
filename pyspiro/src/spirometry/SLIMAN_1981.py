@@ -1,10 +1,9 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
-import importlib.resources
 import pandas
 
 
-class SLIMAN_1981(Reference):
+class SLIMAN_1981(RegressionReference):
     """
     Jordanian spirometry reference equations (Sliman, Dajani & Dajani 1981).
 
@@ -45,34 +44,30 @@ class SLIMAN_1981(Reference):
     _AGE_RANGE    = (20, 60)
     _HEIGHT_RANGE = (140, 190)
 
-    def __init__(self):
-        self._coefficients = self._load_coefficients()
-        self._age_range    = self._AGE_RANGE
-        self._height_range = self._HEIGHT_RANGE
+    _age_range = _AGE_RANGE
+    _height_range = _HEIGHT_RANGE
 
-    def _load_coefficients(self) -> pandas.DataFrame:
-        pkg = importlib.resources.files('pyspiro.data')
-        with (pkg / 'sliman_1981_coefficients.csv').open('rb') as f:
-            df = pandas.read_csv(f, delimiter=';')
-        return df.set_index(['sex', 'parameter'])
+    _coeffs_csv = 'sliman_1981_coefficients.csv'
+    _coeffs_index = ('sex', 'parameter')
 
-    def _predicted_sd(self, sex: int, age: float, height: float, parameter: int):
-        """Return (predicted, sd) or (pandas.NA, pandas.NA) if out of range."""
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pandas.NA:
-            return pandas.NA, pandas.NA
-        height = self.validate_range(height, self._HEIGHT_RANGE, 'height')
-        if height is pandas.NA:
-            return pandas.NA, pandas.NA
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
+        height, na = self._validated(height, self._HEIGHT_RANGE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         param_name = self.Parameters(parameter).name
-        row = self._coefficients.loc[(int(sex), param_name)]
+        row = self._row((int(sex), param_name), required=True)
         predicted = (
-            float(row['height_coef']) * float(height)
-            + float(row['age_coef']) * float(age)
+            float(row['height_coef']) * height
+            + float(row['age_coef']) * age
             + float(row['intercept'])
         )
-        return predicted, float(row['sd'])
+        sd = float(row['sd'])
+        return RegressionResult(predicted, lln=predicted - 1.645 * sd, uln=predicted + 1.645 * sd,
+                                center=predicted, scale=sd, na=na)
 
     def lms(self, sex, age, height, parameter=None, value=None):
         """Not applicable — SLIMAN_1981 is a linear regression, not an LMS model."""
@@ -80,27 +75,21 @@ class SLIMAN_1981(Reference):
 
     def percent(self, sex, age, height, parameter=None, value=None):
         """Return measured value as % of the predicted value."""
-        pred, _ = self._predicted_sd(sex, age, height, parameter)
-        return pandas.NA if pred is pandas.NA else round(value / pred * 100, 2)
+        return self._percent(self._scalar_regression(sex, age, height, None, None, parameter), value)
 
     def zscore(self, sex, age, height, parameter=None, value=None):
         """Return z-score: (value - predicted) / SD."""
-        pred, sd = self._predicted_sd(sex, age, height, parameter)
-        if pred is pandas.NA:
-            return pandas.NA
-        return (value - pred) / sd
+        return self._zscore(self._scalar_regression(sex, age, height, None, None, parameter), value)
 
     def lln(self, sex, age, height, parameter=None):
         """Return lower limit of normal (predicted - 1.645 * SD)."""
-        pred, sd = self._predicted_sd(sex, age, height, parameter)
-        return pandas.NA if pred is pandas.NA else pred - 1.645 * sd
+        return self._lln(self._scalar_regression(sex, age, height, None, None, parameter))
 
     def uln(self, sex, age, height, parameter=None):
         """Return upper limit of normal (predicted + 1.645 * SD)."""
-        pred, sd = self._predicted_sd(sex, age, height, parameter)
-        return pandas.NA if pred is pandas.NA else pred + 1.645 * sd
+        return self._uln(self._scalar_regression(sex, age, height, None, None, parameter))
 
     def predicted(self, sex, age, height, parameter=None):
         """Return the predicted value for the given inputs."""
-        pred, _ = self._predicted_sd(sex, age, height, parameter)
-        return pred
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        return pandas.NA if r is None else r.pred

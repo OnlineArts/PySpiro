@@ -1,10 +1,9 @@
-from ..reference import Reference
+from ..reference import CentileLookupReference
 from enum import Enum
-import importlib.resources
-import pandas
+import numpy
 
 
-class LOELOE_2025(Reference):
+class LOELOE_2025(CentileLookupReference):
     """
     Iranian spirometry reference equations (Loeloe et al. 2025).
 
@@ -45,88 +44,20 @@ class LOELOE_2025(Reference):
     _AGE_RANGE    = (38.0, 69.0)
     _HEIGHT_RANGE = (142.0, 189.0)
 
-    def __init__(self):
-        self._lookup = self._load_lookup()
-        self._age_range    = self._AGE_RANGE
-        self._height_range = self._HEIGHT_RANGE
+    _lookup_csv = 'loeloe_2025_lookup.csv'
+    _limit_suffix = 'lln'
+    # Some (age, height) cells exist for one sex only (e.g. tall females); those
+    # are blank in the CSV and parse as NaN. Return NA so metrics short-circuit
+    # consistently with out-of-range inputs.
+    _EMPTY_CELLS_NA = True
 
-    def _load_lookup(self) -> pandas.DataFrame:
-        pkg = importlib.resources.files('pyspiro.data')
-        with (pkg / 'loeloe_2025_lookup.csv').open('rb') as f:
-            df = pandas.read_csv(f, delimiter=';')
-        df.set_index(['age', 'height'], inplace=True)
-        return df
+    def _grid(self, value):
+        # Round to the 0.1 grid resolution. Use round(x, 1) — not round(x / 0.1) * 0.1,
+        # which reintroduces binary drift (185.1 -> 185.10000000000002) and misses the index.
+        if not isinstance(value, numpy.ndarray):
+            return round(float(value), 1)
+        return numpy.array([round(v, 1) for v in numpy.asarray(value, dtype=float).tolist()])
 
     def _get_pv_lln(self, sex: int, age: float, height: float, parameter: int):
         """Return (pv, lln) for rounded (age, height), or (pandas.NA, pandas.NA) if out of range."""
-        # Round to the 0.1 grid resolution. Use round(x, 1) — not round(x / 0.1) * 0.1,
-        # which reintroduces binary drift (185.1 -> 185.10000000000002) and misses the index.
-        age_r = round(float(age), 1)
-        ht_r  = round(float(height), 1)
-
-        age_r = self.validate_range(age_r, self._AGE_RANGE, 'age')
-        if age_r is pandas.NA:
-            return pandas.NA, pandas.NA
-
-        ht_r = self.validate_range(ht_r, self._HEIGHT_RANGE, 'height')
-        if ht_r is pandas.NA:
-            return pandas.NA, pandas.NA
-
-        param_name = self.Parameters(parameter).name
-        sex_label  = 'females' if sex == self.Sex.FEMALE.value else 'males'
-        row = self._lookup.loc[(age_r, ht_r)]
-        pv  = float(row[f'{param_name}_{sex_label}_pv'])
-        lln = float(row[f'{param_name}_{sex_label}_lln'])
-        # Some (age, height) cells exist for one sex only (e.g. tall females); those
-        # are blank in the CSV and parse as NaN. Return NA so metrics short-circuit
-        # consistently with out-of-range inputs.
-        if pandas.isna(pv) or pandas.isna(lln):
-            return pandas.NA, pandas.NA
-        return pv, lln
-
-    def lms(self, sex: int, age: float, height: float, parameter: int, value: float = None) -> tuple:
-        """Not applicable — LOELOE_2025 uses direct lookup, not LMS parameters."""
-        return pandas.NA, pandas.NA, pandas.NA
-
-    def percent(self, sex: int, age: float, height: float, parameter: int, value: float) -> float:
-        """Return measured value as % of the predicted median."""
-        pv, _ = self._get_pv_lln(sex, age, height, parameter)
-        return pandas.NA if pv is pandas.NA else round(value / pv * 100, 2)
-
-    def zscore(self, sex: int, age: float, height: float, parameter: int, value: float) -> float:
-        """
-        Return z-score: (value − pv) / ((pv − lln) / 1.645), normal approximation.
-        
-        This uses the standard relationship where LLN corresponds to -1.645 SD from the mean.
-        """
-        pv, lln = self._get_pv_lln(sex, age, height, parameter)
-        if pv is pandas.NA:
-            return pandas.NA
-        see = (pv - lln) / 1.645
-        return pandas.NA if see == 0 else (value - pv) / see
-
-    def lln(self, sex: int, age: float, height: float, parameter: int) -> float:
-        """Return lower limit of normal (5th percentile)."""
-        _, lln = self._get_pv_lln(sex, age, height, parameter)
-        return lln
-
-    def uln(self, sex: int, age: float, height: float, parameter: int) -> float:
-        """
-        Return upper limit of normal (95th percentile), approximated as 2 × pv − lln.
-        This assumes symmetry around the median in the z-score scale.
-        """
-        pv, lln = self._get_pv_lln(sex, age, height, parameter)
-        return pandas.NA if pv is pandas.NA else 2 * pv - lln
-
-    def all(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
-        """Return (percent, z-score, lln, uln) in a single call."""
-        pv, lln = self._get_pv_lln(sex, age, height, parameter)
-        if pv is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA, pandas.NA
-        see = (pv - lln) / 1.645
-        return (
-            round(value / pv * 100, 2),
-            (value - pv) / see if see != 0 else pandas.NA,
-            lln,
-            2 * pv - lln,
-        )
+        return self._pv_lln(sex, age, height, parameter)

@@ -1,11 +1,12 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult, _metric_column
 from enum import Enum
 import importlib.resources
 import math
+import numpy
 import pandas
 
 
-class ALQEREM_2019(Reference):
+class ALQEREM_2019(RegressionReference):
     """
     Middle Eastern (Jordanian) spirometry reference equations (Al Qerem et al. 2019).
 
@@ -104,34 +105,47 @@ class ALQEREM_2019(Reference):
     def _spline(self, sex: int, param_name: str, age: float):
         return self._splines.get((int(sex), param_name, self._spline_key(age)), (0.0, 0.0))
 
-    def _params(self, sex: int, age: float, height: float, parameter: int):
-        """Return (dist, mu, sigma, nu) or (None, pandas.NA, pandas.NA, pandas.NA)."""
-        age = self.validate_range(age, self._age_range(sex), 'age')
-        if age is pandas.NA:
-            return None, pandas.NA, pandas.NA, pandas.NA
-        height = self.validate_range(height, self._HEIGHT_RANGE, 'height')
-        if height is pandas.NA:
-            return None, pandas.NA, pandas.NA, pandas.NA
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        """mu as the predicted value, with sigma, nu (BCCG only) and the distribution."""
+        age, na = self._validated(age, self._age_range(sex), 'age')
+        height, na = self._validated(height, self._HEIGHT_RANGE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         param_name = self.Parameters(parameter).name
-        c = self._coefficients.loc[(int(sex), param_name)]
-        lnht, lnage = math.log(float(height)), math.log(float(age))
-        mspline, sspline = self._spline(sex, param_name, float(age))
-
+        c = self._row((int(sex), param_name), required=True)
+        if not isinstance(age, numpy.ndarray):
+            exp = math.exp
+            lnht, lnage = math.log(float(height)), math.log(float(age))
+            mspline, sspline = self._spline(sex, param_name, float(age))
+        else:
+            exp = numpy.exp
+            lnht, lnage = numpy.log(height), numpy.log(age)
+            keys = numpy.round(numpy.round(age * 4) / 4, 2).tolist()     # as _spline_key()
+            splines = [self._splines.get((int(sex), param_name, key), (0.0, 0.0)) for key in keys]
+            mspline = numpy.array([m for m, _ in splines])
+            sspline = numpy.array([s for _, s in splines])
         eta_mu = (float(c['mu_int']) + float(c['mu_lnht']) * lnht
                   + float(c['mu_lnage']) * lnage
                   + (mspline if int(c['mu_spline']) else 0.0))
-        mu = math.exp(eta_mu) if c['mu_link'] == 'log' else eta_mu
-
-        sigma = math.exp(float(c['sg_int']) + float(c['sg_lnht']) * lnht
-                         + float(c['sg_lnage']) * lnage
-                         + (sspline if int(c['sg_spline']) else 0.0))
-
+        mu = exp(eta_mu) if c['mu_link'] == 'log' else eta_mu
+        sigma = exp(float(c['sg_int']) + float(c['sg_lnht']) * lnht
+                    + float(c['sg_lnage']) * lnage
+                    + (sspline if int(c['sg_spline']) else 0.0))
         if c['dist'] == 'BCCG':
             nu = float(c['nu_int']) + float(c['nu_lnage']) * lnage
         else:
             nu = None
-        return c['dist'], mu, sigma, nu
+        return RegressionResult(mu, na=na, sigma=sigma, nu=nu, normal=c['dist'] == 'NO')
+
+    def _params(self, sex: int, age: float, height: float, parameter: int):
+        """Return (dist, mu, sigma, nu) or (None, pandas.NA, pandas.NA, pandas.NA)."""
+        r = self._regression(sex, age, height, None, None, parameter)
+        if r.na:
+            return None, pandas.NA, pandas.NA, pandas.NA
+        return ('NO' if r.normal else 'BCCG'), r.pred, r.sigma, r.nu
 
     def lms(self, sex, age, height, parameter=None, value=None):
         """Return (L, M, S) = (nu, mu, sigma) for BCCG parameters.
@@ -183,3 +197,37 @@ class ALQEREM_2019(Reference):
         """Return the predicted mean/median for the given inputs."""
         _, mu, _, _ = self._params(sex, age, height, parameter)
         return mu
+
+    def _metric_from_arrays(self, metric, merged, value, index):
+        if metric not in ('zscore', 'lln', 'uln'):
+            return super()._metric_from_arrays(metric, merged, value, index)
+        if merged.na.all():
+            return _metric_column(numpy.full(merged.n, numpy.nan), merged.na, index)
+        r = merged.result()
+        na = merged.na.copy()
+        normal = numpy.asarray(r.normal, dtype=bool) & ~na
+        bccg = ~normal & ~na
+        mu, sigma = r.pred, r.sigma
+        nu = getattr(r, 'nu', None)       # absent when no row has a BCCG distribution
+        if nu is None:
+            nu = numpy.full(merged.n, numpy.nan)
+        log_normal = bccg & (numpy.abs(nu) < 1e-8)
+        power = bccg & ~log_normal
+        values = numpy.full(merged.n, numpy.nan)
+        with numpy.errstate(all="ignore"):
+            if metric == 'zscore':
+                ratio = value / mu
+                if (ratio[bccg] <= 0).any():
+                    return None       # math.log() raises, negative ** nu is complex: row-wise path
+                values[normal] = ((value - mu) / sigma)[normal]
+                values[log_normal] = (numpy.log(ratio) / sigma)[log_normal]
+                values[power] = (((ratio) ** nu - 1) / (nu * sigma))[power]
+            else:
+                z = -1.645 if metric == 'lln' else 1.645
+                values[normal] = (mu + z * sigma)[normal]
+                values[log_normal] = (mu * numpy.exp(z * sigma))[log_normal]
+                base = 1 + nu * sigma * z
+                na |= power & (base <= 0)
+                ok = power & (base > 0)
+                values[ok] = (mu * base ** (1 / nu))[ok]
+        return _metric_column(values, na, index)

@@ -1,11 +1,9 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import math
 import pandas as pd
 
 
-class PRATA_2018(Reference):
+class PRATA_2018(RegressionReference):
     """
     Prata et al. (2018) spirometry reference equations for Black adults in Brazil.
 
@@ -57,51 +55,40 @@ class PRATA_2018(Reference):
     _HEIGHT_RANGE_MALE   = (151.0, 187.0)
     _HEIGHT_RANGE_FEMALE = (145.0, 175.0)
 
-    def __init__(self):
-        self._age_range = (20, 83)
-        with (importlib.resources.files('pyspiro.data') / 'prata_2018_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = (20, 83)
+    _coeffs_csv = 'prata_2018_coefficients.csv'
 
-    def _compute_raw(self, sex: int, age: float, height: float, parameter: int):
-        """Return (predicted, lln, is_log) or (pd.NA, pd.NA, False)."""
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         male = sex == self.Sex.MALE.value
         sex_name = self.Sex(sex).name.lower()
 
-        age = self.validate_range(
+        age, na = self._validated(
             age, self._AGE_RANGE_MALE if male else self._AGE_RANGE_FEMALE, 'age')
-        if age is pd.NA:
-            return pd.NA, pd.NA, False
+        height, na = self._validated(
+            height, self._HEIGHT_RANGE_MALE if male else self._HEIGHT_RANGE_FEMALE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        height = self.validate_range(
-            height, self._HEIGHT_RANGE_MALE if male else self._HEIGHT_RANGE_FEMALE, 'height')
-        if height is pd.NA:
-            return pd.NA, pd.NA, False
-
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA, pd.NA, False
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
         a0, a_ht, a_age, lln = (
             float(row['a0']), float(row['a_ht']), float(row['a_age']), float(row['lln']))
-
         if row['kind'] == 'log':
-            pred = math.exp(a0 + a_ht * math.log(height) + a_age * math.log(age))
-            return pred, pred * lln, True
-
+            pred = self._exp(a0 + a_ht * self._log(height) + a_age * self._log(age))
+            return RegressionResult(pred, lln=pred * lln, na=na)
         pred = a0 + a_ht * height + a_age * age
-        return pred, pred - lln, False
+        return RegressionResult(pred, lln=pred - lln, na=na)
 
     def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred, _, _ = self._compute_raw(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
+        return self._percent(self._scalar_regression(sex, age, height, ethnicity, None, parameter), value)
 
     def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        _, lln, _ = self._compute_raw(sex, age, height, parameter)
-        return lln
+        return self._lln(self._scalar_regression(sex, age, height, ethnicity, None, parameter))
 
     def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
         """Not available — no SEE or residual SD was published."""

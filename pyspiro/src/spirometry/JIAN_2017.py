@@ -69,24 +69,8 @@ class JIAN_2017(LMSReference):
     def _sex_label(self, sex: int) -> str:
         return 'males' if sex == self.Sex.MALE.value else 'females'
 
-    def lms(self, sex: int, age: float, height: float, parameter: int, value: float = None) -> tuple:
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA
-
-        age_key = self._floor_age(float(age))
-        param_name = self.Parameters(parameter).name
-        sex_label = self._sex_label(sex)
-        col = f'{param_name}_{sex_label}'
-        prefix = f'{param_name}_{sex_label}'
-
-        c = self._coefficients[col]
-        row = self._lookup.loc[age_key]
-
-        mspline = float(row[f'{prefix}_Mspline'])
-        sspline = float(row[f'{prefix}_Sspline'])
-        lspline = float(row[f'{prefix}_Lspline'])
-
+    def _equation(self, c, age, height, sspline, mspline, lspline) -> tuple:
+        """The (L, M, S) equation; accepts scalars and NumPy arrays alike."""
         l = float(c['l0']) + float(c['l_age']) * numpy.log(age) + lspline
         m = numpy.exp(
             float(c['m0'])
@@ -100,5 +84,38 @@ class JIAN_2017(LMSReference):
             + float(c['s_age']) * numpy.log(age)
             + sspline
         )
-
         return l, m, s
+
+    _ARRAY_LMS = True
+
+    def lms(self, sex: int, age: float, height: float, parameter: int, value: float = None) -> tuple:
+        age = self.validate_range(age, self._AGE_RANGE, 'age')
+        if age is pandas.NA:
+            return pandas.NA, pandas.NA, pandas.NA
+
+        age_key = self._floor_age(float(age))
+        prefix = f'{self.Parameters(parameter).name}_{self._sex_label(sex)}'
+
+        c = self._coefficients[prefix]
+        row = self._lookup.loc[age_key]
+
+        mspline = float(row[f'{prefix}_Mspline'])
+        sspline = float(row[f'{prefix}_Sspline'])
+        lspline = float(row[f'{prefix}_Lspline'])
+
+        return self._equation(c, age, height, sspline, mspline, lspline)
+
+    def _sex_lms_arrays(self, sex: int, age, height, ethnicity, parameter) -> tuple:
+        prefix = f'{self.Parameters(parameter).name}_{self._sex_label(sex)}'
+        c = self._coefficients[prefix]
+        age, na = self._validate_range_array(age, self._AGE_RANGE, 'age')
+        age = numpy.where(na, self._AGE_RANGE[0], age)
+        # as _floor_age(): floor to the 0.2-year step, rounded to one decimal like the table index
+        positions = self._lookup.index.get_indexer(numpy.round(numpy.floor(age * 5) / 5, 1))
+        if (positions < 0).any():
+            raise KeyError("JIAN_2017: age not in the spline table")    # as .loc in lms()
+        sspline, mspline, lspline = (self._lookup[f'{prefix}_{name}'].to_numpy(dtype=float)[positions]
+                                     for name in ('Sspline', 'Mspline', 'Lspline'))
+        with numpy.errstate(all="ignore"):
+            l, m, s = self._equation(c, age, height, sspline, mspline, lspline)
+        return l, m, s, na

@@ -1,10 +1,8 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import pandas as pd
 
 
-class CRAPO_1981(Reference):
+class CRAPO_1981(PredictedValueReference):
     """
     Crapo (1981) spirometry reference equations.
 
@@ -31,46 +29,24 @@ class CRAPO_1981(Reference):
     _HEIGHT_MALE_RANGE = (157.0, 194.0)    # 61.8–76.4 in
     _HEIGHT_FEMALE_RANGE = (146.0, 178.0)  # 57.5–70.1 in
 
-    def __init__(self):
-        self._age_range = (15, 91)
-        with (importlib.resources.files('pyspiro.data') / 'crapo_1981_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = (15, 91)
+    _coeffs_csv = 'crapo_1981_coefficients.csv'
+    _coeffs_index = ('parameter', 'sex')
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int):
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
 
-        age_range = self._AGE_MALE_RANGE if sex == self.Sex.MALE.value else self._AGE_FEMALE_RANGE
-        age = self.validate_range(age, age_range, 'age')
-        if age is pd.NA:
-            return pd.NA
+        male = sex == self.Sex.MALE.value
+        age, na = self._validated(age, self._AGE_MALE_RANGE if male else self._AGE_FEMALE_RANGE, 'age')
+        height, na = self._validated(height, self._HEIGHT_MALE_RANGE if male else self._HEIGHT_FEMALE_RANGE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        h_range = self._HEIGHT_MALE_RANGE if sex == self.Sex.MALE.value else self._HEIGHT_FEMALE_RANGE
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA
-
-        return float(row['a0']) + float(row['a_ht']) * height + float(row['a_age']) * age
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+        return RegressionResult(float(row['a0']) + float(row['a_ht']) * height + float(row['a_age']) * age, na=na)

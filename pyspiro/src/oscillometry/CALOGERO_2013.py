@@ -1,12 +1,13 @@
 import math
 from enum import Enum
 
+import numpy
 import pandas
 
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult, _metric_column
 
 
-class CALOGERO_2013(Reference):
+class CALOGERO_2013(RegressionReference):
     """
     Pediatric oscillometry reference equations (Calogero et al. 2013).
 
@@ -98,18 +99,26 @@ class CALOGERO_2013(Reference):
     _RRS_PARAMS = frozenset({1, 2, 3})
     _XRS_PARAMS = frozenset({4, 5, 6})
 
-    def _predict_transformed(self, sex: int, height: float, parameter: int) -> tuple:
-        """Return (T_predicted, SEE) on the transformed scale."""
+    def _predict_transformed(self, sex: int, height, parameter: int) -> tuple:
+        """Return (T_predicted, SEE) on the transformed scale; height may be an array."""
         c = self._COEFFS[parameter]
-        T = c[0] + c[1] * int(sex) + c[2] * float(height)
+        T = c[0] + c[1] * int(sex) + c[2] * (height if isinstance(height, numpy.ndarray) else float(height))
         return T, c[3]
 
     def _p(self, parameter) -> int:
         """Normalise parameter to integer value (accepts int or Parameters enum)."""
         return self.Parameters(parameter).value
 
-    def _forward(self, value: float, p: int) -> float:
-        """Transform a measured value to the regression scale."""
+    def _forward(self, value, p: int):
+        """Transform a measured value (scalar or array) to the regression scale."""
+        if numpy.ndim(value):
+            if p in self._RRS_PARAMS:
+                return numpy.log(value)
+            if p in self._XRS_PARAMS:
+                return numpy.sqrt(10.0 - value)
+            if p == 7:
+                return numpy.sqrt(value)
+            return value
         v = float(value)
         if p in self._RRS_PARAMS:
             return math.log(v)
@@ -119,8 +128,16 @@ class CALOGERO_2013(Reference):
             return math.sqrt(v)
         return v                          # Fres: identity
 
-    def _back(self, T: float, p: int) -> float:
-        """Back-transform from regression scale to clinical units."""
+    def _back(self, T, p: int):
+        """Back-transform from regression scale to clinical units; T may be an array."""
+        if numpy.ndim(T):
+            if p in self._RRS_PARAMS:
+                return numpy.exp(T)
+            if p in self._XRS_PARAMS:
+                return 10.0 - T * T
+            if p == 7:
+                return numpy.maximum(0.0, T * T)
+            return T
         if p in self._RRS_PARAMS:
             return math.exp(T)
         if p in self._XRS_PARAMS:
@@ -129,8 +146,35 @@ class CALOGERO_2013(Reference):
             return max(0.0, T * T)
         return T                          # Fres: identity
 
+    @staticmethod
+    def _round(x, digits: int):
+        """Python's round() on a scalar or on each element of an array."""
+        if numpy.ndim(x):
+            return numpy.array([round(v, digits) for v in x.tolist()], dtype=float)
+        return round(x, digits)
+
     def _validate(self, height: float) -> float:
         return self.validate_range(float(height), self._HEIGHT_RANGE, 'height')
+
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        p = self._p(parameter)
+        height, na = self._validated(height if isinstance(height, numpy.ndarray) else float(height),
+                                     self._HEIGHT_RANGE, 'height')
+        if self._all_na(na):
+            return RegressionResult.missing()
+        T_pred, see = self._predict_transformed(sex, height, p)
+        # For Xrs the 5th percentile is the most negative value: T_pred + 1.645 x SEE back-transformed
+        xrs = p in self._XRS_PARAMS
+        lower = T_pred + 1.645 * see if xrs else T_pred - 1.645 * see
+        upper = T_pred - 1.645 * see if xrs else T_pred + 1.645 * see
+        return RegressionResult(
+            None if xrs else self._back(T_pred, p),       # % predicted is not defined for Xrs
+            lln=self._round(self._back(lower, p), 4),
+            uln=self._round(self._back(upper, p), 4),
+            center=T_pred, scale=see, na=na,
+            predicted=self._round(self._back(T_pred, p), 4), transform=p)
 
     # ------------------------------------------------------------------
     # Abstract interface
@@ -145,18 +189,14 @@ class CALOGERO_2013(Reference):
                 value: float) -> float:
         """
         Return measured value as % of predicted.
-
         Not defined for Xrs parameters (signed values); returns pd.NA.
         """
-        p = self._p(parameter)
-        if p in self._XRS_PARAMS:
+        if self._p(parameter) in self._XRS_PARAMS:
             return pandas.NA
-        height = self._validate(height)
-        if height is pandas.NA:
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        if r is None:
             return pandas.NA
-        T_pred, _ = self._predict_transformed(sex, height, p)
-        predicted = self._back(T_pred, p)
-        return round(float(value) / predicted * 100, 2)
+        return round(float(value) / r.pred * 100, 2)
 
     def zscore(self, sex: int, age: float, height: float, parameter,
                value: float) -> float:
@@ -166,13 +206,11 @@ class CALOGERO_2013(Reference):
         Positive z means worse than predicted for all parameters
         (higher Rrs / more negative Xrs / higher AX / higher Fres).
         """
-        p = self._p(parameter)
-        height = self._validate(height)
-        if height is pandas.NA:
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        if r is None:
             return pandas.NA
-        T_pred, see = self._predict_transformed(sex, height, p)
-        T_meas = self._forward(float(value), p)
-        return round((T_meas - T_pred) / see, 4)
+        T_meas = self._forward(float(value), r.transform)
+        return round((T_meas - r.center) / r.scale, 4)
 
     def lln(self, sex: int, age: float, height: float, parameter) -> float:
         """
@@ -184,14 +222,7 @@ class CALOGERO_2013(Reference):
         (T_pred + 1.645 × SEE back-transformed, since √(10−Xrs) increases
         as Xrs becomes more negative).
         """
-        p = self._p(parameter)
-        height = self._validate(height)
-        if height is pandas.NA:
-            return pandas.NA
-        T_pred, see = self._predict_transformed(sex, height, p)
-        if p in self._XRS_PARAMS:
-            return round(self._back(T_pred + 1.645 * see, p), 4)
-        return round(self._back(T_pred - 1.645 * see, p), 4)
+        return self._lln(self._scalar_regression(sex, age, height, None, None, parameter))
 
     def uln(self, sex: int, age: float, height: float, parameter) -> float:
         """
@@ -200,20 +231,28 @@ class CALOGERO_2013(Reference):
         For Rrs, AX, Fres: the 95th percentile is the larger value.
         For Xrs: the 95th percentile is the least negative value.
         """
-        p = self._p(parameter)
-        height = self._validate(height)
-        if height is pandas.NA:
-            return pandas.NA
-        T_pred, see = self._predict_transformed(sex, height, p)
-        if p in self._XRS_PARAMS:
-            return round(self._back(T_pred - 1.645 * see, p), 4)
-        return round(self._back(T_pred + 1.645 * see, p), 4)
+        return self._uln(self._scalar_regression(sex, age, height, None, None, parameter))
 
     def predicted(self, sex: int, age: float, height: float, parameter) -> float:
         """Return the predicted median value (50th percentile)."""
-        p = self._p(parameter)
-        height = self._validate(height)
-        if height is pandas.NA:
-            return pandas.NA
-        T_pred, _ = self._predict_transformed(sex, height, p)
-        return round(self._back(T_pred, p), 4)
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        return pandas.NA if r is None else r.predicted
+
+    def _metric_from_arrays(self, metric, merged, value, index):
+        if metric != 'zscore':
+            return super()._metric_from_arrays(metric, merged, value, index)
+        na = merged.na
+        if na.all():
+            return _metric_column(numpy.full(merged.n, numpy.nan), na, index)
+        r = merged.result()
+        valid = ~na
+        p = int(r.transform[valid][0])
+        v = value[valid]
+        # math.log / math.sqrt raise outside their domain: leave those inputs to the row-wise path
+        if ((p in self._RRS_PARAMS and (v <= 0).any()) or (p in self._XRS_PARAMS and (v > 10.0).any())
+                or (p == 7 and (v < 0).any())):
+            return None
+        with numpy.errstate(all="ignore"):
+            T_meas = self._forward(numpy.where(valid, value, 1.0), p)
+            values = self._round((T_meas - r.center) / r.scale, 4)
+        return _metric_column(values, na, index)

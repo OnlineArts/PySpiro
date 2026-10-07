@@ -1,9 +1,9 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
 import pandas as pd
 
 
-class LOUW_1996(Reference):
+class LOUW_1996(PredictedValueReference):
     """
     Louw (1996) spirometry reference equations for South African men.
 
@@ -101,58 +101,43 @@ class LOUW_1996(Reference):
         """FEV1 for white men using Vitalograph: 0.042 × height - 0.036 × age - 1.84"""
         return 0.042 * height - 0.036 * age - 1.84
 
-    def _compute(self, sex: int, age: float, height: float, ethnicity: int, parameter: int) -> float:
-        """Compute predicted value for given sex, age, height, ethnicity, and parameter."""
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         # Validate sex - Louw 1996 is for men only
         if sex != self.Sex.MALE.value:
-            if not self._silent:
-                print("LOUW_1996 reference equations are only for men (sex=1).")
-            return pd.NA
+            self._notify("LOUW_1996 reference equations are only for men (sex=1).", age)
+            return RegressionResult.missing()
 
         # Validate ethnicity
         if ethnicity not in (0, 1):  # 0 = Black, 1 = White
-            if not self._silent:
-                print("LOUW_1996 ethnicity must be 0 (Black) or 1 (White).")
-            return pd.NA
+            self._notify("LOUW_1996 ethnicity must be 0 (Black) or 1 (White).", age)
+            return RegressionResult.missing()
 
-        # Validate age range
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA
-
-        # Validate height range
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
         h_range = self._HEIGHT_BLACK_RANGE if ethnicity == 0 else self._HEIGHT_WHITE_RANGE
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+        height, na = self._validated(height, h_range, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         param = self.Parameters(parameter)
-        
+        black = ethnicity == 0
         if self._spirometer == self.Spirometer.AUTOLINK:
             if param == self.Parameters.FVC:
-                if ethnicity == 0:  # Black
-                    return self._predicted_fvc_black_autolink(height, age)
-                else:  # White
-                    return self._predicted_fvc_white_autolink(height, age)
+                predict = self._predicted_fvc_black_autolink if black else self._predicted_fvc_white_autolink
             elif param == self.Parameters.FEV1:
-                if ethnicity == 0:  # Black
-                    return self._predicted_fev1_black_autolink(height, age)
-                else:  # White
-                    return self._predicted_fev1_white_autolink(height, age)
-        
+                predict = self._predicted_fev1_black_autolink if black else self._predicted_fev1_white_autolink
         elif self._spirometer == self.Spirometer.VITALOGRAPH:
             if param == self.Parameters.FVC:
-                if ethnicity == 0:  # Black
-                    return self._predicted_fvc_black_vitalograph(height, age)
-                else:  # White
-                    return self._predicted_fvc_white_vitalograph(height, age)
+                predict = self._predicted_fvc_black_vitalograph if black else self._predicted_fvc_white_vitalograph
             elif param == self.Parameters.FEV1:
-                if ethnicity == 0:  # Black
-                    return self._predicted_fev1_black_vitalograph(height, age)
-                else:  # White
-                    return self._predicted_fev1_white_vitalograph(height, age)
-        
-        return pd.NA
+                predict = self._predicted_fev1_black_vitalograph if black else self._predicted_fev1_white_vitalograph
+        return RegressionResult(predict(height, age), na=na)
+
+    def _compute(self, sex: int, age: float, height: float, ethnicity: int, parameter: int) -> float:
+        """Compute predicted value for given sex, age, height, ethnicity, and parameter."""
+        r = self._scalar_regression(sex, age, height, ethnicity, None, parameter)
+        return pd.NA if r is None else r.pred
 
     def percent(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the measured value as % of the predicted median."""
@@ -168,24 +153,4 @@ class LOUW_1996(Reference):
             if not self._silent:
                 print("LOUW_1996 percent() requires a measured value.")
             return pd.NA
-            
-        pred = self._compute(sex, age, height, ethnicity, parameter)
-        if pred is pd.NA or value is None:
-            return pd.NA
-        return round((value / pred) * 100, 2)
-
-    def zscore(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the z-score. Not available for LOUW_1996; returns pd.NA."""
-        return pd.NA
-
-    def lms(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the (L, M, S) triplet. Not available for LOUW_1996; returns pd.NA."""
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the lower limit of normal. Not available for LOUW_1996; returns pd.NA."""
-        return pd.NA
-
-    def uln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the upper limit of normal. Not available for LOUW_1996; returns pd.NA."""
-        return pd.NA
+        return self._percent(self._scalar_regression(sex, age, height, ethnicity, None, parameter), value)

@@ -1,10 +1,8 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import pandas as pd
 
 
-class ECCS_1993(Reference):
+class ECCS_1993(PredictedValueReference):
     """
     ECCS/ERS (Quanjer 1993) spirometry reference equations.
 
@@ -40,48 +38,27 @@ class ECCS_1993(Reference):
     _HEIGHT_MALE_RANGE = (155.0, 195.0)    # 61–76.8 in
     _HEIGHT_FEMALE_RANGE = (145.0, 180.0)  # 57.1–70.9 in
 
-    def __init__(self):
-        self._age_range = self._AGE_RANGE
-        with (importlib.resources.files('pyspiro.data') / 'eccs_1993_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = _AGE_RANGE
+    _coeffs_csv = 'eccs_1993_coefficients.csv'
+    _coeffs_index = ('parameter', 'sex')
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int):
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
 
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA
-
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
         h_range = self._HEIGHT_MALE_RANGE if sex == self.Sex.MALE.value else self._HEIGHT_FEMALE_RANGE
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+        height, na = self._validated(height, h_range, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         clamp_params = self._MALE_AGE_CLAMP_PARAMS if sex == self.Sex.MALE.value else self._FEMALE_AGE_CLAMP_PARAMS
-        effective_age = max(age, self._FEF_AGE_MIN) if param_name in clamp_params else age
+        effective_age = self._maximum(age, self._FEF_AGE_MIN) if param_name in clamp_params else age
 
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
-        return float(row['a0']) + float(row['a_ht']) * height + float(row['a_age']) * effective_age
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+        return RegressionResult(float(row['a0']) + float(row['a_ht']) * height + float(row['a_age']) * effective_age, na=na)

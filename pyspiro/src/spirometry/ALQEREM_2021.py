@@ -70,26 +70,44 @@ class ALQEREM_2021(SplineReference):
         FEV1FVC = 3
         FEF25_75 = 4
 
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet — that is (nu, mu, sigma) — for the given inputs."""
         if sex not in (0, 1):
             if not self._silent:
                 print("ALQEREM_2021 sex must be 0 (female) or 1 (male).")
             return pandas.NA, pandas.NA, pandas.NA
+        return self._spline_lms(sex, age, height, None, parameter)
 
+    def _age_and_splines(self, sex: int, age: float, parameter: int) -> tuple:
+        # Nearest quarter-year row of the whole table, no interpolation
         age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
         if age is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA
+            return pandas.NA, pandas.NA, pandas.NA, pandas.NA
+        return (age,) + tuple(self._get_splines(sex, age, parameter))
 
-        sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._coefficients[
-            "%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())
-        ]
+    def _age_and_splines_array(self, sex: int, age, parameter) -> tuple:
+        if numpy.isnan(age).any():
+            raise ValueError("cannot convert float NaN to integer")    # as round(age * 4) in lms()
+        # numpy.round rounds half to even, as round() does
+        age, na = self._validate_range_array(numpy.round(age * 4) / 4, self._age_range, "age")
+        age = numpy.where(na, self._age_range[0], age)
+        return (age, na) + self._spline_rows(self._spline_prefix(sex, parameter), age)
 
+    def _lms_equation(self, c, parameter, age, height, ethnicity, sspline, mspline, lspline) -> tuple:
         # FEV1/FVC in males is the one equation that takes height untransformed.
         h = numpy.log(height) if c.loc["h_log"] else height
-
         l = c.loc["q0"] + (c.loc["q1"] * numpy.log(age)) + lspline
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * h) + (c.loc["a2"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)
         return l, m, s
+
+    def _sex_lms_arrays(self, sex: int, age, height, ethnicity, parameter) -> tuple:
+        if sex not in (0, 1):
+            if not self._silent:
+                for _ in range(len(age)):
+                    print("ALQEREM_2021 sex must be 0 (female) or 1 (male).")
+            nan = numpy.full(len(age), numpy.nan)
+            return nan, nan, nan, numpy.ones(len(age), dtype=bool)
+        return super()._sex_lms_arrays(sex, age, height, ethnicity, parameter)

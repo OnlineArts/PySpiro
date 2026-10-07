@@ -1,10 +1,9 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import pandas as pd
+import numpy
 
 
-class KNUDSON_1983(Reference):
+class KNUDSON_1983(PredictedValueReference):
     """
     Knudson (1983) spirometry reference equations.
 
@@ -40,14 +39,18 @@ class KNUDSON_1983(Reference):
         'f_70plus': (147.3, 167.6),  # 58–66 in
     }
 
-    def __init__(self):
-        self._age_range = (6, 90)
-        with (importlib.resources.files('pyspiro.data') / 'knudson_1983_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex', 'age_group'], inplace=True)
-        self._coefficients = df
+    _age_range = (6, 90)
+    _coeffs_csv = 'knudson_1983_coefficients.csv'
+    _coeffs_index = ('parameter', 'sex', 'age_group')
 
-    def _age_group(self, sex: int, age: float) -> str:
+    _ARRAY_REGRESSION = True
+
+    def _age_group(self, sex: int, age):
+        """Age stratum of the coefficient table; age may be a scalar or an array."""
+        if isinstance(age, numpy.ndarray):
+            if sex == self.Sex.MALE.value:
+                return numpy.select([age <= 11, age <= 24], ['m_6_11', 'm_12_24'], 'm_25plus')
+            return numpy.select([age <= 10, age <= 19, age <= 69], ['f_6_10', 'f_11_19', 'f_20_69'], 'f_70plus')
         if sex == self.Sex.MALE.value:
             if age <= 11:
                 return 'm_6_11'
@@ -63,42 +66,25 @@ class KNUDSON_1983(Reference):
                 return 'f_20_69'
             return 'f_70plus'
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int):
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
 
         age_range = self._AGE_MALE_RANGE if sex == self.Sex.MALE.value else self._AGE_FEMALE_RANGE
-        age = self.validate_range(age, age_range, 'age')
-        if age is pd.NA:
-            return pd.NA
+        age, na = self._validated(age, age_range, 'age')
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        age_group = self._age_group(sex, age)
-        height = self.validate_range(height, self._HEIGHT_RANGES[age_group], 'height')
-        if height is pd.NA:
-            return pd.NA
+        def stratum(age_group, na, age, height):
+            height, na = self._validated(height, self._HEIGHT_RANGES[age_group], 'height', na)
+            if self._all_na(na):
+                return RegressionResult.missing()
+            row = self._row((param_name, sex_name, age_group))
+            if row is None:
+                return RegressionResult.missing()
+            return RegressionResult(float(row['a0'])
+                                    + float(row['a_ht']) * height
+                                    + float(row['a_age']) * age
+                                    + float(row['a_age2']) * age ** 2, na=na)
 
-        try:
-            row = self._coefficients.loc[(param_name, sex_name, age_group)]
-        except KeyError:
-            return pd.NA
-
-        return (float(row['a0'])
-                + float(row['a_ht']) * height
-                + float(row['a_age']) * age
-                + float(row['a_age2']) * age ** 2)
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+        return self._per_key(self._age_group(sex, age), na, stratum, age, height)

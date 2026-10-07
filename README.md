@@ -238,7 +238,7 @@ All equation classes expose a consistent scalar API and a vectorised `compute()`
 | `uln(...)` | Upper limit of normal (95th percentile) |
 | `lms(...)` | Raw (L, M, S) triplet (LMS equations only) |
 | `all(...)` | Tuple of (% predicted, z-score, LLN, ULN) |
-| `compute(df, parameter, ...)` | Vectorised apply over a DataFrame; returns a DataFrame of metrics |
+| `compute(df, parameter, ...)` | Evaluates whole DataFrame columns at once; returns a DataFrame of metrics |
 
 **Conventions**: sex as integer (0 = female, 1 = male); age in years; height in cm; measured values in their natural units (L, L/s, mmol/min/kPa, etc.). FEV1/FVC ratios are passed as a fraction (0–1) for LMS-based equations.
 
@@ -253,6 +253,8 @@ All equation classes expose a consistent scalar API and a vectorised `compute()`
 | `ethnicity_col` | `None` | Required for ethnicity-stratified equations (GLI_2012, HANKINSON_1999) |
 | `weight_col` | `None` | Required for SCHULZ_2013 `lln` / `uln` |
 | `metrics` | `('percent','zscore','lln','uln')` | Any subset |
+
+`compute()` is vectorised: the equation is evaluated on whole columns instead of row by row (100,000 rows take about 0.02–0.2 s, depending on the equation). The result is the same as calling the scalar methods on each row: same values, NA rows, column dtypes and exceptions. Out-of-range messages (`set_silence(False)`) are printed once per row. A subclass that overrides `lms()` or a metric method keeps working: `compute()` then calls the scalar methods per row.
 
 ---
 

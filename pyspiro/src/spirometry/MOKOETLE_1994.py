@@ -1,9 +1,9 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
 import pandas as pd
 
 
-class MOKOETLE_1994(Reference):
+class MOKOETLE_1994(PredictedValueReference):
     """
     Mokoetle (1994) spirometry reference equations for black South Africans.
 
@@ -38,8 +38,7 @@ class MOKOETLE_1994(Reference):
     _HEIGHT_MALE_RANGE = (155.7, 181.7)   # cm
     _HEIGHT_FEMALE_RANGE = (147.0, 169.0) # cm
 
-    def __init__(self):
-        self._age_range = self._AGE_RANGE
+    _age_range = _AGE_RANGE
 
     def _predicted_fvc_men(self, height: float, age: float) -> float:
         """FVC for men: 0.053 × height - 0.021 × age - 3.85"""
@@ -57,53 +56,33 @@ class MOKOETLE_1994(Reference):
         """FEV1 for women: 0.034 × height - 0.028 × age - 1.87"""
         return 0.034 * height - 0.028 * age - 1.87
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int) -> float:
-        """Compute predicted value for given sex, age, height, and parameter."""
-        # Validate age range
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA
+    _ARRAY_REGRESSION = True
 
-        # Validate height range based on sex
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
         h_range = self._HEIGHT_MALE_RANGE if sex == self.Sex.MALE.value else self._HEIGHT_FEMALE_RANGE
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+        height, na = self._validated(height, h_range, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         param = self.Parameters(parameter)
-        
+        male = sex == self.Sex.MALE.value
         if param == self.Parameters.FVC:
-            if sex == self.Sex.MALE.value:
-                return self._predicted_fvc_men(height, age)
-            else:  # Female
-                return self._predicted_fvc_women(height, age)
+            pred = self._predicted_fvc_men(height, age) if male else self._predicted_fvc_women(height, age)
         elif param == self.Parameters.FEV1:
-            if sex == self.Sex.MALE.value:
-                return self._predicted_fev1_men(height, age)
-            else:  # Female
-                return self._predicted_fev1_women(height, age)
+            pred = self._predicted_fev1_men(height, age) if male else self._predicted_fev1_women(height, age)
         else:
-            return pd.NA
+            return RegressionResult.missing()
+        return RegressionResult(pred, na=na)
+
+    def _compute(self, sex: int, age: float, height: float, parameter: int) -> float:
+        """Compute predicted value for given sex, age, height, and parameter."""
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        return pd.NA if r is None else r.pred
 
     def percent(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
         """Return the measured value as % of the predicted median."""
-        pred = self._compute(sex, age, height, parameter)
-        if pred is pd.NA or value is None:
+        r = self._scalar_regression(sex, age, height, None, None, parameter)
+        if r is None or value is None:
             return pd.NA
-        return round((value / pred) * 100, 2)
-
-    def zscore(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the z-score. Not available for Mokoetle 1994; returns pd.NA."""
-        return pd.NA
-
-    def lms(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the (L, M, S) triplet. Not available for Mokoetle 1994; returns pd.NA."""
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the lower limit of normal. Not available for Mokoetle 1994; returns pd.NA."""
-        return pd.NA
-
-    def uln(self, sex: int, age: float, height: float, ethnicity: int = None, parameter: int = None, value: float = None):
-        """Return the upper limit of normal. Not available for Mokoetle 1994; returns pd.NA."""
-        return pd.NA
+        return round((value / r.pred) * 100, 2)

@@ -1,7 +1,6 @@
 from ..reference import SplineReference
 from enum import Enum
 import numpy
-import pandas
 
 
 class GLI_2017(SplineReference):
@@ -37,14 +36,13 @@ class GLI_2017(SplineReference):
         KCO_trad = 4   # Traditional units (mL/min/mmHg/L)
         VA = 5
 
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
-        age, sspline, mspline, lspline = self._age_and_splines(sex, age, parameter)
-        if age is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA
+        return self._spline_lms(sex, age, height, None, parameter)
 
-        c = self._coefficients[self._spline_prefix(sex, parameter)]
-
+    def _lms_equation(self, c, parameter, age, height, ethnicity, sspline, mspline, lspline) -> tuple:
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)

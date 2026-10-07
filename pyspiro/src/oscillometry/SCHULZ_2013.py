@@ -1,10 +1,11 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
 import importlib.resources
+import numpy
 import pandas
 
 
-class SCHULZ_2013(Reference):
+class SCHULZ_2013(RegressionReference):
     """
     KORA oscillometry reference equations (Schulz et al. 2013).
 
@@ -49,24 +50,30 @@ class SCHULZ_2013(Reference):
         for i in ("intercept", "age", "height", "weight"):
             yield self.__lookup["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())].loc["%s_%s" % (i, pct)]
 
+    _SCALAR_TYPE = numpy.float64
+    _ARRAY_REGRESSION = True
+    # percent() and zscore() are not defined (they return None); compute() calls them per row
+    _VECTORISED_METRICS = ('lln', 'uln')
+
+    def _percentile(self, sex: int, pct: float, parameter: int, age, height, weight):
+        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=pct, parameter=parameter)
+        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
+        return intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        if age is pandas.NA or sex is pandas.NA or height is pandas.NA or weight is pandas.NA:
+            return RegressionResult.missing()
+        p5 = self._percentile(sex, 0.05, parameter, age, height, weight)
+        p50 = self._percentile(sex, 0.50, parameter, age, height, weight)
+        p95 = self._percentile(sex, 0.95, parameter, age, height, weight)
+        return RegressionResult(p50, lln=p5, uln=p95)
+
     def percentiles(self, sex: int, age: float, height: float, weight: float, parameter: int) -> tuple:
         """Return the (5th, 50th, 95th) percentile values."""
-        if age is pandas.NA or sex is pandas.NA or height is pandas.NA or weight is pandas.NA:
+        r = self._regression(sex, age, height, None, weight, parameter)
+        if r.na:
             return pandas.NA, pandas.NA, pandas.NA
-
-        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.05, parameter=parameter)
-        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
-        p5 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
-
-        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.50, parameter=parameter)
-        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
-        p50 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
-
-        intercept, age_coeff, height_coeff, weight_coeff = self.__get_regression_coeffs(sex, pct=0.95, parameter=parameter)
-        weight_coeff = 0 if pandas.isna(weight_coeff) else weight_coeff
-        p95 = intercept + (age_coeff * age) + (height_coeff * height) + (weight_coeff * weight)
-
-        return p5, p50, p95
+        return r.lln, r.pred, r.uln
 
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Not applicable — SCHULZ_2013 uses direct percentile regression, not LMS."""

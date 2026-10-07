@@ -1,11 +1,9 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import math
-import pandas as pd
+import numpy
 
 
-class WANG_1993(Reference):
+class WANG_1993(PredictedValueReference):
     """
     Wang (1993) spirometry reference equations for children and adolescents.
 
@@ -51,61 +49,45 @@ class WANG_1993(Reference):
         'FEF25_75':('fef25_75_alpha','fef25_75_beta'),
     }
 
-    def __init__(self):
-        self._age_range = (6, 18)
-        with (importlib.resources.files('pyspiro.data') / 'wang_1993_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['sex', 'ethnicity', 'age'], inplace=True)
-        self._coefficients = df
+    _age_range = (6, 18)
+    _coeffs_csv = 'wang_1993_coefficients.csv'
+    _coeffs_index = ('sex', 'ethnicity', 'age')
 
-    def _compute(self, sex: int, age: float, height: float, ethnicity: int, parameter: int):
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
         eth_name = self.Ethnicity(ethnicity).name.lower()
 
         age_range = self._AGE_MALE_RANGE if sex == self.Sex.MALE.value else self._AGE_FEMALE_RANGE
-        age = self.validate_range(age, age_range, 'age')
-        if age is pd.NA:
-            return pd.NA
+        age, na = self._validated(age, age_range, 'age')
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         h_range = self._HEIGHT_RANGES.get((sex_name, eth_name))
         if h_range is None:
-            return pd.NA
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+            return RegressionResult.missing()
+        height, na = self._validated(height, h_range, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        age_int = int(age)
         alpha_col, beta_col = self._PARAM_COLS[param_name]
 
-        try:
-            row = self._coefficients.loc[(sex_name, eth_name, age_int)]
-        except KeyError:
-            return pd.NA
+        def whole_year(age_int, na, height):
+            # Coefficients are tabulated per whole year of age
+            row = self._row((sex_name, eth_name, age_int))
+            if row is None:
+                return RegressionResult.missing()
+            alpha = row[alpha_col]
+            beta = row[beta_col]
+            if numpy.isnan(alpha) or numpy.isnan(beta):
+                return RegressionResult.missing()
+            height_m = height / 100.0
+            result = self._exp(float(alpha) + float(beta) * self._log(height_m))
+            if param_name == 'FEV1FVC':
+                result *= 100.0
+            return RegressionResult(result, na=na)
 
-        alpha = row[alpha_col]
-        beta = row[beta_col]
-        if pd.isna(alpha) or pd.isna(beta):
-            return pd.NA
-
-        height_m = height / 100.0
-        result = math.exp(float(alpha) + float(beta) * math.log(height_m))
-        if param_name == 'FEV1FVC':
-            result *= 100.0
-        return result
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, ethnicity, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+        age_int = numpy.trunc(age).astype(int) if isinstance(age, numpy.ndarray) else int(age)
+        return self._per_key(age_int, na, whole_year, height)

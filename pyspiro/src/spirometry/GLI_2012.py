@@ -71,7 +71,9 @@ class GLI_2012(SplineReference):
         age = self.validate_range(age, self._EQUATION_ONLY_AGE_RANGE, "age")
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
+        return self._equation_only_equation(c, parameter, age, height)
 
+    def _equation_only_equation(self, c, parameter, age, height) -> tuple:
         # FEV0.75 uses age itself, FEV0.75/FVC uses ln(age) (look-up workbook, "NOTE: Age, not log(Age)")
         age_term = age if parameter == self.Parameters.FEV075 else numpy.log(age)
         l = c.loc["q0"]
@@ -79,26 +81,51 @@ class GLI_2012(SplineReference):
         s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * age_term))
         return l, m, s
 
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
         self._check_ethnicity(ethnicity)
         parameter = self.Parameters(parameter)
-        c = self._coefficients[self._spline_prefix(sex, parameter)]
 
         if parameter in self._EQUATION_ONLY:
+            c = self._coefficients[self._spline_prefix(sex, parameter)]
             return self._equation_only_lms(age, height, ethnicity, parameter, c)
 
-        age, sspline, mspline, lspline = self._age_and_splines(sex, age, parameter)
-        if age is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA
+        return self._spline_lms(sex, age, height, ethnicity, parameter)
 
-        AfrAm = int(ethnicity == self.Ethnicity["AFRICAN_AMERICAN"].value)
-        NEAsia = int(ethnicity == self.Ethnicity["NORTHEAST_ASIAN"].value)
-        SEAsia = int(ethnicity == self.Ethnicity["SOUTHEAST_ASIAN"].value)
-        Other = int(ethnicity == self.Ethnicity["OTHER"].value)
+    def _lms_equation(self, c, parameter, age, height, ethnicity, sspline, mspline, lspline) -> tuple:
+        # Group indicators; (ethnicity == code) * 1 works for a scalar code and for an array of codes
+        AfrAm = (ethnicity == self.Ethnicity["AFRICAN_AMERICAN"].value) * 1
+        NEAsia = (ethnicity == self.Ethnicity["NORTHEAST_ASIAN"].value) * 1
+        SEAsia = (ethnicity == self.Ethnicity["SOUTHEAST_ASIAN"].value) * 1
+        Other = (ethnicity == self.Ethnicity["OTHER"].value) * 1
 
         l = c.loc["q0"] + (c.loc["q1"] * numpy.log(age)) + lspline
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + (c.loc["a3"] * AfrAm) + (c.loc["a4"] * NEAsia) + (c.loc["a5"] * SEAsia) + (c.loc["a6"] * Other) + mspline)
         s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + (c.loc["p2"] * AfrAm) + (c.loc["p3"] * NEAsia) + (c.loc["p4"] * SEAsia) + (c.loc["p5"] * Other) + sspline)
 
         return l, m, s
+
+    def _lms_arrays(self, sex, age, height, ethnicity, parameter) -> tuple:
+        for code in numpy.unique(ethnicity):
+            self._check_ethnicity(int(code))
+        return super()._lms_arrays(sex, age, height, ethnicity, self.Parameters(parameter))
+
+    def _sex_lms_arrays(self, sex: int, age, height, ethnicity, parameter) -> tuple:
+        if parameter not in self._EQUATION_ONLY:
+            return super()._sex_lms_arrays(sex, age, height, ethnicity, parameter)
+
+        c = self._coefficients[self._spline_prefix(sex, parameter)]
+        caucasian = ethnicity == self.Ethnicity["CAUCASIAN"].value
+        if not self._silent:
+            for _ in range(int((~caucasian).sum())):
+                print("GLI_2012: %s is only defined for Caucasians (ethnicity 1)" % parameter.name)
+        age = numpy.array(age, dtype=float)
+        age[caucasian], out_of_range = self._validate_range_array(age[caucasian], self._EQUATION_ONLY_AGE_RANGE, "age")
+        na = ~caucasian
+        na[caucasian] = out_of_range
+        age[na] = self._EQUATION_ONLY_AGE_RANGE[0]      # placeholder, masked later
+        with numpy.errstate(all="ignore"):
+            l, m, s = self._equation_only_equation(c, parameter, age, height)
+        return l, m, s, na
