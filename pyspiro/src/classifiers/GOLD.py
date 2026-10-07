@@ -16,6 +16,8 @@ class GOLD(Classifier):
         4 (Very severe) — FEV1 < 30% predicted
 
     Input: FEV1 % predicted as FEV1p (accepts both 0-1 and 0-100 notation).
+    Any value <= 1 is read as a fraction and multiplied by 100, so 0.9 means
+    90 %, not 0.9 %.
 
     Citation:
         Global Initiative for Chronic Obstructive Lung Disease (GOLD).

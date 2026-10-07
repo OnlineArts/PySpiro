@@ -31,7 +31,7 @@ class WARWICK_1980(Reference):
         PEFR = 6
         FET = 7         # forced expiratory time in seconds
 
-    _AGE_RANGE = (0, 18)                  # < 18 years
+    _AGE_RANGE = (0, 18)                  # 0-18 years inclusive
     _HEIGHT_MALE_RANGE = (90.0, 188.0)   # 35.4–74 in
     _HEIGHT_FEMALE_RANGE = (90.0, 178.0) # 35.4–70.1 in
 
