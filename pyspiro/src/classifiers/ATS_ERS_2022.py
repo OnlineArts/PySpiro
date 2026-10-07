@@ -35,9 +35,9 @@ class ATS_ERS_2022(Classifier):
     └─ NO  → No obstruction
               FVC_z < −1.645?
                 ├─ YES + TLC_z < −1.645  → Restrictive
-                ├─ YES + TLC_z ≥ −1.645  → Non-specific (NSIP)
+                ├─ YES + TLC_z ≥ −1.645  → Non-specific pattern
                 ├─ YES + TLC unknown     → Possible restriction
-                └─ NO → FEV1_z < −1.645? → Non-specific (NSIP)
+                └─ NO → FEV1_z < −1.645? → Non-specific pattern
                                        NO → Normal
 
     Patterns returned by classify():
@@ -69,12 +69,15 @@ class ATS_ERS_2022(Classifier):
             FEV1/FVC ≥ LLN, FVC < LLN, TLC < LLN.
             True restrictive defect confirmed.
 
-        "Non-specific (NSIP)"
+        "Non-specific pattern"
             FEV1/FVC ≥ LLN, FVC < LLN, TLC ≥ LLN.
             Both FEV1 and FVC are proportionally reduced but TLC is preserved;
             pattern does not fit obstruction or restriction.
             Also returned when FEV1/FVC ≥ LLN, FVC ≥ LLN, but FEV1 < LLN
             (unusual discordant pattern).
+
+    NSIP is a deprecated alias of NON_SPECIFIC (it was renamed because NSIP
+    clinically denotes nonspecific interstitial pneumonia).
 
     Citation:
         Stanojevic S, Kaminsky DA, Miller MR, et al. ERS/ATS technical standard
@@ -92,7 +95,9 @@ class ATS_ERS_2022(Classifier):
     MIXED                       = "Mixed obstructive-restrictive"
     POSSIBLE_RESTRICTION        = "Possible restriction"
     RESTRICTIVE                 = "Restrictive"
-    NSIP                        = "Non-specific (NSIP)"
+    NON_SPECIFIC                = "Non-specific pattern"
+    # Deprecated alias, kept so that code comparing against ATS_ERS_2022.NSIP keeps working
+    NSIP                        = NON_SPECIFIC
 
     # Logical ordering for use with pd.Categorical
     _order = [
@@ -102,7 +107,7 @@ class ATS_ERS_2022(Classifier):
         MIXED,
         POSSIBLE_RESTRICTION,
         RESTRICTIVE,
-        NSIP,
+        NON_SPECIFIC,
     ]
 
     def classify(self, **kwargs) -> str:
@@ -166,7 +171,7 @@ class ATS_ERS_2022(Classifier):
                     return self.RESTRICTIVE
                 else:
                     # TLC ≥ LLN despite low FVC → non-specific pattern
-                    return self.NSIP
+                    return self.NON_SPECIFIC
             else:
                 # FVC ≥ LLN
                 if fev1_z >= z:
@@ -175,4 +180,4 @@ class ATS_ERS_2022(Classifier):
                     # FEV1 < LLN with normal FVC and ratio — discordant pattern.
                     # Arises when FEV1/FVC is close to LLN and FVC is near its
                     # upper range, or from inter-equation inconsistency.
-                    return self.NSIP
+                    return self.NON_SPECIFIC

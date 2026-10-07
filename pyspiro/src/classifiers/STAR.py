@@ -17,7 +17,8 @@ class STAR(Classifier):
         4 (Very severe) — FEV1/FVC < 40%
 
     Input: FEV1/FVC as FEV1_FVC (ratio), or FEV1 and FVC separately.
-    Accepts both 0-1 and 0-100 notation.
+    Accepts both 0-1 and 0-100 notation: any value <= 1 is read as a fraction
+    and multiplied by 100.
 
     Citation:
         Bhatt SP, Nakhmani A, Fortis S, Strand MJ, Silverman EK, Sciurba FC, Bodduluri S.

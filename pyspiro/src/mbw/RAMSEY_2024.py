@@ -98,6 +98,8 @@ class RAMSEY_2024(LMSReference):
     def _interp_frc_mspline(self, age: float) -> float:
         return float(numpy.interp(age, self._frc_ages, self._frc_mspline))
 
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, parameter: int,
             value: float = None) -> tuple:
         """Return (L, M, S) for the given inputs."""
@@ -123,3 +125,33 @@ class RAMSEY_2024(LMSReference):
             return self._FRC_L, M, S
 
         return pandas.NA, pandas.NA, pandas.NA
+
+    def _sex_lms_arrays(self, sex: int, age, height, ethnicity, parameter) -> tuple:
+        age, na = self._validate_range_array(age, self._AGE_RANGE, 'age')
+        age = numpy.where(na, self._AGE_RANGE[0], age)
+        p = self.Parameters(parameter)
+        with numpy.errstate(all="ignore"):
+            if p == self.Parameters.LCI:
+                ms = numpy.interp(age, self._lci_ages, self._lci_mspline)
+                ss = numpy.interp(age, self._lci_ages, self._lci_sspline)
+                M = numpy.exp(self._LCI_M_INTERCEPT + self._LCI_M_AGE_COEF * age + ms)
+                S = numpy.exp(self._LCI_S_INTERCEPT + self._LCI_S_AGE_COEF * age + ss)
+                return self._LCI_L, M, S, na
+            ms = numpy.interp(age, self._frc_ages, self._frc_mspline)
+            intercept = (self._FRC_M_INTERCEPT_MALE if sex == self.Sex.MALE.value
+                         else self._FRC_M_INTERCEPT_FEMALE)
+            M = numpy.exp(intercept + self._FRC_M_AGE_COEF * age + self._FRC_M_HEIGHT_COEF * height + ms)
+            S = numpy.exp(self._FRC_S_INTERCEPT + self._FRC_S_HEIGHT_COEF * height)
+            return self._FRC_L, M, S, na
+
+    def _metric_arrays(self, metric, l, m, s, value, na):
+        # lms() returns Python floats, so the scalar metrics follow Python's float semantics
+        if metric == 'percent':
+            return numpy.array([round(x, 2) for x in ((value / m) * 100).tolist()], dtype=float)
+        if metric == 'zscore' and (value[~na] <= 0).any():
+            return None     # negative ** L is complex and 0 ** L raises for Python floats
+        return super()._metric_arrays(metric, l, m, s, value, na)
+
+    def _metric_element_type(self, metric):
+        # percent() and zscore() compute with the Python floats of lms(); lln() and uln() with numpy
+        return float if metric in ('percent', 'zscore') else numpy.float64

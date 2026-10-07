@@ -1,11 +1,8 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import math
-import pandas as pd
 
 
-class WARWICK_1980(Reference):
+class WARWICK_1980(PredictedValueReference):
     """
     Warwick (1977/80) spirometry reference equations for children.
 
@@ -31,52 +28,31 @@ class WARWICK_1980(Reference):
         PEFR = 6
         FET = 7         # forced expiratory time in seconds
 
-    _AGE_RANGE = (0, 18)                  # < 18 years
+    _AGE_RANGE = (0, 18)                  # 0-18 years inclusive
     _HEIGHT_MALE_RANGE = (90.0, 188.0)   # 35.4–74 in
     _HEIGHT_FEMALE_RANGE = (90.0, 178.0) # 35.4–70.1 in
 
-    def __init__(self):
-        self._age_range = self._AGE_RANGE
-        with (importlib.resources.files('pyspiro.data') / 'warwick_1980_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = _AGE_RANGE
+    _coeffs_csv = 'warwick_1980_coefficients.csv'
+    _coeffs_index = ('parameter', 'sex')
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int):
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
 
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA
-
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
         h_range = self._HEIGHT_MALE_RANGE if sex == self.Sex.MALE.value else self._HEIGHT_FEMALE_RANGE
-        height = self.validate_range(height, h_range, 'height')
-        if height is pd.NA:
-            return pd.NA
+        height, na = self._validated(height, h_range, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
-        result = math.exp(float(row['a']) * math.log(height) + float(row['b']))
+        result = self._exp(float(row['a']) * self._log(height) + float(row['b']))
         if param_name == 'FEV1FVC':
             result *= 100.0
-        return result
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+        return RegressionResult(result, na=na)

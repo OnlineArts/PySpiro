@@ -1,10 +1,9 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
-import math
 import pandas as pd
 
 
-class CHHABRA_2014(Reference):
+class CHHABRA_2014(RegressionReference):
     """
     Chhabra et al. (2014) spirometry prediction equations for adults from Northern India.
 
@@ -37,22 +36,14 @@ class CHHABRA_2014(Reference):
     _AGE_RANGE_MALE   = (18, 71)
     _AGE_RANGE_FEMALE = (18, 65)
 
-    def __init__(self):
-        self._age_range = (18, 71)
+    _age_range = (18, 71)
 
-    def _compute_raw(self, sex: int, age: float, height: float, weight, parameter: int):
-        """Return (model_output, SEE, is_log_transformed) or (pd.NA, pd.NA, False)."""
-        param = self.Parameters(parameter)
-        m = sex == self.Sex.MALE.value
-        age_range = self._AGE_RANGE_MALE if m else self._AGE_RANGE_FEMALE
-        age = self.validate_range(age, age_range, 'age')
-        if age is pd.NA:
-            return pd.NA, pd.NA, False
-
+    def _model(self, m: bool, param, age, height, weight):
+        """(model_output, SEE, is_log_transformed) of the published equation, or None where it does not apply."""
         if m:
             if param == self.Parameters.FVC:
                 if weight is None:
-                    return pd.NA, pd.NA, False
+                    return None
                 return (-5.048 - 0.014 * age + 0.054 * height + 0.006 * weight, 0.479, False)
             elif param == self.Parameters.FEV1:
                 return (-3.682 - 0.024 * age + 0.046 * height, 0.402, False)
@@ -64,11 +55,11 @@ class CHHABRA_2014(Reference):
                 return (0.573 - 0.016 * age + 0.008 * height, 0.262, True)
             elif param == self.Parameters.FEF75:
                 if weight is None:
-                    return pd.NA, pd.NA, False
+                    return None
                 return (-0.584 - 0.055 * age + 0.015 * height - 0.005 * weight + 0.000318 * age**2, 0.346, True)
             elif param == self.Parameters.FEV1FVC:
                 if weight is None:
-                    return pd.NA, pd.NA, False
+                    return None
                 return (102.56 - 0.679 * age + 0.00477 * age**2 - 0.080 * weight, 5.79, False)
         else:
             if param == self.Parameters.FVC:
@@ -86,37 +77,39 @@ class CHHABRA_2014(Reference):
             elif param == self.Parameters.FEV1FVC:
                 return (97.182 - 0.440 * age, 4.97, False)
 
-        return pd.NA, pd.NA, False
+        return None
 
-    def _predicted(self, sex, age, height, weight, parameter):
-        model_out, _, is_log = self._compute_raw(sex, age, height, weight, parameter)
-        if model_out is pd.NA:
-            return pd.NA
-        return math.exp(model_out) if is_log else model_out
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        param = self.Parameters(parameter)
+        m = sex == self.Sex.MALE.value
+        age, na = self._validated(age, self._AGE_RANGE_MALE if m else self._AGE_RANGE_FEMALE, 'age')
+        if self._all_na(na):
+            return RegressionResult.missing()
+
+        model = self._model(m, param, age, height, weight)
+        if model is None:
+            return RegressionResult.missing()
+        out, see, is_log = model
+        if is_log:
+            return RegressionResult(self._exp(out), lln=self._exp(out - 1.645 * see),
+                                    uln=self._exp(out + 1.645 * see),
+                                    center=out, scale=see, log_z=True, na=na)
+        return RegressionResult(out, lln=out - 1.645 * see, uln=out + 1.645 * see,
+                                center=out, scale=see, na=na)
 
     def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        pred = self._predicted(sex, age, height, weight, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
+        return self._percent(self._scalar_regression(sex, age, height, ethnicity, weight, parameter), value)
 
     def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        model_out, see, is_log = self._compute_raw(sex, age, height, weight, parameter)
-        if model_out is pd.NA:
-            return pd.NA
-        if is_log:
-            return (math.log(value) - model_out) / see
-        return (value - model_out) / see
+        return self._zscore(self._scalar_regression(sex, age, height, ethnicity, weight, parameter), value)
 
     def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
         return pd.NA, pd.NA, pd.NA
 
     def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        model_out, see, is_log = self._compute_raw(sex, age, height, weight, parameter)
-        if model_out is pd.NA:
-            return pd.NA
-        return math.exp(model_out - 1.645 * see) if is_log else model_out - 1.645 * see
+        return self._lln(self._scalar_regression(sex, age, height, ethnicity, weight, parameter))
 
     def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None, weight=None):
-        model_out, see, is_log = self._compute_raw(sex, age, height, weight, parameter)
-        if model_out is pd.NA:
-            return pd.NA
-        return math.exp(model_out + 1.645 * see) if is_log else model_out + 1.645 * see
+        return self._uln(self._scalar_regression(sex, age, height, ethnicity, weight, parameter))

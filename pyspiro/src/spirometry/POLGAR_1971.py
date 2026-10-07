@@ -1,10 +1,8 @@
-from ..reference import Reference
+from ..reference import PredictedValueReference, RegressionResult
 from enum import Enum
-import importlib.resources
-import pandas as pd
 
 
-class POLGAR_1971(Reference):
+class POLGAR_1971(PredictedValueReference):
     """
     Polgar (1971) spirometry reference equations for children.
 
@@ -31,47 +29,26 @@ class POLGAR_1971(Reference):
     _AGE_RANGE = (4, 17)
     _HEIGHT_RANGE = (110.0, 170.0)    # 43.3–67 in
 
-    def __init__(self):
-        self._age_range = self._AGE_RANGE
-        with (importlib.resources.files('pyspiro.data') / 'polgar_1971_coefficients.csv').open('rb') as f:
-            df = pd.read_csv(f, delimiter=';')
-        df.set_index(['parameter', 'sex'], inplace=True)
-        self._coefficients = df
+    _age_range = _AGE_RANGE
+    _coeffs_csv = 'polgar_1971_coefficients.csv'
+    _coeffs_index = ('parameter', 'sex')
 
-    def _compute(self, sex: int, age: float, height: float, parameter: int):
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
         param_name = self.Parameters(parameter).name
         sex_name = self.Sex(sex).name.lower()
 
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
+        height, na = self._validated(height, self._HEIGHT_RANGE, 'height', na)
+        if self._all_na(na):
+            return RegressionResult.missing()
 
-        height = self.validate_range(height, self._HEIGHT_RANGE, 'height')
-        if height is pd.NA:
-            return pd.NA
-
-        try:
-            row = self._coefficients.loc[(param_name, sex_name)]
-        except KeyError:
-            return pd.NA
+        row = self._row((param_name, sex_name))
+        if row is None:
+            return RegressionResult.missing()
 
         if row['type'] == 'power':
-            return float(row['coeff_a']) * (height ** float(row['coeff_b']))
+            return RegressionResult(float(row['coeff_a']) * (height ** float(row['coeff_b'])), na=na)
         else:
-            return (float(row['coeff_a']) + float(row['coeff_b']) * height) / float(row['divisor'])
-
-    def percent(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        pred = self._compute(sex, age, height, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
-
-    def zscore(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def lms(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA, pd.NA, pd.NA
-
-    def lln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
-
-    def uln(self, sex, age, height, ethnicity=None, parameter=None, value=None):
-        return pd.NA
+            return RegressionResult((float(row['coeff_a']) + float(row['coeff_b']) * height) / float(row['divisor']), na=na)

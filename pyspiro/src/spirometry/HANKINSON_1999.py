@@ -1,10 +1,11 @@
-from ..reference import Reference
+from ..reference import RegressionReference, RegressionResult
 from enum import Enum
 import importlib.resources
+import numpy
 import pandas as pd
 
 
-class HANKINSON_1999(Reference):
+class HANKINSON_1999(RegressionReference):
     """
     NHANES III spirometry reference equations (Hankinson et al. 1999).
 
@@ -92,67 +93,67 @@ class HANKINSON_1999(Reference):
 
         return df_t45, df_t6
 
-    def _age_group(self, sex: int, age: float) -> str:
+    def _age_group(self, sex: int, age):
+        """'child' or 'adult'; age may be a scalar or an array."""
         threshold = self._CHILD_MAX_AGE_MALE if sex == self.Sex.MALE.value else self._CHILD_MAX_AGE_FEMALE
+        if isinstance(age, numpy.ndarray):
+            return numpy.where(age <= threshold, 'child', 'adult')
         return 'child' if age <= threshold else 'adult'
 
-    def _compute(self, sex: int, age: float, height: float, ethnicity: int, parameter: int):
-        """
-        Return (predicted, lln) or (pd.NA, pd.NA) on failure.
-        ULN = 2*predicted - lln; SEE = (predicted - lln) / 1.645.
-        """
-        age = self.validate_range(age, self._AGE_RANGE, 'age')
-        if age is pd.NA:
-            return pd.NA, pd.NA
+    @staticmethod
+    def _result(pred, lln_val, na) -> RegressionResult:
+        # ULN = 2*predicted - lln; SEE = (predicted - lln) / 1.645
+        return RegressionResult(pred, lln=lln_val, uln=2.0 * pred - lln_val,
+                                center=pred, scale=(pred - lln_val) / 1.645, na=na)
+
+    _ARRAY_REGRESSION = True
+
+    def _regression(self, sex, age, height, ethnicity, weight, parameter) -> RegressionResult:
+        age, na = self._validated(age, self._AGE_RANGE, 'age')
+        if self._all_na(na):
+            return RegressionResult.missing()
 
         param_name = self.Parameters(parameter).name
         sex_name   = self.Sex(sex).name.lower()
         eth_name   = self.Ethnicity(ethnicity).name.lower()
 
         if param_name in self._T4_T5_PARAMS:
-            age_group = self._age_group(sex, age)
-            h_range = self._HEIGHT_RANGES.get((sex_name, eth_name, age_group))
-            if h_range is None:
-                return pd.NA, pd.NA
-            height = self.validate_range(height, h_range, 'height')
-            if height is pd.NA:
-                return pd.NA, pd.NA
-            try:
-                row = self._coeff_t45.loc[(param_name, sex_name, eth_name, age_group)]
-            except KeyError:
-                if not self._silent:
-                    print(
+            def age_group_rows(age_group, na, age, height):
+                h_range = self._HEIGHT_RANGES.get((sex_name, eth_name, age_group))
+                if h_range is None:
+                    return RegressionResult.missing()
+                height, na = self._validated(height, h_range, 'height', na)
+                if self._all_na(na):
+                    return RegressionResult.missing()
+                row = self._row((param_name, sex_name, eth_name, age_group), self._coeff_t45)
+                if row is None:
+                    self._notify(
                         f"HANKINSON_1999: no coefficients for "
-                        f"({param_name}, {sex_name}, {eth_name}, {age_group})"
-                    )
-                return pd.NA, pd.NA
+                        f"({param_name}, {sex_name}, {eth_name}, {age_group})", age)
+                    return RegressionResult.missing()
+                ht2  = height ** 2
+                base = (float(row['a0_pred'])
+                        + float(row['a1_age'])  * age
+                        + float(row['a2_age2']) * age ** 2)
+                pred    = base + float(row['a3_ht2_pred']) * ht2
+                lln_val = base + float(row['a3_ht2_lln'])  * ht2
+                return self._result(pred, lln_val, na)
 
-            ht2  = height ** 2
-            base = (float(row['a0_pred'])
-                    + float(row['a1_age'])  * age
-                    + float(row['a2_age2']) * age ** 2)
-            pred    = base + float(row['a3_ht2_pred']) * ht2
-            lln_val = base + float(row['a3_ht2_lln'])  * ht2
+            return self._per_key(self._age_group(sex, age), na, age_group_rows, age, height)
 
         elif param_name in self._T6_PARAMS:
-            try:
-                row = self._coeff_t6.loc[(param_name, sex_name, eth_name)]
-            except KeyError:
-                if not self._silent:
-                    print(
-                        f"HANKINSON_1999: no coefficients for "
-                        f"({param_name}, {sex_name}, {eth_name})"
-                    )
-                return pd.NA, pd.NA
-
+            row = self._row((param_name, sex_name, eth_name), self._coeff_t6)
+            if row is None:
+                self._notify(
+                    f"HANKINSON_1999: no coefficients for "
+                    f"({param_name}, {sex_name}, {eth_name})", age)
+                return RegressionResult.missing()
             age_term = float(row['a1_age']) * age
             pred     = float(row['a0_pred']) + age_term
             lln_val  = float(row['a0_lln'])  + age_term
+            return self._result(pred, lln_val, na)
 
-        else:
-            return pd.NA, pd.NA
-
-        return pred, lln_val
+        return RegressionResult.missing()
 
     # ── Abstract method implementations ────────────────────────────────────────
 
@@ -161,43 +162,35 @@ class HANKINSON_1999(Reference):
         Return (l=1, m=predicted, s=SEE/m) for base-class formula compatibility.
         With l=1: z = (value-m)/SEE, LLN = m - 1.645*SEE, ULN = m + 1.645*SEE.
         """
-        pred, lln_val = self._compute(sex, age, height, ethnicity, parameter)
-        if pred is pd.NA or pred == lln_val:
+        r = self._scalar_regression(sex, age, height, ethnicity, None, parameter)
+        if r is None or r.pred == r.lln:
             return pd.NA, pd.NA, pd.NA
-        see = (pred - lln_val) / 1.645
-        return 1.0, pred, see / pred
+        return 1.0, r.pred, r.scale / r.pred
 
     def percent(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """Return % of predicted."""
-        pred, _ = self._compute(sex, age, height, ethnicity, parameter)
-        return pd.NA if pred is pd.NA else round(value / pred * 100, 2)
+        return self._percent(self._scalar_regression(sex, age, height, ethnicity, None, parameter), value)
 
     def zscore(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """Return z-score: (observed - predicted) / SEE."""
-        pred, lln_val = self._compute(sex, age, height, ethnicity, parameter)
-        if pred is pd.NA or pred == lln_val:
-            return pd.NA
-        return (value - pred) / ((pred - lln_val) / 1.645)
+        return self._zscore(self._scalar_regression(sex, age, height, ethnicity, None, parameter), value)
 
     def lln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """Return LLN (5th percentile) directly from the paper's LLN equation."""
-        _, lln_val = self._compute(sex, age, height, ethnicity, parameter)
-        return lln_val
+        return self._lln(self._scalar_regression(sex, age, height, ethnicity, None, parameter))
 
     def uln(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """Return ULN (95th percentile): 2*Predicted - LLN (symmetric around predicted)."""
-        pred, lln_val = self._compute(sex, age, height, ethnicity, parameter)
-        return pd.NA if pred is pd.NA else 2.0 * pred - lln_val
+        return self._uln(self._scalar_regression(sex, age, height, ethnicity, None, parameter))
 
     def all(self, sex: int, age: float, height: float, ethnicity: int, parameter: int, value: float):
         """Return (percent, z-score, lln, uln) in a single call."""
-        pred, lln_val = self._compute(sex, age, height, ethnicity, parameter)
-        if pred is pd.NA:
+        r = self._scalar_regression(sex, age, height, ethnicity, None, parameter)
+        if r is None:
             return pd.NA, pd.NA, pd.NA, pd.NA
-        see = (pred - lln_val) / 1.645 if pred != lln_val else 0
         return (
-            round(value / pred * 100, 2),
-            (value - pred) / see if see != 0 else pd.NA,
-            lln_val,
-            2.0 * pred - lln_val,
+            self._percent(r, value),
+            self._zscore(r, value),
+            r.lln,
+            r.uln,
         )

@@ -1,7 +1,6 @@
 from ..reference import SplineReference
 from enum import Enum
 import numpy
-import pandas
 
 
 class GLI_2017(SplineReference):
@@ -9,12 +8,14 @@ class GLI_2017(SplineReference):
     GLI 2017 lung diffusion capacity reference equations (Stanojevic et al. 2017).
 
     Global Lung Function Initiative reference equations for the carbon monoxide
-    transfer factor in Caucasians. Covers both sexes, age range 5-80 years.
+    transfer factor in Caucasians. Covers both sexes, age range 5-90 years.
     This implementation uses the corrected 2020 erratum values.
 
     Variables: sex (0=female, 1=male), age (years), height (cm).
     Parameters: TLCO (SI), DLCO (traditional), KCO (SI), KCO (traditional), VA.
     No ethnicity stratification (Caucasian population only).
+    Splines are linearly interpolated between the quarter-year rows of the
+    look-up tables, as in the authors' calculator (online supplement 4).
 
     Citation:
         Stanojevic S, Graham BL, Cooper BG, et al.; GLI TLCO working group.
@@ -35,15 +36,13 @@ class GLI_2017(SplineReference):
         KCO_trad = 4   # Traditional units (mL/min/mmHg/L)
         VA = 5
 
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
-        if age is pandas.NA:
-            return pandas.NA, pandas.NA, pandas.NA
+        return self._spline_lms(sex, age, height, None, parameter)
 
-        sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
-
+    def _lms_equation(self, c, parameter, age, height, ethnicity, sspline, mspline, lspline) -> tuple:
         l = c.loc["q0"]
         m = numpy.exp(c.loc["a0"] + (c.loc["a1"] * numpy.log(height)) + (c.loc["a2"] * numpy.log(age)) + mspline)
         s = numpy.exp(c.loc["p0"] + (c.loc["p1"] * numpy.log(age)) + sspline)

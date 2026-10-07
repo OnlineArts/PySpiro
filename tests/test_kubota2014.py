@@ -155,10 +155,10 @@ class TestKubota2014AgeFlooring(unittest.TestCase):
         self.k = KUBOTA_2014()
 
     def test_fractional_age_uses_integer_splines(self):
-        # __get_splines returns (Sspline, Mspline, Lspline)
+        # _splines_at returns (Sspline, Mspline, Lspline)
         # Both int(40.0)=40 and int(40.7)=40 produce identical Sspline values
-        sspline1, _, _ = self.k._KUBOTA_2014__get_splines(M, 40, KUBOTA_2014.Parameters.FEV1.value)
-        sspline2, _, _ = self.k._KUBOTA_2014__get_splines(M, 40, KUBOTA_2014.Parameters.FEV1.value)
+        sspline1, _, _ = self.k._splines_at(M, 40, KUBOTA_2014.Parameters.FEV1.value)
+        sspline2, _, _ = self.k._splines_at(M, 40, KUBOTA_2014.Parameters.FEV1.value)
         self.assertAlmostEqual(sspline1, sspline2, places=10)
 
 

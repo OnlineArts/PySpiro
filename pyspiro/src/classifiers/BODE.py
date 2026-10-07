@@ -49,7 +49,8 @@ class BODE(Classifier):
     classify() and score() keyword arguments
     ----------------------------------------
     bmi       : float — body-mass index (kg/m²)
-    fev1p     : float — post-BD FEV1 % predicted (0–100 scale)
+    fev1p     : float — post-BD FEV1 % predicted (0–100 scale; a value <= 1 is
+                read as a fraction and multiplied by 100, so 0.9 means 90 %)
     mmrc      : int   — mMRC dyspnoea score (0–4)
     walk6m    : float — six-minute walk distance (metres)
 

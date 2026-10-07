@@ -168,17 +168,17 @@ class TestATSERS2022(unittest.TestCase):
                                    FEV1FVC_z=0.3, TLC_z=-2.5)
         self.assertEqual(result, ATS_ERS_2022.RESTRICTIVE)
 
-    # ── Non-specific (NSIP) ─────────────────────────────────────────────────
+    # ── Non-specific pattern ────────────────────────────────────────────────
 
     def test_nsip_tlc_normal_despite_low_fvc(self):
         result = self.clf.classify(FEV1_z=-1.8, FVC_z=-2.0,
                                    FEV1FVC_z=0.3, TLC_z=0.5)
-        self.assertEqual(result, ATS_ERS_2022.NSIP)
+        self.assertEqual(result, ATS_ERS_2022.NON_SPECIFIC)
 
     def test_nsip_discordant_fev1_low_fvc_normal(self):
         # Unusual pattern: FEV1 < LLN with normal FVC and ratio
         result = self.clf.classify(FEV1_z=-2.0, FVC_z=0.5, FEV1FVC_z=0.3)
-        self.assertEqual(result, ATS_ERS_2022.NSIP)
+        self.assertEqual(result, ATS_ERS_2022.NON_SPECIFIC)
 
     # ── TLC_z value handling ────────────────────────────────────────────────
 
@@ -217,7 +217,10 @@ class TestATSERS2022(unittest.TestCase):
         self.assertEqual(ATS_ERS_2022.OBSTRUCTIVE, "Obstructive")
         self.assertEqual(ATS_ERS_2022.MIXED, "Mixed obstructive-restrictive")
         self.assertEqual(ATS_ERS_2022.RESTRICTIVE, "Restrictive")
-        self.assertEqual(ATS_ERS_2022.NSIP, "Non-specific (NSIP)")
+        self.assertEqual(ATS_ERS_2022.NON_SPECIFIC, "Non-specific pattern")
+
+    def test_nsip_is_deprecated_alias(self):
+        self.assertIs(ATS_ERS_2022.NSIP, ATS_ERS_2022.NON_SPECIFIC)
 
     def test_order_contains_all_patterns(self):
         order = self.clf.get_order()
@@ -227,7 +230,7 @@ class TestATSERS2022(unittest.TestCase):
         self.assertIn(ATS_ERS_2022.MIXED, order)
         self.assertIn(ATS_ERS_2022.POSSIBLE_RESTRICTION, order)
         self.assertIn(ATS_ERS_2022.RESTRICTIVE, order)
-        self.assertIn(ATS_ERS_2022.NSIP, order)
+        self.assertIn(ATS_ERS_2022.NON_SPECIFIC, order)
         self.assertEqual(len(order), 7)
 
 

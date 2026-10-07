@@ -52,6 +52,16 @@ class SCAPIS_2023(LMSReference):
         for i in ("SSpline", "MSpline"):
             yield self.__lookup.loc[age, ("%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower()), i)]
 
+    @staticmethod
+    def _equation(c, age, height, sspline, mspline) -> tuple:
+        """The (L, M, S) equation; accepts scalars and NumPy arrays alike."""
+        m = numpy.exp(c.loc["M1"] + (c.loc["M2"] * numpy.log(height)) + (c.loc["M3"] * numpy.log(age)) + mspline)
+        s = numpy.exp(c.loc["S1"] + (c.loc["S2"] * numpy.log(age)) + sspline)
+        l = c.loc['L']
+        return l, m, s
+
+    _ARRAY_LMS = True
+
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
         age = self.validate_range(round(age * 10) / 10, self._age_range, "age")
@@ -60,9 +70,20 @@ class SCAPIS_2023(LMSReference):
 
         sspline, mspline = self.__get_splines(sex, age, parameter)
         c = self.__coefficients["%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        return self._equation(c, age, height, sspline, mspline)
 
-        m = numpy.exp(c.loc["M1"] + (c.loc["M2"] * numpy.log(height)) + (c.loc["M3"] * numpy.log(age)) + mspline)
-        s = numpy.exp(c.loc["S1"] + (c.loc["S2"] * numpy.log(age)) + sspline)
-        l = c.loc['L']
-
-        return l, m, s
+    def _sex_lms_arrays(self, sex: int, age, height, ethnicity, parameter) -> tuple:
+        if numpy.isnan(age).any():
+            raise ValueError("cannot convert float NaN to integer")    # as round(age * 10) in lms()
+        column = "%s_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())
+        # numpy.round rounds half to even, as round() does
+        age, na = self._validate_range_array(numpy.round(age * 10) / 10, self._age_range, "age")
+        age = numpy.where(na, self._age_range[0], age)
+        positions = self.__lookup.index.get_indexer(age)
+        if (positions < 0).any():
+            raise KeyError("SCAPIS_2023: age not in the spline table")    # as .loc in lms()
+        sspline, mspline = (self.__lookup[(column, name)].to_numpy(dtype=float)[positions]
+                            for name in ("SSpline", "MSpline"))
+        with numpy.errstate(all="ignore"):
+            l, m, s = self._equation(self.__coefficients[column], age, height, sspline, mspline)
+        return l, m, s, na
