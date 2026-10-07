@@ -55,7 +55,7 @@ class KUSTER_2008(Reference):
         return pd.NA
 
     def _check_conditions(self, sex: int, age: float, height: float):
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
+        age = self.validate_range(age, self._age_range, "age")
         height_range = self._height_female_range if sex == self.Sex["FEMALE"].value else self._height_male_range
         height = self.validate_range(height, height_range, "height")
         sex = self.check_tuple(sex, (0,1), "sex")

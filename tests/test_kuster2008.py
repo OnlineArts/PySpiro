@@ -1,3 +1,4 @@
+import math
 import unittest
 import pandas as pd
 from pyspiro import KUSTER_2008
@@ -62,6 +63,15 @@ class TestKuster2008LLN(unittest.TestCase):
 
     def setUp(self):
         self.k = KUSTER_2008()
+
+    def test_lln_uses_exact_age(self):
+        # Closed-form equation evaluated at the exact age (no snapping to 0.25 y):
+        # male FEV1 LLN = exp(-9.111 + 2.014 ln(H) + 0.00102A - 0.000105A^2)
+        for age in (40.0, 40.1, 40.13):
+            with self.subTest(age=age):
+                expected = math.exp(-9.111 + 2.014 * math.log(175) + 0.00102 * age - 0.000105 * age ** 2)
+                result = self.k.lln(M, age, 175, 1, KUSTER_2008.Parameters.FEV1_LLN, 0)
+                self.assertAlmostEqual(result, expected, places=12)
 
     def test_lln_returns_float(self):
         result = self.k.lln(M, 40, 175, 1, KUSTER_2008.Parameters.FEV1_LLN, 3.5)

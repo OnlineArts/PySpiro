@@ -281,7 +281,7 @@ results = gli.compute(
     df,
     GLI_2012.Parameters.FEV1,
     value_col='fev1',
-    ethnicity_col='eth',     # 1=Caucasian, 2=African-American, 3=NE Asian, 4=SE Asian
+    ethnicity_col='eth',     # 1=Caucasian, 2=African-American, 3=NE Asian, 4=SE Asian, 5=Other/mixed
 )
 # DataFrame with columns: percent, zscore, lln, uln — same index as df
 df[['fev1_pct', 'fev1_z', 'fev1_lln', 'fev1_uln']] = results
