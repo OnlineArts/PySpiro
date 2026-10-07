@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 import inspect
+import math
 
 import numpy
 import pandas
@@ -326,14 +327,19 @@ class SplineReference(LMSReference):
         _coeffs_csv  : filename of the var-indexed coefficient table in pyspiro.data
 
     The constructor loads both CSVs and stores them as self._lookup and
-    self._splines_data. The _get_splines() helper yields (Sspline, Mspline,
-    Lspline) for a given sex/age/parameter combination.
+    self._coefficients. The _get_splines() helper yields (Sspline, Mspline,
+    Lspline) from the table row of a given age; _age_and_splines() validates
+    the age and linearly interpolates the splines between the rows, as
+    prescribed for the GLI equations (Quanjer 2012 online supplement,
+    section 4; the GLI-2017 TLCO calculator does the same).
 
     Subclasses only need to implement lms(); everything else is inherited.
     """
 
     _splines_csv: str
     _coeffs_csv: str
+
+    _AGE_STEP = 0.25
 
     def __init__(self):
         import importlib.resources
@@ -345,13 +351,45 @@ class SplineReference(LMSReference):
         self._age_range = (min(lookup.index), max(lookup.index))
         self._lookup = lookup
         self._coefficients = splines
+        # Some tables end earlier for some parameters (GLI_2012 FEF25-75/FEF75: 90 y)
+        self._spline_age_ranges = {
+            column[:-len("_Mspline")]: (min(ages), max(ages))
+            for column in lookup.columns if column.endswith("_Mspline")
+            for ages in [lookup[column].dropna().index]
+        }
+
+    def _spline_prefix(self, sex: int, parameter: int) -> str:
+        return "%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())
 
     def _get_splines(self, sex: int, age: float, parameter: int):
         """Yield (Sspline, Mspline, Lspline) from the age-indexed lookup table."""
+        prefix = self._spline_prefix(sex, parameter)
         for i in ("Sspline", "Mspline", "Lspline"):
-            yield self._lookup[
-                "%s_%ss_%s" % (self.Parameters(parameter).name, self.Sex(sex).name.lower(), i)
-            ].loc[age]
+            yield self._lookup["%s_%s" % (prefix, i)].loc[age]
+
+    def _interpolated_splines(self, sex: int, age: float, parameter: int, age_range: tuple) -> tuple:
+        """Return (Sspline, Mspline, Lspline) linearly interpolated between the table rows around age."""
+        lower = math.floor(age / self._AGE_STEP) * self._AGE_STEP
+        weight = (age - lower) / self._AGE_STEP
+        lower_splines = tuple(self._get_splines(sex, lower, parameter))
+        if weight == 0:
+            return lower_splines
+        upper = min(lower + self._AGE_STEP, age_range[1])
+        upper_splines = tuple(self._get_splines(sex, upper, parameter))
+        return tuple((1 - weight) * x + weight * y for x, y in zip(lower_splines, upper_splines))
+
+    def _age_and_splines(self, sex: int, age: float, parameter: int) -> tuple:
+        """
+        Validate age against the parameter's look-up table and return
+        (age, Sspline, Mspline, Lspline). The age is kept exact (or clamped by
+        the 'closest' strategy) for the closed-form terms of the equation.
+        Returns (NA, NA, NA, NA) when the age is out of range.
+        """
+        age_range = self._spline_age_ranges[self._spline_prefix(sex, parameter)]
+        age = self.validate_range(age, age_range, "age")
+        if age is NA:
+            return NA, NA, NA, NA
+        return (age,) + self._interpolated_splines(sex, age, parameter, age_range)
 
 
 class Classifier(ABC):

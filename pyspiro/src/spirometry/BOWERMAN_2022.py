@@ -15,6 +15,8 @@ class BOWERMAN_2022(SplineReference):
     Variables: sex (0=female, 1=male), age (years), height (cm).
     Parameters: FEV1, FVC, FEV1/FVC.
     No ethnicity stratification (race-neutral design).
+    Splines are linearly interpolated between the quarter-year rows of the
+    look-up tables (see SplineReference._age_and_splines).
 
     Citation:
         Bowerman C, Bhakta NR, Brazzale D, et al. A Race-neutral Approach to
@@ -32,12 +34,11 @@ class BOWERMAN_2022(SplineReference):
 
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
+        age, sspline, mspline, lspline = self._age_and_splines(sex, age, parameter)
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
 
-        sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients[self._spline_prefix(sex, parameter)]
 
         if self.Parameters(parameter) in (self.Parameters.FEV1, self.Parameters.FVC):
             l = c.loc["q0"]

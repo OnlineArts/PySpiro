@@ -1,3 +1,4 @@
+import math
 import unittest
 import pandas as pd
 from pyspiro import GLI_2021
@@ -141,6 +142,44 @@ class TestGLI2021ReferenceValues(unittest.TestCase):
         # entered as a percentage must give a moderate z-score, not z<-3.
         z = float(self.gli.zscore(M, 40, 175, GLI_2021.Parameters.RV_TLC, 30.0))
         self.assertTrue(-1.0 < z < 3.0)
+
+
+class TestGLI2021Interpolation(unittest.TestCase):
+    """Splines are interpolated linearly between the quarter-year rows; closed-form terms use the exact age."""
+
+    def setUp(self):
+        self.eq = GLI_2021()
+
+    def test_splines_interpolated_between_rows(self):
+        for param in GLI_2021.Parameters:
+            for sex in (M, F):
+                with self.subTest(param=param.name, sex=sex):
+                    lo = list(self.eq._get_splines(sex, 40.0, param))
+                    hi = list(self.eq._get_splines(sex, 40.25, param))
+                    age, *mid = self.eq._age_and_splines(sex, 40.1, param)
+                    self.assertEqual(age, 40.1)
+                    for a, b, x in zip(lo, hi, mid):
+                        if pd.isna(a):
+                            continue
+                        self.assertAlmostEqual(x, 0.6 * a + 0.4 * b, places=12)
+
+    def test_predicted_value_at_age_between_rows(self):
+        c = self.eq._coefficients["FRC_males"]
+        _, mspline, _ = [0.6 * a + 0.4 * b for a, b in zip(self.eq._get_splines(M, 40.0, GLI_2021.Parameters.FRC),
+                                                              self.eq._get_splines(M, 40.25, GLI_2021.Parameters.FRC))]
+        expected = math.exp(c.loc["a0"] + c.loc["a1"] * math.log(40.1) + c.loc["a2"] * math.log(170) + mspline)
+        _, m, _ = self.eq.lms(M, 40.1, 170, GLI_2021.Parameters.FRC, 1.0)
+        self.assertAlmostEqual(m, expected, places=12)
+
+    def test_quarter_year_ages_use_table_row(self):
+        age, *splines = self.eq._age_and_splines(M, 40.25, GLI_2021.Parameters.FRC)
+        self.assertEqual(splines, list(self.eq._get_splines(M, 40.25, GLI_2021.Parameters.FRC)))
+
+    def test_ages_between_rows_outside_range_return_na(self):
+        low, high = self.eq._age_range
+        self.assertFalse(pd.isna(self.eq.lms(M, high, 170, GLI_2021.Parameters.FRC, 1.0)[1]))
+        self.assertTrue(pd.isna(self.eq.lms(M, high + 0.1, 170, GLI_2021.Parameters.FRC, 1.0)[1]))
+        self.assertTrue(pd.isna(self.eq.lms(M, low - 0.1, 170, GLI_2021.Parameters.FRC, 1.0)[1]))
 
 
 if __name__ == "__main__":

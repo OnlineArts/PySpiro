@@ -14,6 +14,8 @@ class GLI_2021(SplineReference):
     Variables: sex (0=female, 1=male), age (years), height (cm).
     Parameters: FRC, TLC, RV, RV/TLC, ERV, IC, VC.
     No ethnicity stratification (European ancestry only).
+    Splines are linearly interpolated between the quarter-year rows of the
+    look-up tables (see SplineReference._age_and_splines).
 
     Units: absolute volumes (FRC, TLC, RV, ERV, IC, VC) are in litres; RV/TLC
     is modelled as a percentage (~15-45), so a measured ratio must be supplied
@@ -40,12 +42,11 @@ class GLI_2021(SplineReference):
 
     def lms(self, sex: int, age: float, height: float, parameter: int, value: float) -> tuple:
         """Return the (L, M, S) triplet for the given inputs."""
-        age = self.validate_range(round(age * 4) / 4, self._age_range, "age")
+        age, sspline, mspline, lspline = self._age_and_splines(sex, age, parameter)
         if age is pandas.NA:
             return pandas.NA, pandas.NA, pandas.NA
 
-        sspline, mspline, lspline = self._get_splines(sex, age, parameter)
-        c = self._coefficients["%s_%ss" % (self.Parameters(parameter).name, self.Sex(sex).name.lower())]
+        c = self._coefficients[self._spline_prefix(sex, parameter)]
         param = self.Parameters(parameter)
 
         a0, a1, a2 = float(c.loc["a0"]), float(c.loc["a1"]), float(c.loc["a2"])
