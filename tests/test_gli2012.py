@@ -154,7 +154,14 @@ class TestGLI2012All(unittest.TestCase):
 
 
 class TestGLI2012WorkedExamples(unittest.TestCase):
-    """Worked examples 4.3.1 and 4.3.2 of the GLI-2012 online supplement (Quanjer 2012)."""
+    """
+    Worked examples 4.3.1-4.3.4 of the GLI-2012 online supplement (Quanjer 2012).
+
+    Printed values not checked, because they follow from the source rather than the method:
+    LLN in 4.3.2-4.3.4 (computed with z = 1.644), M in 4.3.3 (Mspline rounded to -0.0404),
+    S, LLN and z in 4.3.3 (printed S = 0.1395 contradicts its own formula, 0.1385), and
+    M in 4.3.4 (supplement Table E6 a5 = -0.1206; the look-up workbook has -0.1208).
+    """
 
     def setUp(self):
         self.gli = GLI_2012()
@@ -168,6 +175,7 @@ class TestGLI2012WorkedExamples(unittest.TestCase):
         self.assertAlmostEqual(l, 1.0199, places=4)
         self.assertAlmostEqual(self.gli.percent(M, 4.8, 107, E_W, self.fev1, 0.800), 76.6, places=1)
         self.assertAlmostEqual(self.gli.zscore(M, 4.8, 107, E_W, self.fev1, 0.800), -1.80, places=2)
+        self.assertAlmostEqual(self.gli.lln(M, 4.8, 107, E_W, self.fev1, 0.800), 0.8212, places=4)
 
     def test_african_american_boy_4_3_2(self):
         # 12.2 y, 152 cm, FEV1 = 2.405 L
@@ -177,6 +185,20 @@ class TestGLI2012WorkedExamples(unittest.TestCase):
         self.assertAlmostEqual(l, 1.0992, places=4)
         self.assertAlmostEqual(self.gli.percent(M, 12.2, 152, E_B, self.fev1, 2.405), 110.0, places=1)
         self.assertAlmostEqual(self.gli.zscore(M, 12.2, 152, E_B, self.fev1, 2.405), 0.78, places=2)
+
+    def test_south_east_asian_man_4_3_3(self):
+        # 53 y, 175 cm, FEV1 = 2.410 L
+        l, _, _ = self.gli.lms(M, 53, 175, E_SE, self.fev1, 2.410)
+        self.assertAlmostEqual(l, 1.2241, places=4)
+        self.assertAlmostEqual(self.gli.percent(M, 53, 175, E_SE, self.fev1, 2.410), 71.1, places=1)
+
+    def test_south_east_asian_woman_4_3_4(self):
+        # 39.1 y, 165 cm, FEV1 = 2.210 L
+        l, _, s = self.gli.lms(F, 39.1, 165, E_SE, self.fev1, 2.210)
+        self.assertAlmostEqual(s, 0.1302, places=4)
+        self.assertAlmostEqual(l, 1.1540, places=4)
+        self.assertAlmostEqual(self.gli.percent(F, 39.1, 165, E_SE, self.fev1, 2.210), 79.5, places=1)
+        self.assertAlmostEqual(self.gli.zscore(F, 39.1, 165, E_SE, self.fev1, 2.210), -1.55, places=2)
 
 
 class TestGLI2012Interpolation(unittest.TestCase):
